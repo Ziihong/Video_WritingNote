@@ -72,6 +72,16 @@
             Continue
           </v-btn>
         </v-card-actions>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            nuxt
+            to="/login"
+          >
+            Login
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-col>
   </v-row>
