@@ -42,7 +42,7 @@
               id ="loginBtn"
               color="primary"
               nuxt
-              @click="checkClick()"
+              @click="checkLogin()"
               :to="login ? '/' : '/login'"
             >
             log in
@@ -79,7 +79,7 @@ export default {
       email: '',
       show1: false,
       password: '',
-      login: true,
+      login: false,
       rules: {
         required: value => !!value || 'Required.',
         min: v => v.length >= 8 || 'Min 8 characters',
@@ -91,11 +91,11 @@ export default {
     }
   },
   methods: {
-    checkClick(){
+    checkLogin(){
       this.login = true;
       //:to="login ? '/' : '/login'"
       if(this.login){
-        //to='/';
+        location.replace('http://localhost:3000/');
       }
       console.log("login:",this.login);
     }
