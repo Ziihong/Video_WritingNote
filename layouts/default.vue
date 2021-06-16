@@ -50,6 +50,25 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
+
+      <div id="Login">
+        <v-btn
+          @click.stop="login = !login"
+          :to="'/login'"
+        >
+          log-in
+        </v-btn>
+        </div>
+
+        <div id="Register">
+          <v-btn
+            @click.stop="reg = !reg"
+            :to="'/register'"
+          >
+          register
+        </v-btn>
+      </div>
+
       <v-btn
         icon
         @click.stop="rightDrawer = !rightDrawer"
@@ -57,11 +76,13 @@
         <v-icon>mdi-menu</v-icon>
       </v-btn>
     </v-app-bar>
+
     <v-main>
       <v-container>
         <nuxt />
       </v-container>
     </v-main>
+
     <v-navigation-drawer
       v-model="rightDrawer"
       :right="right"
@@ -95,6 +116,8 @@ export default {
       clipped: false,
       drawer: false,
       fixed: false,
+      login: false,
+      reg: false,
       items: [
         {
           icon: 'mdi-apps',
@@ -105,6 +128,16 @@ export default {
           icon: 'mdi-chart-bubble',
           title: 'Inspire',
           to: '/inspire'
+        },
+        // Login item
+        {
+          title: 'Login',
+          to: '/login'
+        },
+        // Register item
+        {
+          title: 'Register',
+          to: '/register'
         }
       ],
       miniVariant: false,
