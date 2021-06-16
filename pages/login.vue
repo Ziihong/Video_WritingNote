@@ -79,7 +79,7 @@ export default {
       email: '',
       show1: false,
       password: '',
-      login: false,
+      login: true,
       rules: {
         required: value => !!value || 'Required.',
         min: v => v.length >= 8 || 'Min 8 characters',
