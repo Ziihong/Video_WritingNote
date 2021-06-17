@@ -51,30 +51,32 @@
       <v-toolbar-title v-text="title" />
       <v-spacer />
 
-      <div id="Login">
+      <div v-if="!isLoggedIn" id="Login/Register">
         <v-btn
-          @click.stop="login = !login"
           :to="'/login'"
         >
-          log-in
+          <v-icon left dark>
+            mid-account
+          </v-icon>
+          log-in/Register
         </v-btn>
         </div>
 
-        <div id="Register">
+      <div v-else id="Logout">
+        <span >Welcome, {{ authUser.email }}.</span>
+        <span>
           <v-btn
-            @click.stop="reg = !reg"
-            :to="'/register'"
+            dark
+            @click="logout"
           >
-          register
-        </v-btn>
+            <v-icon left>
+            mid-account
+          </v-icon>Logout
+          </v-btn>
+        </span>
+
       </div>
 
-      <v-btn
-        icon
-        @click.stop="rightDrawer = !rightDrawer"
-      >
-        <v-icon>mdi-menu</v-icon>
-      </v-btn>
     </v-app-bar>
 
     <v-main>
@@ -83,41 +85,35 @@
       </v-container>
     </v-main>
 
-    <v-navigation-drawer
-      v-model="rightDrawer"
-      :right="right"
-      temporary
-      fixed
-    >
-      <v-list>
-        <v-list-item @click.native="right = !right">
-          <v-list-item-action>
-            <v-icon light>
-              mdi-repeat
-            </v-icon>
-          </v-list-item-action>
-          <v-list-item-title>Switch drawer (click me)</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
     <v-footer
       :absolute="!fixed"
       app
     >
       <span>&copy; {{ new Date().getFullYear() }}</span>
+      <v-spacer/>
+      <span v-if="isLoggedIn">You are logged in with {{ authUser.email }}.</span>
     </v-footer>
   </v-app>
 </template>
 
 <script>
+
+import {mapGetters, mapState} from "vuex";
+
 export default {
+  computed: {
+    ...mapState({
+      authUser: state => state.authUser,
+    }),
+    ...mapGetters({
+      isLoggedIn: 'isLoggedIn',
+    }),
+  },
   data () {
     return {
       clipped: false,
       drawer: false,
       fixed: false,
-      login: false,
-      reg: false,
       items: [
         {
           icon: 'mdi-apps',
@@ -129,22 +125,20 @@ export default {
           title: 'Inspire',
           to: '/inspire'
         },
-        // Login item
-        {
-          title: 'Login',
-          to: '/login'
-        },
-        // Register item
-        {
-          title: 'Register',
-          to: '/register'
-        }
       ],
       miniVariant: false,
       right: true,
-      rightDrawer: false,
       title: 'Vuetify.js'
     }
+  },
+  methods:{
+    async logout() {
+      try {
+        await this.$fire.auth.signOut()
+      } catch (e) {
+        alert(e)
+      }
+    },
   }
 }
 </script>
