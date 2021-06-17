@@ -51,6 +51,15 @@
       <v-toolbar-title v-text="title" />
       <v-spacer />
       <v-btn
+        to="/login"
+        v-if="!isLoggedIn"
+      >
+        Login
+      </v-btn>
+      <div v-else>
+        <p>Hello {{ authUser.email }}</p>
+      </div>
+      <v-btn
         icon
         @click.stop="rightDrawer = !rightDrawer"
       >
@@ -89,7 +98,17 @@
 </template>
 
 <script>
+import {mapGetters, mapState} from "vuex";
+
 export default {
+  computed: {
+    ...mapState({
+      authUser: state => state.authUser,
+    }),
+    ...mapGetters({
+      isLoggedIn: 'isLoggedIn',
+    }),
+  },
   data () {
     return {
       clipped: false,
@@ -115,7 +134,7 @@ export default {
       miniVariant: false,
       right: true,
       rightDrawer: false,
-      title: 'Vuetify.js'
+      title: 'Login Practice'
     }
   }
 }
