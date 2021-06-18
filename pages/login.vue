@@ -32,14 +32,14 @@
             class="btn"
             color="primary"
             nuxt
-            @click="createUser"
+            to="/register"
           >
             Register
           </v-btn>
         </form>
       <div v-else>
         <p>You are logged in with {{ authUser.email }}.</p>
-        <Btn color="primary" outlined @click="logout">Logout</Btn>
+        <v-btn color="primary" outlined @click="logout">Logout</v-btn>
       </div>
     </v-col>
   </v-row>
@@ -85,7 +85,7 @@ export default {
           this.formData.email,
           this.formData.password
         )
-        await this.$router.push('/');
+        await this.$router.go(-1);
       } catch (e) {
         alert(e)
       }

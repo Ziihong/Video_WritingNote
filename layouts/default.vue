@@ -56,8 +56,14 @@
       >
         Login
       </v-btn>
-      <div v-else>
-        <p>Hello {{ authUser.email }}</p>
+      <div v-else class="toolbar">
+        <p>Hello {{ authUser.nickname }}</p>
+        <v-btn
+          color="primary"
+          @click=$fire.auth.signOut()
+          >
+          Logout
+        </v-btn>
       </div>
       <v-btn
         icon
@@ -99,6 +105,7 @@
 
 <script>
 import {mapGetters, mapState} from "vuex";
+//import  from "/Auth";
 
 export default {
   computed: {
@@ -139,3 +146,10 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.toolbar{
+  display: inline-block;
+  float: left;
+}
+</style>
