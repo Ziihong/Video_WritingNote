@@ -70,5 +70,11 @@ export default {
 </script>
 
 <style scoped>
-
+.input_interface{
+  background-color: white;
+  width : 300px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 20px;
+}
 </style>
