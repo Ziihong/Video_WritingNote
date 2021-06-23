@@ -27,6 +27,14 @@
             Login
           </v-btn>
           <br>
+          <v-btn
+            class="btn"
+            color="primary"
+          >
+            <v-icon left>mdi-google</v-icon>
+            Login with Google
+          </v-btn>
+          <br>
           <p>Doesn't have Account Yet?</p>
           <v-btn
             class="btn"
@@ -101,7 +109,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .login-block{
   display: flex;
   flex-direction: column;
@@ -117,6 +125,6 @@ export default {
 .btn{
   margin-left: auto;
   margin-right: auto;
-  width : 200px;
+  width : 250px;
 }
 </style>

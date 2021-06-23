@@ -1,7 +1,7 @@
 <template>
   <v-row>
     <v-col class="text-center">
-      <form onsubmit="return false;">
+      <form class="login-block" onsubmit="return false;">
         <input
           v-model="formData.email"
           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline input_interface"
@@ -32,6 +32,14 @@
           @click="createUser"
         >
           Register
+        </v-btn>
+        <br>
+        <v-btn
+          class="btn"
+          color="primary"
+        >
+          <v-icon left>mdi-google</v-icon>
+          Register with Google
         </v-btn>
       </form>
     </v-col>
@@ -77,4 +85,5 @@ export default {
   margin-right: auto;
   margin-bottom: 20px;
 }
+
 </style>

@@ -52,6 +52,7 @@
       <v-spacer />
       <v-btn
         to="/login"
+        color="accent"
         v-if="!isLoggedIn"
       >
         Login
@@ -137,6 +138,11 @@ export default {
           icon: 'mdi-account',
           title: 'Login',
           to: '/login'
+        },
+        {
+          icon: 'mdi-folder-multiple',
+          title: 'Mypage',
+          to: '/mypage'
         }
       ],
       miniVariant: false,
