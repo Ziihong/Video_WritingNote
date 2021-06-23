@@ -69,7 +69,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .input_interface{
   background-color: white;
   width : 300px;

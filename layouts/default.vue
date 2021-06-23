@@ -58,6 +58,7 @@
       </v-btn>
       <div v-else class="toolbar">
         <p>Hello {{ authUser.nickname }}</p>
+        <v-spacer></v-spacer>
         <v-btn
           color="primary"
           @click=$fire.auth.signOut()
@@ -149,7 +150,8 @@ export default {
 
 <style scoped>
 .toolbar{
-  display: inline-block;
+  display: flex;
   float: left;
+  width: 300px;
 }
 </style>
