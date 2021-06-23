@@ -66,12 +66,10 @@
         <span >Welcome, {{ authUser.email }}.</span>
         <span>
           <v-btn
-            dark
             @click="logout"
           >
-            <v-icon left>
-            mid-account
-          </v-icon>Logout
+            <v-icon left>mid-account</v-icon>
+            Logout
           </v-btn>
         </span>
 

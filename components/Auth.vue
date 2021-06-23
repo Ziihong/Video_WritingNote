@@ -117,12 +117,11 @@ export default {
           this.formData.email,
           this.formData.password
         )
-        await this.$router.push('/');
+        await this.$router.push('/')
       } catch (e) {
         alert(e)
       }
     },
-
   },
 }
 </script>
