@@ -9,9 +9,12 @@
     "generate": "nuxt generate"
   },
   "dependencies": {
+    "@nuxtjs/firebase": "^7.6.1",
+    "@nuxtjs/pwa": "^3.3.5",
     "core-js": "^3.9.1",
-    "nuxt": "^2.15.7",
-    "yarn": "^1.22.10"
+    "firebase": "^8.6.7",
+    "nuxt": "^2.15.3",
+    "prismjs": "^1.23.0"
   },
   "devDependencies": {
     "@nuxtjs/vuetify": "^1.11.3"
