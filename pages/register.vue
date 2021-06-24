@@ -37,6 +37,7 @@
         <v-btn
           class="btn"
           color="primary"
+          @click="createUserGoogle"
         >
           <v-icon left>mdi-google</v-icon>
           Register with Google
@@ -48,6 +49,7 @@
 
 <script>
 import {mapGetters, mapState} from 'vuex'
+import firebase from "firebase";
 
 export default {
   data: () => ({
@@ -73,6 +75,15 @@ export default {
         alert(e)
       }
     },
+    async createUserGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try{
+        await this.$fire.auth.signInWithPopup(provider);
+        await this.$router.push('/');
+      } catch (e) {
+        alert(e)
+      }
+    }
   },
 }
 </script>

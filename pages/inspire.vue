@@ -14,7 +14,7 @@
           </small>
         </footer>
       </blockquote>
-      <iframe width="956" height="538" v-bind:src=youtubeUrl
+      <iframe width="956" height="538" src="https://www.youtube.com/embed/UHZmD6poFGQ?autoplay=1"
               title="YouTube video player" frameborder="0" muted="muted"
               id="media_frame"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>

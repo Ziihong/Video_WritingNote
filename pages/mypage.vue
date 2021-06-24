@@ -5,9 +5,10 @@
         <input type="file" color="primary" />
       </v-row>
       <v-row>
-        <video width="640" height="340" controls="controls"
-               poster=https://cdn.pixabay.com/photo/2021/01/28/18/21/beach-5958718_960_720.jpg >
-          <source src='/드렁큰마리오_5s.mp4' type="video/mp4">
+        <video width="640" height="340" controls autoplay muted
+               src="/static/cat.mp4"
+               >
+          브라우저가 비디오 플레이를 지원하지 않습니다
         </video>
       </v-row>
     </v-col>
@@ -31,6 +32,7 @@
 </template>
 
 <script>
+
 export default {
   methods: {
 
