@@ -1,5 +1,8 @@
 import colors from 'vuetify/es5/util/colors'
 
+const isDev = process.env.NODE_ENV === 'development'
+const useEmulators = false // manually change if emulators needed
+
 export default {
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
@@ -30,6 +33,7 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
+    '~/plugins/lazyMode'
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -39,17 +43,61 @@ export default {
   buildModules: [
     // https://go.nuxtjs.dev/vuetify
     '@nuxtjs/vuetify',
+    '@nuxtjs/firebase',
   ],
 
-  // Modules: https://go.nuxtjs.dev/config-modules
-  modules: [
-  ],
+  router: {
+    middleware: ['testMiddleware'],
+  },
+
+  modules: ['@nuxtjs/pwa'],
+
+  firebase: {
+    lazy: true,
+    config: {
+      apiKey: "AIzaSyA5ECvUolkzaBVLRzH1RB2oZ3r8ytPSz3A",
+      authDomain: "intern-2106.firebaseapp.com",
+      projectId: "intern-2106",
+      storageBucket: "intern-2106.appspot.com",
+      messagingSenderId: "758980168580",
+      appId: "1:758980168580:web:d81ff4f0f7052ae9e86bd1"
+    },
+    onFirebaseHosting: false,
+    terminateDatabasesAfterGenerate: true,
+    services: {
+      auth: {
+        initialize: {
+          onAuthStateChangedAction: 'onAuthStateChanged',
+        },
+        ssr: true,
+        emulatorPort: isDev && useEmulators ? 9099 : undefined,
+        disableEmulatorWarnings: false,
+      },
+      firestore: {
+        memoryOnly: false,
+        enablePersistence: true,
+        emulatorPort: isDev && useEmulators ? 8080 : undefined,
+      },
+      functions: {
+        emulatorPort: isDev && useEmulators ? 12345 : undefined,
+      },
+      storage: {
+        emulatorPort: isDev && useEmulators ? 9199 : undefined,
+        emulatorHost: 'localhost',
+      },
+      performance: true,
+      analytics: false,
+      remoteConfig: false,
+      messaging: false,
+    },
+  },
+
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {
-      dark: true,
+      dark: false,
       themes: {
         dark: {
           primary: colors.blue.darken2,
@@ -66,5 +114,14 @@ export default {
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {
-  }
+  },
+
+  pwa: {
+    workbox: {
+      importScripts: ['/firebase-auth-sw.js'],
+      // by default the workbox module will not install the service worker in dev environment to avoid conflicts with HMR
+      // only set this true for testing and remember to always clear your browser cache in development
+      dev: process.env.NODE_ENV === 'development',
+    },
+  },
 }

@@ -51,18 +51,24 @@
       <v-toolbar-title v-text="title"/>
       <v-spacer/>
       <!-- 로그인 버튼 추가-->
+      <div v-if="!isLoggedIn" onsubmit="return false;">
+        <v-btn
+          color="primary"
+          to="/login"
+        >
+          로그인
+        </v-btn>
+      </div>
+      <div v-else>
+        <span>{{authUser.email}}</span>
+        <v-btn color="primary" outlined @click="logout">Logout</v-btn>
+      </div>
       <v-btn
-        color="primary"
-        to="/login"
+        icon
+        @click.stop="rightDrawer = !rightDrawer"
       >
-        로그인
+        <v-icon>mdi-menu</v-icon>
       </v-btn>
-<!--            <v-btn-->
-<!--              icon-->
-<!--              @click.stop="rightDrawer = !rightDrawer"-->
-<!--            >-->
-<!--              <v-icon>mdi-menu</v-icon>-->
-<!--            </v-btn>-->
     </v-app-bar>
     <v-main>
       <v-container>
@@ -96,7 +102,16 @@
 </template>
 
 <script>
+import {mapGetters, mapState} from 'vuex'
 export default {
+  computed: {
+    ...mapState({
+      authUser: state => state.authUser,
+    }),
+    ...mapGetters({
+      isLoggedIn: 'isLoggedIn',
+    }),
+  },
   data() {
     return {
       clipped: false,
@@ -119,6 +134,15 @@ export default {
       rightDrawer: false,
       title: 'Vuetify.js'
     }
-  }
+  },
+  methods:{
+    async logout() {
+      try {
+        await this.$fire.auth.signOut()
+      } catch (e) {
+        alert(e)
+      }
+    },
+  },
 }
 </script>
