@@ -19,7 +19,7 @@
             <v-icon>{{ item.icon }}</v-icon>
           </v-list-item-action>
           <v-list-item-content>
-            <v-list-item-title v-text="item.title" />
+            <v-list-item-title v-text="item.title"/>
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -29,7 +29,7 @@
       fixed
       app
     >
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
+      <v-app-bar-nav-icon @click.stop="drawer = !drawer"/>
       <v-btn
         icon
         @click.stop="miniVariant = !miniVariant"
@@ -48,18 +48,25 @@
       >
         <v-icon>mdi-minus</v-icon>
       </v-btn>
-      <v-toolbar-title v-text="title" />
-      <v-spacer />
+      <v-toolbar-title v-text="title"/>
+      <v-spacer/>
+      <!-- 로그인 버튼 추가-->
       <v-btn
-        icon
-        @click.stop="rightDrawer = !rightDrawer"
+        color="primary"
+        to="/login"
       >
-        <v-icon>mdi-menu</v-icon>
+        로그인
       </v-btn>
+<!--            <v-btn-->
+<!--              icon-->
+<!--              @click.stop="rightDrawer = !rightDrawer"-->
+<!--            >-->
+<!--              <v-icon>mdi-menu</v-icon>-->
+<!--            </v-btn>-->
     </v-app-bar>
     <v-main>
       <v-container>
-        <nuxt />
+        <nuxt/>
       </v-container>
     </v-main>
     <v-navigation-drawer
@@ -90,7 +97,7 @@
 
 <script>
 export default {
-  data () {
+  data() {
     return {
       clipped: false,
       drawer: false,
@@ -105,7 +112,7 @@ export default {
           icon: 'mdi-chart-bubble',
           title: 'Inspire',
           to: '/inspire'
-        }
+        },
       ],
       miniVariant: false,
       right: true,
