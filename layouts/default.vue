@@ -105,7 +105,17 @@ export default {
           icon: 'mdi-chart-bubble',
           title: 'Inspire',
           to: '/inspire'
-        }
+        },
+        {
+          icon: 'mdi-chart-bubble',
+          title: 'Log In',
+          to: '/logIn'
+        },
+        // {
+        //   icon: 'mdi-chart-bubble',
+        //   title: 'Sign Up',
+        //   to: '/signUp'
+        // }
       ],
       miniVariant: false,
       right: true,
