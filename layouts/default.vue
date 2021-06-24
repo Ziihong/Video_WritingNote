@@ -1,5 +1,5 @@
 <template>
-  <v-app dark>
+    <v-app dark>
     <v-navigation-drawer
       v-model="drawer"
       :mini-variant="miniVariant"
@@ -50,12 +50,15 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
+      <v-btn v-if="!isLoggedIn" color="primary" @click="$router.push('/logIn')">로그인</v-btn>
+      <v-btn v-else color="primary" outlined @click="logout">로그아웃</v-btn>
       <v-btn
         icon
         @click.stop="rightDrawer = !rightDrawer"
       >
         <v-icon>mdi-menu</v-icon>
       </v-btn>
+
     </v-app-bar>
     <v-main>
       <v-container>
@@ -85,11 +88,21 @@
     >
       <span>&copy; {{ new Date().getFullYear() }}</span>
     </v-footer>
-  </v-app>
+  </v-app dark>
 </template>
 
 <script>
+import {mapGetters, mapState} from "vuex";
+
 export default {
+  computed: {
+    ...mapState({
+      authUser: state => state.authUser,
+    }),
+    ...mapGetters({
+      isLoggedIn: 'isLoggedIn',
+    }),
+  },
   data () {
     return {
       clipped: false,
@@ -105,6 +118,11 @@ export default {
           icon: 'mdi-chart-bubble',
           title: 'Inspire',
           to: '/inspire'
+        },
+        {
+          icon: 'mdi-chart-bubble',
+          title: 'Note',
+          to: '/note'
         }
       ],
       miniVariant: false,
@@ -112,6 +130,15 @@ export default {
       rightDrawer: false,
       title: 'Vuetify.js'
     }
+  },
+  methods: {
+    async logout() {
+      try {
+        await this.$fire.auth.signOut()
+      } catch (e) {
+        alert(e)
+      }
+    },
   }
 }
 </script>

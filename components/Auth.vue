@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>AUTH Example</h2>
+    <h2>Auth Example</h2>
     <div style="margin: 40px 0">
       <client-only>
         <Codeblock>
@@ -41,12 +41,13 @@ async createUser() {
           autocomplete="current-password"
         />
       </div>
-      <Btn @click="createUser">Register</Btn>
-      <Btn @click="signInUser">Sign In</Btn>
+      <Button @click="createUser">Register</Button>
+      <br><br>
+      <Button @click="signInUser">Sign In</Button>
     </form>
     <div v-else>
       <p>You are logged in with {{ authUser.email }}.</p>
-      <Btn color="primary" outlined @click="logout">Logout</Btn>
+      <Button color="primary" outlined @click="logout">Logout</Button>
     </div>
   </div>
 </template>
