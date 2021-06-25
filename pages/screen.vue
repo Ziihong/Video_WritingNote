@@ -25,6 +25,7 @@
         <v-btn color="white" class="btn">노트</v-btn>
         <v-btn color="white" class="btn">코멘트</v-btn>
       </v-row>
+      <v-textarea color="black"></v-textarea>
     </v-col>
   </v-row>
 

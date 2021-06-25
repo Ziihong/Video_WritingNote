@@ -2,7 +2,7 @@
   <v-row>
     <v-col class="text-center">
       <div>
-        <h2>로그인</h2><br>
+        <h1>로그인</h1><br>
         <form v-if="!isLoggedIn" onsubmit="return false;" class="login-form">
           <input v-model="formData.email"
                  type="email"
@@ -141,6 +141,11 @@ a {
   color: cornflowerblue;
   font-size: 12px;
   text-align: right;
+}
+
+p{
+  margin-top: 20px;
+  font-size:14px;
 }
 
 .btn-login {
