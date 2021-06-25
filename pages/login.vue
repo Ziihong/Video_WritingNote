@@ -13,9 +13,7 @@ export default {
 
   layout:'empty',
   data(){
-    return{
-
-    }
+    return{}
     }
 }
 </script>
