@@ -23,19 +23,6 @@
           </v-list-item-content>
         </v-list-item>
       </v-list>
-
-<!--      &lt;!&ndash;test&ndash;&gt;-->
-<!--      <template v-slot:append>-->
-<!--        <div class="btn_logIn">-->
-<!--          <v-btn-->
-<!--            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"-->
-<!--            to="/logIn">-->
-<!--            Log In-->
-<!--          </v-btn>-->
-<!--        </div>-->
-<!--      </template>-->
-<!--      &lt;!&ndash;test&ndash;&gt;-->
-
     </v-navigation-drawer>
     <v-app-bar
       :clipped-left="clipped"
@@ -64,14 +51,21 @@
       <v-toolbar-title v-text="title" />
       <v-spacer />
 <!--      test-->
-      <v-btn
+      <v-btn v-if="!isLoggedIn"
         icon
         @click.stop="fixed = !fixed"
-        to="/logIn"
+        to="logIn"
       >
         <v-icon>mdi-account</v-icon>
       </v-btn>
 <!--      test-->
+      <v-btn v-else
+             icon
+             @click.stop="fixed = !fixed"
+             @click="logout"
+      >
+        Log Out
+      </v-btn>
 
       <v-btn
         icon
@@ -113,12 +107,40 @@
 </template>
 
 <script>
+import {mapGetters, mapState} from "vuex";
+
 export default {
+  computed: {
+    ...mapState({
+      authUser: state => state.authUser,
+    }),
+    ...mapGetters({
+      isLoggedIn: 'isLoggedIn',
+    }),
+  },
+  methods: {
+    async logout() {
+      try {
+        await this.$fire.auth.signOut()
+      } catch (e) {
+        alert(e)
+      }
+    },
+  },
   data () {
     return {
       clipped: false,
       drawer: false,
       fixed: false,
+      method: {
+        async logout() {
+          try {
+            await this.$fire.auth.signOut()
+          } catch (e) {
+            alert(e)
+          }
+        }
+      },
       items: [
         {
           icon: 'mdi-apps',

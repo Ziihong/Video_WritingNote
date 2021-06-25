@@ -34,6 +34,7 @@ import firebase from 'firebase'
 
 export default {
   name: "signUp",
+  layout: "empty",
   data: () => ({
     formData: {
       name: '',

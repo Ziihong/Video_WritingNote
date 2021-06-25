@@ -5,6 +5,7 @@
 <script>
 import Auth from '~/components/Auth';
 export default {
+  layout: 'empty',
   computed:{
     Auth
   }
