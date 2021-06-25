@@ -19,7 +19,7 @@
             <v-icon>{{ item.icon }}</v-icon>
           </v-list-item-action>
           <v-list-item-content>
-            <v-list-item-title v-text="item.title" />
+            <v-list-item-title v-text="item.title"/>
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -29,54 +29,49 @@
       fixed
       app
     >
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
+      <v-app-bar-nav-icon @click.stop="drawer = !drawer"/>
       <v-btn
         icon
         @click.stop="miniVariant = !miniVariant"
       >
         <v-icon>mdi-{{ `chevron-${miniVariant ? 'right' : 'left'}` }}</v-icon>
       </v-btn>
-      <v-btn
-        icon
-        @click.stop="clipped = !clipped"
-      >
-        <v-icon>mdi-application</v-icon>
-      </v-btn>
-      <v-btn
-        icon
-        @click.stop="fixed = !fixed"
-      >
-        <v-icon>mdi-minus</v-icon>
-      </v-btn>
-      <v-toolbar-title v-text="title" />
-      <v-spacer />
-      <v-btn
-        to="/login"
-        color="accent"
-        v-if="!isLoggedIn"
-      >
-        Login
-      </v-btn>
-      <div v-else class="toolbar">
-        <p>Hello {{ authUser.nickname }}</p>
-        <v-spacer></v-spacer>
+<!--      <v-btn-->
+<!--        icon-->
+<!--        @click.stop="clipped = !clipped"-->
+<!--      >-->
+<!--        <v-icon>mdi-application</v-icon>-->
+<!--      </v-btn>-->
+<!--      <v-btn-->
+<!--        icon-->
+<!--        @click.stop="fixed = !fixed"-->
+<!--      >-->
+<!--        <v-icon>mdi-minus</v-icon>-->
+<!--      </v-btn>-->
+      <v-toolbar-title v-text="title"/>
+      <v-spacer/>
+      <div v-if="!isLoggedIn" onsubmit="return false;">
         <v-btn
           color="primary"
-          @click=$fire.auth.signOut()
-          >
-          Logout
+          to="/login"
+        >
+          로그인
         </v-btn>
       </div>
-      <v-btn
-        icon
-        @click.stop="rightDrawer = !rightDrawer"
-      >
-        <v-icon>mdi-menu</v-icon>
-      </v-btn>
+      <div v-else>
+        <span>{{authUser.email}}</span>
+        <v-btn color="primary" outlined @click="logout">Logout</v-btn>
+      </div>
+<!--      <v-btn-->
+<!--        icon-->
+<!--        @click.stop="rightDrawer = !rightDrawer"-->
+<!--      >-->
+<!--        <v-icon>mdi-menu</v-icon>-->
+<!--      </v-btn>-->
     </v-app-bar>
     <v-main>
       <v-container>
-        <nuxt />
+        <nuxt/>
       </v-container>
     </v-main>
     <v-navigation-drawer
@@ -106,9 +101,7 @@
 </template>
 
 <script>
-import {mapGetters, mapState} from "vuex";
-//import  from "/Auth";
-
+import {mapGetters, mapState} from 'vuex'
 export default {
   computed: {
     ...mapState({
@@ -118,7 +111,7 @@ export default {
       isLoggedIn: 'isLoggedIn',
     }),
   },
-  data () {
+  data() {
     return {
       clipped: false,
       drawer: false,
@@ -150,7 +143,16 @@ export default {
       rightDrawer: false,
       title: 'Login Practice'
     }
-  }
+  },
+  methods:{
+    async logout() {
+      try {
+        await this.$fire.auth.signOut()
+      } catch (e) {
+        alert(e)
+      }
+    },
+  },
 }
 </script>
 
