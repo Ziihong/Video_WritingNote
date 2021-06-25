@@ -13,8 +13,10 @@
     "@nuxtjs/pwa": "^3.3.5",
     "core-js": "^3.9.1",
     "firebase": "^8.6.7",
+    "html2canvas": "^1.0.0-rc.7",
     "nuxt": "^2.15.7",
-    "prismjs": "^1.23.0"
+    "prismjs": "^1.23.0",
+    "vue-html2canvas": "0.0.4"
   },
   "devDependencies": {
     "@nuxtjs/vuetify": "^1.12.1"

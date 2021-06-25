@@ -120,7 +120,7 @@ export default {
           to: '/inspire'
         },
         {
-          icon: 'mdi-chart-bubble',
+          icon: 'mdi-note',
           title: 'Note',
           to: '/note'
         }
