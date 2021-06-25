@@ -50,63 +50,52 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
-<!--      test-->
-      <v-btn v-if="!isLoggedIn"
-        icon
-        @click.stop="fixed = !fixed"
-        to="logIn"
-      >
-        <v-icon>mdi-account</v-icon>
-      </v-btn>
-<!--      test-->
-      <v-btn v-else
-             icon
-             @click.stop="fixed = !fixed"
-             @click="logout"
-      >
-        Log Out
-      </v-btn>
 
-      <v-btn
-        icon
-        @click.stop="rightDrawer = !rightDrawer"
-      >
-        <v-icon>mdi-menu</v-icon>
-      </v-btn>
+      <div v-if="!isLoggedIn" id="Login/Register">
+        <v-btn
+          :to="'/login'"
+        >
+          <v-icon left dark>
+            mid-account
+          </v-icon>
+          log-in/Register
+        </v-btn>
+        </div>
+
+      <div v-else id="Logout">
+        <span >Welcome, {{ authUser.email }}.</span>
+        <span>
+          <v-btn
+            @click="logout"
+          >
+            <v-icon left>mid-account</v-icon>
+            Logout
+          </v-btn>
+        </span>
+
+      </div>
 
     </v-app-bar>
+
     <v-main>
       <v-container>
         <nuxt />
       </v-container>
     </v-main>
-    <v-navigation-drawer
-      v-model="rightDrawer"
-      :right="right"
-      temporary
-      fixed
-    >
-      <v-list>
-        <v-list-item @click.native="right = !right">
-          <v-list-item-action>
-            <v-icon light>
-              mdi-repeat
-            </v-icon>
-          </v-list-item-action>
-          <v-list-item-title>Switch drawer (click me)</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
+
     <v-footer
       :absolute="!fixed"
       app
     >
       <span>&copy; {{ new Date().getFullYear() }}</span>
+      <v-spacer/>
+      <span v-if="isLoggedIn">You are logged in with {{ authUser.email }}.</span>
     </v-footer>
   </v-app>
 </template>
 
 <script>
+
 import {mapGetters, mapState} from "vuex";
 
 export default {
@@ -118,29 +107,11 @@ export default {
       isLoggedIn: 'isLoggedIn',
     }),
   },
-  methods: {
-    async logout() {
-      try {
-        await this.$fire.auth.signOut()
-      } catch (e) {
-        alert(e)
-      }
-    },
-  },
   data () {
     return {
       clipped: false,
       drawer: false,
       fixed: false,
-      method: {
-        async logout() {
-          try {
-            await this.$fire.auth.signOut()
-          } catch (e) {
-            alert(e)
-          }
-        }
-      },
       items: [
         {
           icon: 'mdi-apps',
@@ -155,9 +126,17 @@ export default {
       ],
       miniVariant: false,
       right: true,
-      rightDrawer: false,
       title: 'Vuetify.js'
     }
+  },
+  methods:{
+    async logout() {
+      try {
+        await this.$fire.auth.signOut()
+      } catch (e) {
+        alert(e)
+      }
+    },
   }
 }
 </script>

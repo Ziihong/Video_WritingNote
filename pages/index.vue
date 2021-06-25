@@ -5,7 +5,22 @@
         <logo/>
         <vuetify-logo/>
       </div>
-      <Auth/>
+      <h2>AUTH Example</h2>
+      <div style="margin: 40px 0">
+        <client-only>
+          <Codeblock>
+        <pre>
+async createUser() {
+  try {
+    await this.$fire.auth.createUserWithEmailAndPassword('foo@foo.foo', 'test')
+  } catch (e) {
+    alert(e)
+  }
+}
+        </pre>
+          </Codeblock>
+        </client-only>
+      </div>
     </v-col>
   </v-row>
 </template>
