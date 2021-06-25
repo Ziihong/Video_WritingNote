@@ -55,8 +55,8 @@
         <v-btn
           :to="'/login'"
         >
-          <v-icon left dark>
-            mid-account
+          <v-icon left>
+            mdi-account
           </v-icon>
           log-in/Register
         </v-btn>
@@ -68,18 +68,17 @@
           <v-btn
             @click="logout"
           >
-            <v-icon left>mid-account</v-icon>
+            <v-icon left>mdi-account</v-icon>
             Logout
           </v-btn>
         </span>
-
       </div>
 
     </v-app-bar>
 
     <v-main>
       <v-container>
-        <nuxt />
+        <nuxt/>
       </v-container>
     </v-main>
 
@@ -115,7 +114,7 @@ export default {
       items: [
         {
           icon: 'mdi-apps',
-          title: 'Welcome',
+          title: 'Home',
           to: '/'
         },
         {
