@@ -128,20 +128,20 @@ export default {
           to: '/inspire'
         },
         {
-          icon: 'mdi-folder',
-          title: 'MyFiles',
-          to: '/myfiles'
+          icon: 'mdi-account',
+          title: 'Login',
+          to: '/login'
         },
         {
-          icon: 'mdi-image',
-          title: 'Screen',
-          to: '/screen'
-        },
+          icon: 'mdi-folder-multiple',
+          title: 'Mypage',
+          to: '/mypage'
+        }
       ],
       miniVariant: false,
       right: true,
       rightDrawer: false,
-      title: 'Whipshot Liste'
+      title: 'Login Practice'
     }
   },
   methods:{
@@ -155,3 +155,11 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.toolbar{
+  display: flex;
+  float: left;
+  width: 300px;
+}
+</style>
