@@ -36,21 +36,20 @@
       >
         <v-icon>mdi-{{ `chevron-${miniVariant ? 'right' : 'left'}` }}</v-icon>
       </v-btn>
-      <v-btn
-        icon
-        @click.stop="clipped = !clipped"
-      >
-        <v-icon>mdi-application</v-icon>
-      </v-btn>
-      <v-btn
-        icon
-        @click.stop="fixed = !fixed"
-      >
-        <v-icon>mdi-minus</v-icon>
-      </v-btn>
+<!--      <v-btn-->
+<!--        icon-->
+<!--        @click.stop="clipped = !clipped"-->
+<!--      >-->
+<!--        <v-icon>mdi-application</v-icon>-->
+<!--      </v-btn>-->
+<!--      <v-btn-->
+<!--        icon-->
+<!--        @click.stop="fixed = !fixed"-->
+<!--      >-->
+<!--        <v-icon>mdi-minus</v-icon>-->
+<!--      </v-btn>-->
       <v-toolbar-title v-text="title"/>
       <v-spacer/>
-      <!-- 로그인 버튼 추가-->
       <div v-if="!isLoggedIn" onsubmit="return false;">
         <v-btn
           color="primary"
@@ -63,12 +62,12 @@
         <span>{{authUser.email}}</span>
         <v-btn color="primary" outlined @click="logout">Logout</v-btn>
       </div>
-      <v-btn
-        icon
-        @click.stop="rightDrawer = !rightDrawer"
-      >
-        <v-icon>mdi-menu</v-icon>
-      </v-btn>
+<!--      <v-btn-->
+<!--        icon-->
+<!--        @click.stop="rightDrawer = !rightDrawer"-->
+<!--      >-->
+<!--        <v-icon>mdi-menu</v-icon>-->
+<!--      </v-btn>-->
     </v-app-bar>
     <v-main>
       <v-container>
@@ -128,11 +127,21 @@ export default {
           title: 'Inspire',
           to: '/inspire'
         },
+        {
+          icon: 'mdi-folder',
+          title: 'MyFiles',
+          to: '/myfiles'
+        },
+        {
+          icon: 'mdi-image',
+          title: 'Screen',
+          to: '/screen'
+        },
       ],
       miniVariant: false,
       right: true,
       rightDrawer: false,
-      title: 'Vuetify.js'
+      title: 'Whipshot Liste'
     }
   },
   methods:{

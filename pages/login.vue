@@ -7,12 +7,12 @@
           <input v-model="formData.email"
                  type="email"
                  autocomplete="username"
-                 placeholder="이메일주소"
+                 placeholder="이메일주소 입력"
                  class="input"><br>
           <input v-model="formData.password"
                  type="password"
                  autocomplete="current-password"
-                 placeholder="비밀번호"
+                 placeholder="비밀번호 입력"
                  class="input"><br>
           <v-btn
             @click="signInUser"
@@ -31,16 +31,17 @@
             회원가입
           </v-btn>
           <br>
-          <a>아이디/비밀번호 찾기</a><br>
-          <p>or</p>
+          <a class="align-end">아이디 | 비밀번호 찾기</a><br>
+          <p>소셜 회원가입/로그인</p>
           <v-btn
             @click="signWithGoogle"
-            color="red"
+            color="white"
             to="/login"
             class="btn-login"
           >
-            Google Login
+            Google 계정으로 시작하기
           </v-btn>
+
           <br>
         </form>
         <div v-else>
@@ -79,6 +80,9 @@ export default {
       email: '',
       password: '',
     },
+    params:{
+      client_id: "758980168580-t8a6ht866oe3b8mm0nurjk3qep6vfk6k"
+    }
   }),
   methods: {
     async signInUser() {
@@ -92,12 +96,17 @@ export default {
       }
     },
     async signWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
       try {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        await this.$fire.auth.signInWithRedirect(provider)
-      } catch (e) {
+        firebase.auth().signInWithPopup(provider).then(function (result) {
+          // This gives you a Google Access Token. You can use it to access the Google API.
+          const token = result.credential.accessToken;
+          // The signed-in user info.
+          const user = result.user;
+        })
+      } catch(e){
         alert(e)
-      }
+    }
     },
     async logout() {
       try {
@@ -115,13 +124,23 @@ export default {
 .input {
   background-color: aliceblue;
   margin-bottom: 10px;
+  border-radius: 5px;
   width: 250px;
   height: 40px;
+  padding-left: 10px;
+}
+
+::placeholder {
+  font-size: 12px;
+  font-weight: 400;
+  border-left: 10px;
 }
 
 a {
   text-decoration: none;
   color: cornflowerblue;
+  font-size: 12px;
+  text-align: right;
 }
 
 .btn-login {

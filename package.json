@@ -14,7 +14,8 @@
     "core-js": "^3.9.1",
     "firebase": "^8.6.8",
     "nuxt": "^2.15.3",
-    "prismjs": "^1.23.0"
+    "prismjs": "^1.23.0",
+    "vue-google-login": "^2.0.5"
   },
   "devDependencies": {
     "@nuxtjs/vuetify": "^1.11.3"
