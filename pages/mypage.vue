@@ -30,7 +30,7 @@
       <v-row>
         <v-btn>노트</v-btn>
         <v-btn>코멘트</v-btn>
-        <v-btn @click="screenShot">캡쳐</v-btn>
+        <v-btn @click="capture">캡쳐</v-btn>
       </v-row>
       <v-row>
         <textarea wrap="virtual" rows="8" cols="40"
@@ -57,29 +57,46 @@ export default {
     currentTime: 0,
     player: null
   },
-
+  mounted() {
+    this.player= videojs(this.$refs.video, this.options, function onPlayerReady() {
+      console.log('onPlayerReady', this);
+    })
+  },
+  beforeDestroy() {
+    if (this.player) {
+      this.player.dispose()
+    }
+  },
   methods: {
     choiceFile: function (){
       document.getElementById("fileupload").click();
     },
     onTimeUpDate: function() {
       this.currentTime = this.$refs.video.currentTime;
-    },
-    screenShot: function() {
-      html2canvas(this.$refs.video, {
-        useCORS: true
-      }).then((canvas) => {
-        this.fileDownload(canvas.toDataURL(), "capture.png")
+      this.player = videojs('video')
+      this.player.markers({
+        markers:[
+          {time: 1},
+          {time: 3}
+        ]
       })
     },
-    fileDownload(downloadUrl, downloadName) {
-      let aLink = document.createElement("a");
-      aLink.href = downloadUrl;
-      aLink.download = downloadName;
-      document.body.appendChild(aLink);
-      aLink.click();
-      document.body.removeChild(aLink);
-    }
+
+    // screenShot: function() {
+    //   html2canvas(this.$refs.video, {
+    //     useCORS: true
+    //   }).then((canvas) => {
+    //     this.fileDownload(canvas.toDataURL(), "capture.png")
+    //   })
+    // },
+    // fileDownload(downloadUrl, downloadName) {
+    //   let aLink = document.createElement("a");
+    //   aLink.href = downloadUrl;
+    //   aLink.download = downloadName;
+    //   document.body.appendChild(aLink);
+    //   aLink.click();
+    //   document.body.removeChild(aLink);
+    // }
 
   }
 }
