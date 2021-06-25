@@ -23,6 +23,19 @@
           </v-list-item-content>
         </v-list-item>
       </v-list>
+
+<!--      &lt;!&ndash;test&ndash;&gt;-->
+<!--      <template v-slot:append>-->
+<!--        <div class="btn_logIn">-->
+<!--          <v-btn-->
+<!--            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"-->
+<!--            to="/logIn">-->
+<!--            Log In-->
+<!--          </v-btn>-->
+<!--        </div>-->
+<!--      </template>-->
+<!--      &lt;!&ndash;test&ndash;&gt;-->
+
     </v-navigation-drawer>
     <v-app-bar
       :clipped-left="clipped"
@@ -50,12 +63,23 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
+<!--      test-->
+      <v-btn
+        icon
+        @click.stop="fixed = !fixed"
+        to="/logIn"
+      >
+        <v-icon>mdi-account</v-icon>
+      </v-btn>
+<!--      test-->
+
       <v-btn
         icon
         @click.stop="rightDrawer = !rightDrawer"
       >
         <v-icon>mdi-menu</v-icon>
       </v-btn>
+
     </v-app-bar>
     <v-main>
       <v-container>
@@ -106,16 +130,6 @@ export default {
           title: 'Inspire',
           to: '/inspire'
         },
-        {
-          icon: 'mdi-chart-bubble',
-          title: 'Log In',
-          to: '/logIn'
-        },
-        // {
-        //   icon: 'mdi-chart-bubble',
-        //   title: 'Sign Up',
-        //   to: '/signUp'
-        // }
       ],
       miniVariant: false,
       right: true,
