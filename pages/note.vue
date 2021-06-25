@@ -40,7 +40,7 @@ export default {
           let blob = canvas.msToBlob();
           return navigator.msSaveBlob(blob, name);
         } else {
-          let imageurl = canvas.toDataURL('image/png')
+          let imageurl = canvas.toDataURL('image/jpg')
           //You need to choose the naming rules yourself
           let imagename = ""
           this.fileDownload(imageurl, imagename)
@@ -51,7 +51,7 @@ export default {
       let aLink = document.createElement("a");
       aLink.style.display = "none";
       aLink.href = downloadUrl;
-      aLink.download = `${downloadName}.png`;
+      aLink.download = `${downloadName}.jpg`;
       document.body.appendChild(aLink);
       aLink.click();
       document.body.removeChild(aLink);

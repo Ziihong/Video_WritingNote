@@ -14,8 +14,8 @@
         style="width: 40%; background-color:white;"/>
       </v-row>
       <v-row>
-        <video class="video-frame" controls autoplay muted
-               src="/hd.mp4"
+        <video ref="video" class="video-frame" controls autoplay muted
+               src="/hd.mp4" id="video"
                >
           브라우저가 비디오 플레이를 지원하지 않습니다
         </video>
@@ -30,6 +30,7 @@
       <v-row>
         <v-btn>노트</v-btn>
         <v-btn>코멘트</v-btn>
+        <v-btn @click="screenShot">캡쳐</v-btn>
       </v-row>
       <v-row>
         <textarea wrap="virtual" rows="8" cols="40"
@@ -38,7 +39,7 @@
         ></textarea>
       </v-row>
       <v-row>
-        <v-btn color="primary">save</v-btn>
+        <v-btn color="primary" @click="onTimeUpDate">save</v-btn>
       </v-row>
     </v-col>
   </v-row>
@@ -46,11 +47,40 @@
 
 <script>
 
+import videojs from 'video.js'
+import 'video.js/dist/video-js.css'
+import 'videojs-markers'
+import html2canvas from 'html2canvas';
+
 export default {
+  data: {
+    currentTime: 0,
+    player: null
+  },
+
   methods: {
     choiceFile: function (){
       document.getElementById("fileupload").click();
+    },
+    onTimeUpDate: function() {
+      this.currentTime = this.$refs.video.currentTime;
+    },
+    screenShot: function() {
+      html2canvas(this.$refs.video, {
+        useCORS: true
+      }).then((canvas) => {
+        this.fileDownload(canvas.toDataURL(), "capture.png")
+      })
+    },
+    fileDownload(downloadUrl, downloadName) {
+      let aLink = document.createElement("a");
+      aLink.href = downloadUrl;
+      aLink.download = downloadName;
+      document.body.appendChild(aLink);
+      aLink.click();
+      document.body.removeChild(aLink);
     }
+
   }
 }
 </script>
