@@ -39,6 +39,7 @@
             to="/login"
             class="btn-login"
           >
+            <v-icon left>mdi-google</v-icon>
             Google 계정으로 시작하기
           </v-btn>
 
