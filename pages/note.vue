@@ -65,7 +65,7 @@ export default {
 .videoHd {
   position: absolute;
   left: 100px;
-  width: 800px;
+  width: 50%;
   height: 600px;
 }
 .rightDiv {
@@ -78,12 +78,12 @@ export default {
 }
 .textBoxN {
   border: 1px solid grey;
-  width: 400px;
+  width: 70%;
   height: 300px;
 }
 .textBoxY {
   border: 1px solid grey;
-  width: 400px;
+  width: 70%;
   height: 300px;
 }
 </style>
