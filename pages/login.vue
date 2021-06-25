@@ -46,7 +46,7 @@
         </form>
         <div v-else>
           <p>You are logged in with {{ authUser.email }}.</p>
-          <v-btn color="primary" outlined @click="logout">Logout</v-btn>
+          <v-btn color="primary" outlined @click="signOut" to="/">로그아웃</v-btn>
         </div>
       </div>
     </v-col>
@@ -108,9 +108,12 @@ export default {
         alert(e)
     }
     },
-    async logout() {
+    async signOut() {
       try {
+        const link = this.$route.query.name;
+        console.log(link);
         await this.$fire.auth.signOut()
+
       } catch (e) {
         alert(e)
       }
