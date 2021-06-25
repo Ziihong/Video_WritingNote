@@ -14,6 +14,45 @@
           </small>
         </footer>
       </blockquote>
+      <iframe width="956" height="538" src="https://www.youtube.com/embed/UHZmD6poFGQ?autoplay=1"
+              title="YouTube video player" frameborder="0" muted="muted"
+              id="media_frame"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+      </iframe>
+      <form method="post" @submit="changeSrc" onsubmit="return false;">
+        <input v-model="youtubeUrl"
+               class="url-input"
+        />
+        <v-btn
+          color="primary"
+
+        >Enter</v-btn>
+      </form>
     </v-col>
   </v-row>
 </template>
+
+<script>
+
+export default {
+  data: () => ({
+    youtubeUrl : 'https://www.youtube.com/watch?v=YrTwfIlTLsg?autoplay=true',
+    isUrl: false
+  }),
+  methods: {
+    changeSrc(){
+      const frame = document.getElementById("media_frame");
+      frame.src = this.youtubeUrl+"?autoplay=1";
+      console.log(frame.src);
+      this.isUrl = true;
+    }
+  }
+}
+</script>
+
+<style>
+.url-input{
+  width: 800px;
+  background-color: white;
+}
+</style>

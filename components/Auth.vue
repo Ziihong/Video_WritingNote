@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>Auth Example</h2>
+    <h2>AUTH Example</h2>
     <div style="margin: 40px 0">
       <client-only>
         <Codeblock>
@@ -23,7 +23,8 @@ async createUser() {
         </label>
         <input
           v-model="formData.email"
-          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+          class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700
+          leading-tight focus:outline-none focus:shadow-outline"
           placeholder="Email"
           type="email"
           autocomplete="username"
@@ -41,13 +42,12 @@ async createUser() {
           autocomplete="current-password"
         />
       </div>
-      <Button @click="createUser">Register</Button>
-      <br><br>
-      <Button @click="signInUser">Sign In</Button>
+      <Btn @click="createUser">Register</Btn>
+      <Btn @click="signInUser">Sign In</Btn>
     </form>
     <div v-else>
       <p>You are logged in with {{ authUser.email }}.</p>
-      <Button color="primary" outlined @click="logout">Logout</Button>
+      <Btn color="primary" outlined @click="logout">Logout</Btn>
     </div>
   </div>
 </template>

@@ -1,5 +1,5 @@
 <template>
-    <v-app dark>
+  <v-app dark>
     <v-navigation-drawer
       v-model="drawer"
       :mini-variant="miniVariant"
@@ -50,15 +50,29 @@
       </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
-      <v-btn v-if="!isLoggedIn" color="primary" @click="$router.push('/logIn')">로그인</v-btn>
-      <v-btn v-else color="primary" outlined @click="logout">로그아웃</v-btn>
+      <v-btn
+        to="/login"
+        color="accent"
+        v-if="!isLoggedIn"
+      >
+        Login
+      </v-btn>
+      <div v-else class="toolbar">
+        <p>Hello {{ authUser.nickname }}</p>
+        <v-spacer></v-spacer>
+        <v-btn
+          color="primary"
+          @click=$fire.auth.signOut()
+          >
+          Logout
+        </v-btn>
+      </div>
       <v-btn
         icon
         @click.stop="rightDrawer = !rightDrawer"
       >
         <v-icon>mdi-menu</v-icon>
       </v-btn>
-
     </v-app-bar>
     <v-main>
       <v-container>
@@ -88,11 +102,12 @@
     >
       <span>&copy; {{ new Date().getFullYear() }}</span>
     </v-footer>
-  </v-app dark>
+  </v-app>
 </template>
 
 <script>
 import {mapGetters, mapState} from "vuex";
+//import  from "/Auth";
 
 export default {
   computed: {
@@ -120,25 +135,29 @@ export default {
           to: '/inspire'
         },
         {
-          icon: 'mdi-note',
-          title: 'Note',
-          to: '/note'
+          icon: 'mdi-account',
+          title: 'Login',
+          to: '/login'
+        },
+        {
+          icon: 'mdi-folder-multiple',
+          title: 'Mypage',
+          to: '/mypage'
         }
       ],
       miniVariant: false,
       right: true,
       rightDrawer: false,
-      title: 'Vuetify.js'
+      title: 'Login Practice'
     }
-  },
-  methods: {
-    async logout() {
-      try {
-        await this.$fire.auth.signOut()
-      } catch (e) {
-        alert(e)
-      }
-    },
   }
 }
 </script>
+
+<style scoped>
+.toolbar{
+  display: flex;
+  float: left;
+  width: 300px;
+}
+</style>

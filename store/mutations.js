@@ -6,6 +6,7 @@ export default {
     state.authUser = {
       uid: authUser.uid,
       email: authUser.email,
+      nickname: authUser.displayName,
     }
   }
 }
