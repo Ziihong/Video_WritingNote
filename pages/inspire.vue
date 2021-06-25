@@ -5,14 +5,7 @@
         src="/v.png"
         alt="Vuetify.js"
         class="mb-5"
-      ><br>
-      <video
-        width="600px"
-        controls
-        muted
-        autoplay
-        src="/video/Cat-66004.mp4">
-      </video>
+      >
 
       <div class="text-left">
         <span id="fileField"></span>

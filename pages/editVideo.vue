@@ -2,6 +2,7 @@
 <v-row no-gutters>
   <v-col cols="12" sm="8" md="8">
     <video
+      id="currentVideo"
       style="margin-left: 0px; padding-left: 0px;"
       width="100%"
       controls
@@ -19,7 +20,7 @@
             <v-list-item
               v-for="(item, i) in items"
               :key="i"
-              :to="item.to"
+              @click="jumpTime(item)"
               router
               exact
             >
@@ -57,28 +58,32 @@ export default {
       items: [
         {
           icon: 1,
-          title: 'Home',
-          to: '/'
+          title: 'Start',
+          time: 0,
         },
         {
           icon: 2,
-          title: 'Inspire',
-          to: '/inspire'
+          title: 'Bookmark',
+          time: 3,
         },
         {
           icon: 3,
-          title: 'Inspire',
-          to: '/inspire'
+          title: 'Bookmark',
+          time: 5,
         },
         {
           icon: 4,
-          title: 'Inspire',
-          to: '/inspire'
+          title: 'Bookmark',
+          time: 9,
         }
       ],
-      miniVariant: false,
-      right: true,
-      title: 'Vuetify.js'
+    }
+  },
+  methods:{
+    jumpTime(item){
+      let currentVideo = document.getElementById('currentVideo');
+      currentVideo.currentTime = item.time;
+      currentVideo.pause();
     }
   }
 }
