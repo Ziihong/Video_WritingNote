@@ -60,21 +60,25 @@ export default {
           icon: 1,
           title: 'Start',
           time: 0,
+          comment: 'This is the start of video.'
         },
         {
           icon: 2,
           title: 'Bookmark',
           time: 3,
+          comment: "After 3sec, just look at this cat. Isn't it so cute."
         },
         {
           icon: 3,
           title: 'Bookmark',
           time: 5,
+          comment: 'This is 5sec after start.'
         },
         {
           icon: 4,
           title: 'Bookmark',
           time: 9,
+          comment: 'End of the Vid.'
         }
       ],
     }
