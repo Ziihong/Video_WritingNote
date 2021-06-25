@@ -1,11 +1,10 @@
 <template>
   <v-app dark>
     <v-main>
-      <v-container>
-        <nuxt />
+      <v-container fluid>
+        <nuxt/>
       </v-container>
     </v-main>
-
   </v-app>
 </template>
 
@@ -13,7 +12,6 @@
 export default {
   data () {
     return {
-
     }
   }
 }
