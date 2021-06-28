@@ -45,12 +45,14 @@
           value=""
         ></v-textarea>
       </v-col>
+
     </v-row>
   </v-col>
 </v-row>
 </template>
 
 <script>
+
 export default {
   layout:'editbar',
   data () {
@@ -79,12 +81,12 @@ export default {
       ],
     }
   },
-  methods:{
-    jumpTime(item){
+  methods: {
+    jumpTime(item) {
       let currentVideo = document.getElementById('currentVideo');
       currentVideo.currentTime = item.time;
       currentVideo.pause();
-    }
+    },
   }
 }
 </script>
