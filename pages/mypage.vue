@@ -14,11 +14,30 @@
         style="width: 40%; background-color:white;"/>
       </v-row>
       <v-row>
-        <video ref="video" class="video-frame" controls autoplay muted
-               src="/hd.mp4" id="video"
-               >
-          브라우저가 비디오 플레이를 지원하지 않습니다
-        </video>
+<!--        <video ref="video" class="video-frame" controls autoplay muted-->
+<!--               src="/hd.mp4" id="video"-->
+<!--               >-->
+<!--          브라우저가 비디오 플레이를 지원하지 않습니다-->
+<!--        </video>-->
+        <video-player  class="video-player-box"
+                       ref="videoPlayer"
+                       :options="playerOptions"
+                       :playsinline="true"
+                       customEventName="customstatechangedeventname"
+
+                       @play="onPlayerPlay($event)"
+                       @pause="onPlayerPause($event)"
+                       @ended="onPlayerEnded($event)"
+                       @waiting="onPlayerWaiting($event)"
+                       @playing="onPlayerPlaying($event)"
+                       @loadeddata="onPlayerLoadeddata($event)"
+                       @timeupdate="onPlayerTimeupdate($event)"
+                       @canplay="onPlayerCanplay($event)"
+                       @canplaythrough="onPlayerCanplaythrough($event)"
+
+                       @statechanged="playerStateChanged($event)"
+                       @ready="playerReadied">
+        </video-player>
       </v-row>
     </v-col>
     <v-col cols="4" class="comment-box">
@@ -47,15 +66,28 @@
 
 <script>
 
-import videojs from 'video.js'
-import 'video.js/dist/video-js.css'
 import 'videojs-markers'
-import html2canvas from 'html2canvas';
+import 'video.js/dist/video-js.css'
+import {videoPlayer} from 'vue-video-player'
 
 export default {
+  components: {
+    videoPlayer
+  },
   data: {
-    currentTime: 0,
-    player: null
+    return: {
+      playerOptions: {
+        muted: true,
+        langueage: 'en',
+        playbackRate: [0.7, 1.0, 1.5, 2.0],
+        sources: [{
+          type: "video/mp4",
+          src: "/hd.mp4"
+        }],
+      }
+    }
+    // currentTime: 0,
+    // player: null
   },
   mounted() {
     this.player= videojs(this.$refs.video, this.options, function onPlayerReady() {
