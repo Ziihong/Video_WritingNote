@@ -95,19 +95,15 @@ export default {
     },
     makeMarker: function(){
       let tmp = document.querySelector("#videoOrigin");
-      this.canvas = document.querySelector("#videoCanvas");
-      let value = this.canvas.getContext('2d');
-      console.log(value);
       let time = tmp.currentTime;
       let newBtn = document.createElement("button");
       let txt = document.createTextNode("000");
       newBtn.style.backgroundColor="red";
       newBtn.style.borderRadius = '50%';
       newBtn.appendChild(txt);
-      document.getElementById('marker').appendChild(newBtn);
+      document.querySelector("#content-editor").appendChild(newBtn);
       newBtn.addEventListener('click', function(){
         tmp.currentTime = time;
-        document.querySelector("#videoCanvas").value = value;
       });
     }
   }
