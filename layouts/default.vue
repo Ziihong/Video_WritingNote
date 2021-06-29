@@ -59,7 +59,7 @@
         </v-btn>
       </div>
       <div v-else>
-        <span>{{authUser.email}}</span>
+        <span>{{authUser.nickname}}</span>
         <v-btn color="primary" outlined @click="logout">Logout</v-btn>
       </div>
 <!--      <v-btn-->

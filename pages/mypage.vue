@@ -20,6 +20,23 @@
       <v-row id="draw">
         <canvas id="videoCanvas"></canvas>
       </v-row>
+      <v-row class="canvas-drawbar">
+        <v-btn>
+          <v-icon>
+            mdi-brush
+          </v-icon>
+        </v-btn>
+        <v-btn>
+          <v-icon>
+            mdi-grease-pencil
+          </v-icon>
+        </v-btn>
+        <v-btn>
+          <v-icon>
+            mdi-format-textbox
+          </v-icon>
+        </v-btn>
+      </v-row>
     </v-col>
     <v-col cols="4" class="comment-box">
       <v-row>
