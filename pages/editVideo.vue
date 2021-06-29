@@ -103,13 +103,11 @@ export default {
     },
 
     screenshot(){
-      window.html2canvas = html2canvas //Vue.js 특성상 window 객체에 직접 할당해야한다.
-      const video = document.getElementById("currentVideo")
-      const canvas = document.querySelector("canvas");
 
+      const video = document.getElementById("currentVideo")
+      let canvas = document.querySelector("canvas");
       canvas.width = 300
       canvas.height = 150
-
       const context = canvas.getContext("2d");
 
       if(!video){
@@ -117,20 +115,10 @@ export default {
         return false
       }
 
-      context.fillRect(0, 0, canvas.width, canvas.height)
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
 
       let frame = context.getImageData(0, 0, video.videoWidth, video.videoHeight);
       console.log(canvas.toDataURL());
-
-
-      // html2canvas(video).then(canvas => {
-      //   this.drawImage(canvas.toDataURL('image/jpeg'));
-      //   const testImage = canvas.toDataURL();
-      //   this.downloadURI(testImage, 'test.png')
-      // })
-
 
       },
     }
