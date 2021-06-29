@@ -8,17 +8,18 @@
           </v-icon>
           내 파일함</v-btn>
         <input placeholder="제목을 입력하세요" type="text"
-        style="width: 40%; background-color:white;"/>
+               style="width: 40%; background-color:white;"/>
       </v-row>
       <v-row>
         <video class="video-frame" controls autoplay muted
-               src="/hd.mp4" id="videoOrigin"
-               >
+               src="/hd.mp4" id="videoOrigin" width="100%" height="500"
+        >
           브라우저가 비디오 플레이를 지원하지 않습니다
         </video>
       </v-row>
       <v-row id="draw">
-        <canvas id="videoCanvas"></canvas>
+        <canvas id="videoCanvas" ref="textarea"></canvas>
+        <div id="marker"></div>
       </v-row>
       <v-row class="canvas-drawbar">
         <v-btn>
@@ -71,11 +72,12 @@
         </v-btn>
       </v-row>
       <v-row>
-        <div contenteditable="true" id="content-editor" aria-placeholder="제목을 입력하세요" @select="">
+        <div contenteditable="true" id="content-editor">
         </div>
       </v-row>
       <v-row>
         <v-btn color="primary">save</v-btn>
+        <v-btn color="primary" @click="makeMarker">Mark</v-btn>
       </v-row>
     </v-col>
   </v-row>
@@ -102,8 +104,24 @@ export default {
       this.editor = document.querySelector("#content-editor");
       this.editor.appendChild(imgNode);
     },
-    textEdit : function(command){
+    textEdit : function(command) {
       document.execCommand(command);
+    },
+    choiceFile: function (){
+      document.getElementById("fileupload").click();
+    },
+    makeMarker: function(){
+      let tmp = document.querySelector("#videoOrigin");
+      let time = tmp.currentTime;
+      let newBtn = document.createElement("button");
+      let txt = document.createTextNode("000");
+      newBtn.style.backgroundColor="red";
+      newBtn.style.borderRadius = '50%';
+      newBtn.appendChild(txt);
+      document.querySelector("#content-editor").appendChild(newBtn);
+      newBtn.addEventListener('click', function(){
+        tmp.currentTime = time;
+      });
     }
   }
 }
