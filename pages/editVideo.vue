@@ -94,16 +94,7 @@ export default {
       currentVideo.pause();
     },
 
-    downloadURI(uri, name){
-      const link = document.createElement('a');
-      link.download = name;
-      link.href = uri;
-      document.body.appendChild(link);
-      link.click()
-    },
-
     screenshot(){
-
       const video = document.getElementById("currentVideo")
       let canvas = document.querySelector("canvas");
       canvas.width = 300
@@ -119,7 +110,6 @@ export default {
 
       let frame = context.getImageData(0, 0, video.videoWidth, video.videoHeight);
       console.log(canvas.toDataURL());
-
       },
     }
 }
