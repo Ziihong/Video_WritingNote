@@ -73,6 +73,7 @@ export default {
       }
     }
   },
+
   methods: {
     async signIn() {
       try {
@@ -81,14 +82,15 @@ export default {
           this.form.password
         )
         await this.$router.push('/')
-        console.log(r)
       } catch (e) {
         alert(e.message)
       }
     },
+
     async signUp() {
       await this.$router.push('/auth')
     },
+
     async googleLogin() {
       try {
         const provider = new firebase.auth.GoogleAuthProvider()
@@ -100,6 +102,7 @@ export default {
         console.error(e.message)
       }
     },
+
     async reqNormal() {
       const tk = await this.$fire.auth.currentUser.getIdToken()
       this.$axios.setToken(tk)

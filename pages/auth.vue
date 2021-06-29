@@ -59,13 +59,14 @@ export default {
         }).catch((e) => {
           console.error(e.message)
         })
+
         await this.$fire.auth.signOut()
         await this.$router.push('login')
-        console.log(r)
       } catch (e) {
         console.error(e.message)
       }
     },
+
     async googleLogin() {
       try {
         const provider = new firebase.auth.GoogleAuthProvider()

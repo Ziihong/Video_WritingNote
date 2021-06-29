@@ -28,7 +28,7 @@ export default {
     if (authUser && authUser.getIdToken) {
       try {
         const idToken = await authUser.getIdToken(true)
-        console.info('idToken', idToken)
+        //console.info('idToken', idToken)
       } catch (e) {
         console.error(e)
       }
