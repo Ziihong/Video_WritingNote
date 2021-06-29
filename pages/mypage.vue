@@ -22,14 +22,13 @@
 
       </v-row>
       <v-row id="draw">
-        <p>canvas below here</p>
         <canvas id="videoCanvas"></canvas>
       </v-row>
     </v-col>
     <v-col cols="4" class="comment-box">
       <v-row>
         <v-btn color="primary" @click="choiceFile">새파일</v-btn>
-        <v-btn color="primary" @click="drawVideo">test2</v-btn>
+        <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>
         <v-btn color="primary">test3</v-btn>
       </v-row>
       <v-row>
@@ -51,8 +50,6 @@
 
 <script>
 
-import html2canvas from "html2canvas";
-
 export default {
   methods: {
     choiceFile: function (){
@@ -66,18 +63,7 @@ export default {
       this.canvas.width = this.video.clientWidth;
       this.canvas.height = this.video.clientHeight;
 
-      this.context.drawImage(this.video, 0, 0, this.video.width, this.video.height);
-      console.log(this.canvas);
-      console.log(this.context.getImageData(0,0,this.canvas.clientWidth,this.canvas.clientHeight));
-      /*
-      const video = document.querySelector("#videoOrigin");
-      html2canvas(video).then(canvas =>{
-        let a = document.createElement("a");
-        a.href = canvas.toDataURL("image/jpeg").replace("image/jpeg","image/octet-stream");
-        a.download = "out.jpg";
-        a.click();
-        document.querySelector("#draw").appendChild(canvas)
-      });*/
+      this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
     }
   }
 }

@@ -61,8 +61,8 @@ export default {
       // })
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
       set({name: this.name}, {merge: true}).
-      then(() => {
-        console.log('saved!');
+      then(para => {
+        console.log('Save test : '+para);
       });
 
       await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/files`).
