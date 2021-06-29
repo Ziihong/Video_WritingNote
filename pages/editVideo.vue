@@ -44,14 +44,19 @@
           label="Add your comment."
           value=""
         ></v-textarea>
+        <v-btn>
+          <v-icon @click="screenshot">mdi-minus</v-icon>
+        </v-btn>
+        <canvas></canvas>
       </v-col>
-
     </v-row>
   </v-col>
 </v-row>
 </template>
 
 <script>
+
+import html2canvas from "html2canvas";
 
 export default {
   layout:'editbar',
@@ -79,15 +84,56 @@ export default {
           time: 9,
         }
       ],
+      propTitle: 'mypdf',
     }
   },
-  methods: {
-    jumpTime(item) {
+  methods:{
+    jumpTime(item){
       let currentVideo = document.getElementById('currentVideo');
       currentVideo.currentTime = item.time;
       currentVideo.pause();
     },
-  }
+
+    downloadURI(uri, name){
+      const link = document.createElement('a');
+      link.download = name;
+      link.href = uri;
+      document.body.appendChild(link);
+      link.click()
+    },
+
+    screenshot(){
+      window.html2canvas = html2canvas //Vue.js 특성상 window 객체에 직접 할당해야한다.
+      const video = document.getElementById("currentVideo")
+      const canvas = document.querySelector("canvas");
+
+      canvas.width = 300
+      canvas.height = 150
+
+      const context = canvas.getContext("2d");
+
+      if(!video){
+        console.warn(' is not exist.')
+        return false
+      }
+
+      context.fillRect(0, 0, canvas.width, canvas.height)
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+
+      let frame = context.getImageData(0, 0, video.videoWidth, video.videoHeight);
+      console.log(canvas.toDataURL());
+
+
+      // html2canvas(video).then(canvas => {
+      //   this.drawImage(canvas.toDataURL('image/jpeg'));
+      //   const testImage = canvas.toDataURL();
+      //   this.downloadURI(testImage, 'test.png')
+      // })
+
+
+      },
+    }
 }
 </script>
 
