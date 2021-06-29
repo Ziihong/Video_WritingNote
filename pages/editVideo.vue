@@ -1,98 +1,10 @@
 <template>
-<v-row no-gutters>
-  <v-col cols="12" sm="8" md="8">
-    <video
-      id="currentVideo"
-      style="margin-left: 0px; padding-left: 0px;"
-      width="100%"
-      controls
-      muted
-      src="/video/Cat-66004.mp4">
-    </video>
-  </v-col>
-  <v-col cols="12" md="4">
-    <v-row no-gutters>
-      <v-col>
-        <p class="text-center">Bookmarks</p>
-          <v-list
-          style="max-height: 130px"
-          class="overflow-y-auto">
-            <v-list-item
-              v-for="(item, i) in items"
-              :key="i"
-              @click="jumpTime(item)"
-              router
-              exact
-            >
-              <v-list-item-action>
-                <v-icon>{{ item.icon }}</v-icon>
-              </v-list-item-action>
-              <v-list-item-content>
-                <v-list-item-title v-text="item.title" />
-              </v-list-item-content>
-            </v-list-item>
-          </v-list>
-      </v-col>
-    </v-row>
-    <v-row no-gutters>
-      <v-col>
-        <v-textarea
-          filled
-          full-width
-          height="260"
-          name="input"
-          label="Add your comment."
-          value=""
-        ></v-textarea>
-      </v-col>
-    </v-row>
-  </v-col>
-</v-row>
+
 </template>
 
 <script>
 export default {
   layout:'editbar',
-  data () {
-    return {
-      items: [
-        {
-          icon: 1,
-          title: 'Start',
-          time: 0,
-          comment: 'This is the start of video.'
-        },
-        {
-          icon: 2,
-          title: 'Bookmark',
-          time: 3,
-          comment: "After 3sec, just look at this cat. Isn't it so cute."
-        },
-        {
-          icon: 3,
-          title: 'Bookmark',
-          time: 5,
-          comment: 'This is 5sec after start.'
-        },
-        {
-          icon: 4,
-          title: 'Bookmark',
-          time: 9,
-          comment: 'End of the Vid.'
-        }
-      ],
-    }
-  },
-  methods:{
-    jumpTime(item){
-      let currentVideo = document.getElementById('currentVideo');
-      currentVideo.currentTime = item.time;
-      currentVideo.pause();
-    }
-  }
 }
 </script>
 
-<style scoped>
-
-</style>
