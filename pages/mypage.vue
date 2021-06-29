@@ -11,22 +11,15 @@
                style="width: 40%; background-color:white;"/>
       </v-row>
       <v-row>
-        <video width="100%" height="500" controls id="player" src="/hd.mp4">
         <video class="video-frame" controls autoplay muted
-               src="/hd.mp4" id="videoOrigin"
-               >
+               src="/hd.mp4" id="videoOrigin" width="100%" height="500"
+        >
           브라우저가 비디오 플레이를 지원하지 않습니다
         </video>
       </v-row>
       <v-row id="draw">
-        <canvas id="videoCanvas"></canvas>
-        <div id="marker">
-
-        </div>
-<!--        <video id="myVideo" ref="player" class="video-js vjs-big-play-centered vjs vjs-fluid" data-setup="{}">-->
-<!--          <source src="/hd.mp4" type="video/mp4">-->
-<!--          브라우저가 비디오 플레이를 지원하지 않습니다-->
-<!--        </video>-->
+        <canvas id="videoCanvas" ref="textarea"></canvas>
+        <div id="marker"></div>
       </v-row>
     </v-col>
     <v-col cols="4" class="comment-box">
@@ -62,14 +55,8 @@
         </v-btn>
       </v-row>
       <v-row>
-        <div contenteditable="true" id="content-editor" aria-placeholder="제목을 입력하세요" @select="">
+        <div contenteditable="true" id="content-editor">
         </div>
-        <textarea wrap="virtual" rows="8" cols="40"
-                  style="height: 450px"
-                  placeholder="내용을 입력하세요"
-                  ref="textareaObj"
-                  id="textBox"
-        ></textarea>
       </v-row>
       <v-row>
         <v-btn color="primary">save</v-btn>
@@ -100,16 +87,19 @@ export default {
       this.editor = document.querySelector("#content-editor");
       this.editor.appendChild(imgNode);
     },
-    textEdit : function(command){
+    textEdit : function(command) {
       document.execCommand(command);
+    },
     choiceFile: function (){
       document.getElementById("fileupload").click();
     },
     makeMarker: function(){
-      let tmp = document.getElementById("player");
-      let value = this.$refs.textareaObj.value;
+      let tmp = document.querySelector("#videoOrigin");
+      this.canvas = document.querySelector("#videoCanvas");
+      let value = this.canvas.getContext('2d');
+      console.log(value);
       let time = tmp.currentTime;
-      let newBtn = document.createElement('button');
+      let newBtn = document.createElement("button");
       let txt = document.createTextNode("000");
       newBtn.style.backgroundColor="red";
       newBtn.style.borderRadius = '50%';
@@ -117,7 +107,7 @@ export default {
       document.getElementById('marker').appendChild(newBtn);
       newBtn.addEventListener('click', function(){
         tmp.currentTime = time;
-        document.getElementById('textBox').value = value;
+        document.querySelector("#videoCanvas").value = value;
       });
     }
   }
