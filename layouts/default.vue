@@ -63,7 +63,7 @@
         </div>
 
       <div v-else id="Logout">
-        <span >Welcome, {{ authUser.email }}.</span>
+        <span >Welcome, {{ this.name }}.</span>
         <span>
           <v-btn
             @click="logout"
@@ -98,6 +98,13 @@
 import {mapGetters, mapState} from "vuex";
 
 export default {
+  async created() {
+    await this.$fire.auth.onAuthStateChanged(user => {
+      if (user) {
+        this.name = user.displayName
+      }
+    })
+  },
   computed: {
     ...mapState({
       authUser: state => state.authUser,
@@ -125,7 +132,8 @@ export default {
       ],
       miniVariant: false,
       right: true,
-      title: 'Vuetify.js'
+      title: 'Vuetify.js',
+      name: null
     }
   },
   methods:{
