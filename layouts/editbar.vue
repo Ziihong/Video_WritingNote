@@ -13,16 +13,42 @@
       </v-btn>
       <v-toolbar-title class="text-center" v-text="title" />
       <v-spacer />
-      <v-btn icon id="newBtn" @click.stop="isbookmarking ? isbookmarking=!isbookmarking : addBookmark()">
+      <v-btn icon id="newBtn" @click.stop="isBookmarking ? isBookmarking=!isBookmarking : addBookmark()">
         <v-icon>mdi-star</v-icon>
       </v-btn>
-      <v-btn icon id="editBtn">
-        <v-icon>mdi-pencil</v-icon>
+      <v-btn icon id="pecilBtn" @click="isPencil=!isPencil">
+        <v-icon>mdi-{{`${isPencil? 'pencil' : 'pencil-off'}`}}</v-icon>
       </v-btn>
     </v-app-bar>
     <v-main>
       <v-row no-gutters>
         <v-col cols="12" md="7">
+          <v-row no-gutters>
+            <video
+              id="currentVideo"
+              style="margin-left: 0px;
+              padding-left: 0px; z-index: 1"
+              width="100%"
+              controls
+              muted
+              src="/video/Cat-66004.mp4"
+              @click="isBookmarking? openDialog: null">
+            </video>
+            <v-input
+              id="clickPlane"
+              v-if="isBookmarking"
+              @click="showCoords(event)"
+              style="
+              width: 58.3%;
+              height: 67%;
+              position: absolute;
+              z-index: 2">
+            </v-input>
+
+            <template id="note">
+            </template>
+          </v-row>
+          <v-divider></v-divider>
           <v-row no-gutters>
             <v-col>
               <p class="text-center" style="margin-bottom: 12px; margin-top: 12px"><v-icon>mdi-star</v-icon>Bookmarks</p>
@@ -46,18 +72,6 @@
                 </v-list-item>
               </v-list>
             </v-col>
-          </v-row>
-          <v-divider></v-divider>
-          <v-row no-gutters>
-            <video
-              id="currentVideo"
-              style="margin-left: 0px; padding-left: 0px;"
-              width="100%"
-              controls
-              muted
-              src="/video/Cat-66004.mp4"
-              @click="isbookmarking? openDialog: null">
-            </video>
           </v-row>
         </v-col>
         <v-col cols="12" md="5">
@@ -91,13 +105,30 @@
 </template>
 
 <script>
+class Bookmark{
+  constructor(index, inputTitle, inputTime, noteComments){
+    this.icon=index+1;
+    this.title=inputTitle;
+    this.time=inputTime;
+    this.notecomments=[];
+  }
+}
+class Note{
+  constructor(x, y, comment) {
+    this.xcomponent = x;
+    this.ycomponent = y;
+    this.comment = comment
+  }
+}
 
 export default {
+
       data () {
         return {
           title: 'Video Comment',
           dialog: false,
-          isbookmarking: false,
+          isBookmarking: false,
+          isPencil: false,
           currentTime: null,
           currentVideo: null,
           items: [
@@ -105,25 +136,22 @@ export default {
               icon: 1,
               title: 'Start',
               time: 0,
-              comment: 'This is the start of video.'
+              comment: []
             },
             {
               icon: 2,
               title: 'Bookmark',
               time: 3,
-              comment: "After 3sec, just look at this cat. Isn't it so cute."
             },
             {
               icon: 3,
               title: 'Bookmark',
               time: 5,
-              comment: 'This is 5sec after start.'
             },
             {
               icon: 4,
               title: 'Bookmark',
               time: 9,
-              comment: 'End of the Vid.'
             }
           ],
         }
@@ -141,8 +169,16 @@ export default {
           this.currentVideo.pause();
           this.currentTime = this.currentVideo.currentTime
           console.log(this.currentTime);
-          this.isbookmarking= true;
-          //make bookmark object(currentTime, comment)
+          this.isBookmarking= true;
+          let item= new Bookmark(this.items.length+1,`${this.currentTime}`, this.currentTime, null)
+          this.items.push(item);
+
+        },
+        showCoords(event){
+          let x= event.clientX;
+          let y= event.clientY;
+          console.log("Yo");
+          console.log( `Coordinate:(${x},${y})` );
         },
         openDialog(){
           this.dialog=true;
