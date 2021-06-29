@@ -128,9 +128,9 @@ export default {
           to: '/inspire'
         },
         {
-          icon: 'mdi-account',
-          title: 'Login',
-          to: '/login'
+          icon: 'mdi-folder-multiple',
+          title: '보관함',
+          to: '/myfiles'
         },
         {
           icon: 'mdi-folder-multiple',
