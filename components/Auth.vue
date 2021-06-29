@@ -42,12 +42,12 @@ async createUser() {
           autocomplete="current-password"
         />
       </div>
-      <Btn @click="createUser">Register</Btn>
-      <Btn @click="signInUser">Sign In</Btn>
+      <v-btn @click="createUser">Register</v-btn>
+      <v-btn @click="signInUser">Sign In</v-btn>
     </form>
     <div v-else>
       <p>You are logged in with {{ authUser.email }}.</p>
-      <Btn color="primary" outlined @click="logout">Logout</Btn>
+      <v-btn color="primary" outlined @click="logout">Logout</v-btn>
     </div>
   </div>
 </template>

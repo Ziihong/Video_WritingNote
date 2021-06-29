@@ -2,9 +2,6 @@
   <v-row>
     <v-col cols="8">
       <v-row>
-        <input type="file" id="fileupload" hidden/>
-      </v-row>
-      <v-row>
         <v-btn color="primary">
           <v-icon left>
             mdi-arrow-left-circle
@@ -15,27 +12,50 @@
       </v-row>
       <v-row>
         <video class="video-frame" controls autoplay muted
-               src="/hd.mp4"
+               src="/hd.mp4" id="videoOrigin"
                >
           브라우저가 비디오 플레이를 지원하지 않습니다
         </video>
       </v-row>
+      <v-row id="draw">
+        <canvas id="videoCanvas"></canvas>
+      </v-row>
     </v-col>
     <v-col cols="4" class="comment-box">
       <v-row>
-        <v-btn color="primary" @click="choiceFile">새파일</v-btn>
-        <v-btn color="primary">test2</v-btn>
+        <v-btn color="primary">공유하기</v-btn>
+        <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>
         <v-btn color="primary">test3</v-btn>
       </v-row>
       <v-row>
         <v-btn>노트</v-btn>
         <v-btn>코멘트</v-btn>
       </v-row>
+      <v-row class="edit-toolbar">
+        <v-btn @click = "textEdit('bold')" >
+          <v-icon>
+            mdi-format-bold
+          </v-icon>
+        </v-btn>
+        <v-btn @click = "textEdit('italic')" >
+          <v-icon>
+            mdi-format-italic
+          </v-icon>
+        </v-btn>
+        <v-btn @click = "textEdit('underline')" >
+          <v-icon>
+            mdi-format-underline
+          </v-icon>
+        </v-btn>
+        <v-btn @click = "textEdit('strikeThrough')" >
+          <v-icon>
+            mdi-format-strikethrough
+          </v-icon>
+        </v-btn>
+      </v-row>
       <v-row>
-        <textarea wrap="virtual" rows="8" cols="40"
-                  style="height: 450px"
-                  placeholder="내용을 입력하세요"
-        ></textarea>
+        <div contenteditable="true" id="content-editor" aria-placeholder="제목을 입력하세요" @select="">
+        </div>
       </v-row>
       <v-row>
         <v-btn color="primary">save</v-btn>
@@ -48,8 +68,25 @@
 
 export default {
   methods: {
-    choiceFile: function (){
-      document.getElementById("fileupload").click();
+    drawVideo: function (){
+      this.video = document.querySelector("#videoOrigin");
+      this.canvas = document.querySelector("#videoCanvas");
+      this.context = this.canvas.getContext('2d');
+
+      this.canvas.width = this.video.clientWidth;
+      this.canvas.height = this.video.clientHeight;
+
+      this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+      const imgNode = document.createElement("img");
+      imgNode.src = this.canvas.toDataURL();
+      imgNode.width = this.canvas.width/4;
+      imgNode.height = this.canvas.height/4;
+
+      this.editor = document.querySelector("#content-editor");
+      this.editor.appendChild(imgNode);
+    },
+    textEdit : function(command){
+      document.execCommand(command);
     }
   }
 }
@@ -63,5 +100,15 @@ export default {
 .video-frame{
   max-width: 100%;
   height: auto;
+}
+#content-editor{
+  width: 70%;
+  height: 400px;
+  border: 1px solid;
+  overflow-y: auto;
+}
+.edit-toolbar{
+  margin-bottom: 10px;
+  margin-top : 10px;
 }
 </style>

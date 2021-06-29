@@ -14,10 +14,9 @@
           </small>
         </footer>
       </blockquote>
-      <iframe width="956" height="538" src="https://www.youtube.com/embed/UHZmD6poFGQ?autoplay=1"
-              title="YouTube video player" frameborder="0" muted="muted"
-              id="media_frame"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+      <iframe width="956" height="538" src="https://www.youtube.com/embed/GctbDBhe7OE" title="YouTube video player" frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              id="media_frame" muted="muted" allowfullscreen>
       </iframe>
       <form method="post" @submit="changeSrc" onsubmit="return false;">
         <input v-model="youtubeUrl"
