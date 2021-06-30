@@ -164,7 +164,6 @@ export default {
           time: 9,
         }
       ],
-      propTitle: 'mypdf',
     }
   },
   methods:{
@@ -197,7 +196,6 @@ export default {
 
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      let frame = context.getImageData(0, 0, video.videoWidth, video.videoHeight);
       console.log(canvas.toDataURL());
     },
     showCoords(event){
