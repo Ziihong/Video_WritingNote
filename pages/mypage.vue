@@ -144,8 +144,8 @@ export default {
         let position = -1;
 
         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
-        // heightLeft -= pageHeight;
 
+        // heightLeft -= pageHeight;
         // while(heightLeft >= 20){
         //  position -= heightLeft - imgHeight;
         //  doc.addPage();
