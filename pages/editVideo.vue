@@ -9,7 +9,7 @@
         muted
         src="/video/Cat-66004.mp4">
       </video>
-    </v-col>
+    </v-col>,
     <v-col cols="12" md="4">
       <v-row no-gutters>
         <v-col>
