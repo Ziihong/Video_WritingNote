@@ -35,22 +35,25 @@ import firebase from "firebase";
 
 export default {
   layout: 'empty',
+
   data() {
     return {
       form: {
-        name: '',
-        email: '',
-        password: ''
+        name: null,
+        email: null,
+        password: null,
       },
       msg: ''
     }
   },
+
   methods: {
     async signUp() {
       try {
         const r = await this.$fire.auth.createUserWithEmailAndPassword(
           this.form.email,
           this.form.password
+
         ).then((userCredential) => {
           let user = userCredential.user;
           user.updateProfile({
@@ -59,13 +62,20 @@ export default {
         }).catch((e) => {
           console.error(e.message)
         })
+
+        // Add user uid in firestore
+        const ref = this.$fire.firestore.collection('users').doc(this.$fire.auth.currentUser.uid)
+        await ref.set({ name: this.form.name })
+
         await this.$fire.auth.signOut()
         await this.$router.push('login')
-        console.log(r)
+        //console.log(r)
+
       } catch (e) {
         console.error(e.message)
       }
     },
+
     async googleLogin() {
       try {
         const provider = new firebase.auth.GoogleAuthProvider()
