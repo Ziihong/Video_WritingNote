@@ -55,10 +55,7 @@
         </v-btn>
       </v-row>
       <v-row>
-        <div id="content-editor">
-        </div>
-        <div id="app">
-          <froala :tag="'textarea'" :config="config" v-model="model">Init text</froala>
+        <div contenteditable="true" id="content-editor">
         </div>
       </v-row>
       <v-row>
@@ -147,14 +144,14 @@ export default {
         let position = -1;
 
         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        // heightLeft -= pageHeight;
 
-        while(heightLeft >= 20){
-          position -= heightLeft - imgHeight;
-          doc.addPage();
-          doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
-        }
+        // while(heightLeft >= 20){
+        //  position -= heightLeft - imgHeight;
+        //  doc.addPage();
+        //  doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
+        //  heightLeft -= pageHeight;
+        //}
         doc.save('sample.pdf');
       });
     }
@@ -172,17 +169,13 @@ export default {
   height: auto;
 }
 #content-editor{
+  width: 70%;
+  height: 400px;
+  border: 1px solid;
+  overflow-y: auto;
 }
 .edit-toolbar{
   margin-bottom: 10px;
   margin-top : 10px;
-}
-#app {
-  font-family: "Avenir", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
 }
 </style>
