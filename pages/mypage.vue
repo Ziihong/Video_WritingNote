@@ -168,6 +168,7 @@ export default {
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
       this.context.globalAlpha = 1;
+      this.context.lineWidth = this.brushSize;
 
       if(!this.isPainting){
         this.context.beginPath();
