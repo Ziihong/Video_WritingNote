@@ -70,13 +70,17 @@
       </v-row>
       <v-row>
         <v-btn color="primary">save</v-btn>
-        <v-btn color="primary" @click="makeMarker">Mark</v-btn>
+        <v-btn color="primary" @click.stop="makeMarker()">Mark</v-btn>
+        <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
       </v-row>
     </v-col>
   </v-row>
 </template>
 
 <script>
+import jsPDF from 'jspdf'
+import html2canvas from "html2canvas";
+import VueFroala from 'vue-froala-wysiwyg';
 
 import Drawing from "../components/Drawing";
 export default {
@@ -100,7 +104,7 @@ export default {
     this.context.lineWidth = 3.5;
   },
   methods: {
-    drawVideo: function (){
+    drawVideo: function () {
       this.video = document.querySelector("#videoOrigin");
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
@@ -121,24 +125,49 @@ export default {
       this.editor = document.querySelector("#content-editor");
       this.editor.appendChild(imgNode);
     },
-    textEdit : function(command) {
+    textEdit: function (command) {
       document.execCommand(command);
     },
-    choiceFile: function (){
+    choiceFile: function () {
       document.getElementById("fileupload").click();
     },
-    makeMarker: function(){
-      let tmp = document.querySelector("#videoOrigin");
-      let time = tmp.currentTime;
-      let newBtn = document.createElement("button");
-
-      newBtn.classList.add('timebtn');
-      newBtn.style.backgroundColor = 'red';
-      newBtn.innerText = "0000";
-      this.editor = document.querySelector("#content-editor");
-      this.editor.appendChild(newBtn);
-      newBtn.addEventListener('click', function(){
+    makeMarker: function () {
+      const tmp = document.querySelector("#videoOrigin");
+      const time = tmp.currentTime;
+      const newBtn = document.createElement("button");
+      newBtn.innerHTML = '<img src="/v.png" width="20" height="20"/>';
+      document.querySelector("#content-editor").appendChild(newBtn);
+      newBtn.addEventListener('click', function () {
         tmp.currentTime = time;
+      });
+    },
+    saveToPdf: function (){
+      html2canvas(document.querySelector("#content-editor"), {
+        scale: 3,
+        allowTaint: true,
+        useCORS: true,
+        logging: false,
+        height: window.outerHeight + window.innerHeight,
+      }).then(function(canvas){
+        let imgData = canvas.toDataURL('image/png');
+        let imgWidth = 210;
+        let pageHeight = imgWidth * 1.414;
+        let imgHeight = canvas.height * imgWidth / canvas.width;
+        console.log(imgHeight);
+        let heightLeft =  imgHeight;
+        let doc = new jsPDF('p', 'mm');
+        let position = -1;
+
+        doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
+
+        // heightLeft -= pageHeight;
+        // while(heightLeft >= 20){
+        //  position -= heightLeft - imgHeight;
+        //  doc.addPage();
+        //  doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
+        //  heightLeft -= pageHeight;
+        //}
+        doc.save('sample.pdf');
       });
     },
     colorChange: function (color){
