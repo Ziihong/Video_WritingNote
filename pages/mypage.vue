@@ -18,9 +18,19 @@
         </video>
       </v-row>
       <v-row id="draw">
-        <canvas id="videoCanvas" ref="textarea"></canvas>
+        <canvas id="videoCanvas" ref="textarea"
+                @mousemove="canvasMousemove"
+                @mousedown="canvasMousedown"
+                @mouseleave="stopPainting"
+                @mouseup="stopPainting"
+        ></canvas>
         <div id="marker"></div>
       </v-row>
+      <Drawing @colorCall="colorChange"
+               @modeCall="selectMode"
+               @clearCall="canvasClear"
+               @rangeCall="rangeChange"
+      ></Drawing>
     </v-col>
     <v-col cols="4" class="comment-box">
       <v-row>
@@ -72,20 +82,26 @@ import jsPDF from 'jspdf'
 import html2canvas from "html2canvas";
 import VueFroala from 'vue-froala-wysiwyg';
 
+import Drawing from "../components/Drawing";
 export default {
-  data () {
+  components: {
+    Drawing
+  },
+  data() {
     return {
-      config: {
-        events: {
-          initialized: function () {
-            console.log('initialized')
-          }
-        },
-        placeholderText: "Edit Your Content Here!",
-        charCounterCount: false
-      },
-      model: 'Edit Your Content Here!'
-    }
+      isPainting : false,
+      paintMode : 'draw',
+      canvasImgsrc : '',
+      brushSize : 3.5,
+      curColor : '#001dff',
+    };
+  },
+  mounted() {
+    this.canvas = document.querySelector("#videoCanvas");
+    this.context = this.canvas.getContext('2d');
+    this.context.strokeStyle = '#001dff';
+    this.context.fillStyle = '#001dff';
+    this.context.lineWidth = 3.5;
   },
   methods: {
     drawVideo: function () {
@@ -99,8 +115,12 @@ export default {
       this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       const imgNode = document.createElement("img");
       imgNode.src = this.canvas.toDataURL();
-      imgNode.width = this.canvas.width / 4;
-      imgNode.height = this.canvas.height / 4;
+      this.canvasImgsrc = this.canvas.toDataURL();
+      imgNode.width = this.canvas.width/4;
+      imgNode.height = this.canvas.height/4;
+      this.context.strokeStyle = this.curColor;
+      this.context.fillStyle = this.curColor;
+      this.context.lineWidth = this.brushSize;
 
       this.editor = document.querySelector("#content-editor");
       this.editor.appendChild(imgNode);
@@ -120,11 +140,6 @@ export default {
       newBtn.addEventListener('click', function () {
         tmp.currentTime = time;
       });
-    },
-    keydownFunc: function (e) {
-      if (e.keyCode === 13) {
-        document.execCommand('insertHTML', false, '');
-      }
     },
     saveToPdf: function (){
       html2canvas(document.querySelector("#content-editor"), {
@@ -154,7 +169,59 @@ export default {
         //}
         doc.save('sample.pdf');
       });
-    }
+    },
+    colorChange: function (color){
+      const self = this;
+      self.canvas = document.querySelector("#videoCanvas");
+      self.context = this.canvas.getContext('2d');
+      self.curColor = color;
+
+      self.context.strokeStyle = color;
+    },
+    rangeChange: function (range){
+      this.canvas = document.querySelector("#videoCanvas");
+      this.context = this.canvas.getContext('2d');
+      this.context.lineWidth = range;
+      this.brushSize = range;
+    },
+    selectMode: function (mode){
+      if(mode==='select'||mode==='text') this.isPainting = false;
+      this.paintMode = mode;
+    },
+    canvasMousedown: function (event){
+      if(!this.isPainting && (this.paintMode==='draw'||this.paintMode==='light') ) this.isPainting = true;
+    },
+    canvasMousemove: function (event){
+      const x = event.offsetX;
+      const y = event.offsetY;
+      this.canvas = document.querySelector("#videoCanvas");
+      this.context = this.canvas.getContext('2d');
+      this.context.globalAlpha = 1;
+
+      if(!this.isPainting){
+        this.context.beginPath();
+        this.context.moveTo(x,y);
+      }
+      else{
+        if(this.paintMode==='light'){
+          this.context.globalAlpha = 0.03;
+          this.context.lineWidth = this.brushSize*2;
+        }
+        this.context.lineTo(x,y);
+        this.context.stroke();
+      }
+    },
+    stopPainting: function (){
+      this.isPainting = false;
+    },
+    canvasClear: function (){
+      const img = new Image();
+      img.src = this.canvasImgsrc;
+      this.canvas = document.querySelector("#videoCanvas");
+      this.context = this.canvas.getContext('2d');
+      this.context.globalAlpha = 1;
+      this.context.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+    },
   }
 }
 </script>
@@ -177,5 +244,11 @@ export default {
 .edit-toolbar{
   margin-bottom: 10px;
   margin-top : 10px;
+}
+.timebtn{
+  width: 50px;
+  height: 50px;
+  background-color: lime;
+  borderRadius : 50%;
 }
 </style>
