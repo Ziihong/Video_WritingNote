@@ -55,7 +55,6 @@
 </template>
 
 <script>
-
 export default {
   layout:'editbar',
   data () {
@@ -113,6 +112,3 @@ export default {
 }
 </script>
 
-<style scoped>
-
-</style>
