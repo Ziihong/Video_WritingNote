@@ -55,22 +55,43 @@
         </v-btn>
       </v-row>
       <v-row>
-        <div contenteditable="true" id="content-editor">
+        <div id="content-editor">
+        </div>
+        <div id="app">
+          <froala :tag="'textarea'" :config="config" v-model="model">Init text</froala>
         </div>
       </v-row>
       <v-row>
         <v-btn color="primary">save</v-btn>
-        <v-btn color="primary" @click="makeMarker">Mark</v-btn>
+        <v-btn color="primary" @click.stop="makeMarker()">Mark</v-btn>
+        <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
       </v-row>
     </v-col>
   </v-row>
 </template>
 
 <script>
+import jsPDF from 'jspdf'
+import html2canvas from "html2canvas";
+import VueFroala from 'vue-froala-wysiwyg';
 
 export default {
+  data () {
+    return {
+      config: {
+        events: {
+          initialized: function () {
+            console.log('initialized')
+          }
+        },
+        placeholderText: "Edit Your Content Here!",
+        charCounterCount: false
+      },
+      model: 'Edit Your Content Here!'
+    }
+  },
   methods: {
-    drawVideo: function (){
+    drawVideo: function () {
       this.video = document.querySelector("#videoOrigin");
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
@@ -81,29 +102,60 @@ export default {
       this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       const imgNode = document.createElement("img");
       imgNode.src = this.canvas.toDataURL();
-      imgNode.width = this.canvas.width/4;
-      imgNode.height = this.canvas.height/4;
+      imgNode.width = this.canvas.width / 4;
+      imgNode.height = this.canvas.height / 4;
 
       this.editor = document.querySelector("#content-editor");
       this.editor.appendChild(imgNode);
     },
-    textEdit : function(command) {
+    textEdit: function (command) {
       document.execCommand(command);
     },
-    choiceFile: function (){
+    choiceFile: function () {
       document.getElementById("fileupload").click();
     },
-    makeMarker: function(){
-      let tmp = document.querySelector("#videoOrigin");
-      let time = tmp.currentTime;
-      let newBtn = document.createElement("button");
-      let txt = document.createTextNode("000");
-      newBtn.style.backgroundColor="red";
-      newBtn.style.borderRadius = '50%';
-      newBtn.appendChild(txt);
+    makeMarker: function () {
+      const tmp = document.querySelector("#videoOrigin");
+      const time = tmp.currentTime;
+      const newBtn = document.createElement("button");
+      newBtn.innerHTML = '<img src="/v.png" width="20" height="20"/>';
       document.querySelector("#content-editor").appendChild(newBtn);
-      newBtn.addEventListener('click', function(){
+      newBtn.addEventListener('click', function () {
         tmp.currentTime = time;
+      });
+    },
+    keydownFunc: function (e) {
+      if (e.keyCode === 13) {
+        document.execCommand('insertHTML', false, '');
+      }
+    },
+    saveToPdf: function (){
+      html2canvas(document.querySelector("#content-editor"), {
+        scale: 3,
+        allowTaint: true,
+        useCORS: true,
+        logging: false,
+        height: window.outerHeight + window.innerHeight,
+      }).then(function(canvas){
+        let imgData = canvas.toDataURL('image/png');
+        let imgWidth = 210;
+        let pageHeight = imgWidth * 1.414;
+        let imgHeight = canvas.height * imgWidth / canvas.width;
+        console.log(imgHeight);
+        let heightLeft =  imgHeight;
+        let doc = new jsPDF('p', 'mm');
+        let position = -1;
+
+        doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while(heightLeft >= 20){
+          position -= heightLeft - imgHeight;
+          doc.addPage();
+          doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+        doc.save('sample.pdf');
       });
     }
   }
@@ -120,13 +172,17 @@ export default {
   height: auto;
 }
 #content-editor{
-  width: 70%;
-  height: 400px;
-  border: 1px solid;
-  overflow-y: auto;
 }
 .edit-toolbar{
   margin-bottom: 10px;
   margin-top : 10px;
+}
+#app {
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
 }
 </style>
