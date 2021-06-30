@@ -18,26 +18,19 @@
         </video>
       </v-row>
       <v-row id="draw">
-        <canvas id="videoCanvas" ref="textarea"></canvas>
+        <canvas id="videoCanvas" ref="textarea"
+                @mousemove="canvasMousemove"
+                @mousedown="canvasMousedown"
+                @mouseleave="stopPainting"
+                @mouseup="stopPainting"
+        ></canvas>
         <div id="marker"></div>
       </v-row>
-      <v-row class="canvas-drawbar">
-        <v-btn>
-          <v-icon>
-            mdi-brush
-          </v-icon>
-        </v-btn>
-        <v-btn>
-          <v-icon>
-            mdi-grease-pencil
-          </v-icon>
-        </v-btn>
-        <v-btn>
-          <v-icon>
-            mdi-format-textbox
-          </v-icon>
-        </v-btn>
-      </v-row>
+      <Drawing @colorCall="colorChange"
+               @modeCall="selectMode"
+               @clearCall="canvasClear"
+               @rangeCall="rangeChange"
+      ></Drawing>
     </v-col>
     <v-col cols="4" class="comment-box">
       <v-row>
@@ -85,7 +78,27 @@
 
 <script>
 
+import Drawing from "../components/Drawing";
 export default {
+  components: {
+    Drawing
+  },
+  data() {
+    return {
+      isPainting : false,
+      paintMode : 'draw',
+      canvasImgsrc : '',
+      brushSize : 3.5,
+      curColor : '#001dff',
+    };
+  },
+  mounted() {
+    this.canvas = document.querySelector("#videoCanvas");
+    this.context = this.canvas.getContext('2d');
+    this.context.strokeStyle = '#001dff';
+    this.context.fillStyle = '#001dff';
+    this.context.lineWidth = 3.5;
+  },
   methods: {
     drawVideo: function (){
       this.video = document.querySelector("#videoOrigin");
@@ -98,8 +111,12 @@ export default {
       this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       const imgNode = document.createElement("img");
       imgNode.src = this.canvas.toDataURL();
+      this.canvasImgsrc = this.canvas.toDataURL();
       imgNode.width = this.canvas.width/4;
       imgNode.height = this.canvas.height/4;
+      this.context.strokeStyle = this.curColor;
+      this.context.fillStyle = this.curColor;
+      this.context.lineWidth = this.brushSize;
 
       this.editor = document.querySelector("#content-editor");
       this.editor.appendChild(imgNode);
@@ -114,15 +131,68 @@ export default {
       let tmp = document.querySelector("#videoOrigin");
       let time = tmp.currentTime;
       let newBtn = document.createElement("button");
-      let txt = document.createTextNode("000");
-      newBtn.style.backgroundColor="red";
-      newBtn.style.borderRadius = '50%';
-      newBtn.appendChild(txt);
-      document.querySelector("#content-editor").appendChild(newBtn);
+
+      newBtn.classList.add('timebtn');
+      newBtn.style.backgroundColor = 'red';
+      newBtn.innerText = "0000";
+      this.editor = document.querySelector("#content-editor");
+      this.editor.appendChild(newBtn);
       newBtn.addEventListener('click', function(){
         tmp.currentTime = time;
       });
-    }
+    },
+    colorChange: function (color){
+      const self = this;
+      self.canvas = document.querySelector("#videoCanvas");
+      self.context = this.canvas.getContext('2d');
+      self.curColor = color;
+
+      self.context.strokeStyle = color;
+    },
+    rangeChange: function (range){
+      this.canvas = document.querySelector("#videoCanvas");
+      this.context = this.canvas.getContext('2d');
+      this.context.lineWidth = range;
+      this.brushSize = range;
+    },
+    selectMode: function (mode){
+      if(mode==='select'||mode==='text') this.isPainting = false;
+      this.paintMode = mode;
+    },
+    canvasMousedown: function (event){
+      if(!this.isPainting && (this.paintMode==='draw'||this.paintMode==='light') ) this.isPainting = true;
+    },
+    canvasMousemove: function (event){
+      const x = event.offsetX;
+      const y = event.offsetY;
+      this.canvas = document.querySelector("#videoCanvas");
+      this.context = this.canvas.getContext('2d');
+      this.context.globalAlpha = 1;
+
+      if(!this.isPainting){
+        this.context.beginPath();
+        this.context.moveTo(x,y);
+      }
+      else{
+        if(this.paintMode==='light'){
+          this.context.globalAlpha = 0.03;
+          this.context.lineWidth = this.brushSize*2;
+        }
+        this.context.lineTo(x,y);
+        this.context.stroke();
+      }
+    },
+    stopPainting: function (){
+      this.isPainting = false;
+    },
+    canvasClear: function (){
+      const img = new Image();
+      img.src = this.canvasImgsrc;
+      this.canvas = document.querySelector("#videoCanvas");
+      this.context = this.canvas.getContext('2d');
+      this.context.globalAlpha = 1;
+      this.context.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+    },
   }
 }
 </script>
@@ -145,5 +215,11 @@ export default {
 .edit-toolbar{
   margin-bottom: 10px;
   margin-top : 10px;
+}
+.timebtn{
+  width: 50px;
+  height: 50px;
+  background-color: lime;
+  borderRadius : 50%;
 }
 </style>
