@@ -66,6 +66,16 @@ export default {
         const ref = this.$fire.firestore.collection('users').doc(this.$fire.auth.currentUser.uid)
         await ref.set({ name: this.form.name })
 
+        // Add user's file in firestore
+        await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`)
+        .collection('files').add({
+          name: 'file'
+        })
+        await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`)
+        .collection('directory').add({
+            name: 'directory'
+        })
+
         await this.$fire.auth.signOut()
         await this.$router.push('login')
         //console.log(r)

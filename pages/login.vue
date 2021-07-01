@@ -108,6 +108,16 @@ export default {
           else {
             const ref = this.$fire.firestore.collection('users').doc(this.$fire.auth.currentUser.uid)
             ref.set({ name: this.$fire.auth.currentUser.displayName })
+
+            // Add user's file in firestore
+            this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`)
+            .collection('files').add({
+              name: 'file'
+            })
+            this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`)
+            .collection('directory').add({
+              name: 'directory'
+            })
           }
         })
 
