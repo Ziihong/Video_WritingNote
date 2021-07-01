@@ -1,7 +1,7 @@
-import colors from 'vuetify/es5/util/colors'
+import colors from 'vuetify/es5/util/colors';
 
-const isDev = process.env.NODE_ENV === 'development'
-const useEmulators = false // manually change if emulators needed
+const isDev = process.env.NODE_ENV === 'development';
+const useEmulators = false; // manually change if emulators needed
 
 export default {
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
@@ -15,25 +15,24 @@ export default {
     titleTemplate: '%s - intern-2106',
     title: 'intern-2106',
     htmlAttrs: {
-      lang: 'en'
+      lang: 'en',
     },
     meta: [
-      { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: '' }
+      {charset: 'utf-8'},
+      {name: 'viewport', content: 'width=device-width, initial-scale=1'},
+      {hid: 'description', name: 'description', content: ''},
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
-    ]
+      {rel: 'icon', type: 'image/x-icon', href: '/favicon.ico'},
+    ],
   },
 
   // Global CSS: https://go.nuxtjs.dev/config-css
-  css: [
-  ],
+  css: [],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
-    '~/plugins/lazyMode'
+    '~/plugins/lazyMode',
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -55,12 +54,12 @@ export default {
   firebase: {
     lazy: true,
     config: {
-      apiKey: "AIzaSyA5ECvUolkzaBVLRzH1RB2oZ3r8ytPSz3A",
-      authDomain: "intern-2106.firebaseapp.com",
-      projectId: "intern-2106",
-      storageBucket: "intern-2106.appspot.com",
-      messagingSenderId: "758980168580",
-      appId: "1:758980168580:web:d81ff4f0f7052ae9e86bd1"
+      apiKey: 'AIzaSyA5ECvUolkzaBVLRzH1RB2oZ3r8ytPSz3A',
+      authDomain: 'intern-2106.firebaseapp.com',
+      projectId: 'intern-2106',
+      storageBucket: 'intern-2106.appspot.com',
+      messagingSenderId: '758980168580',
+      appId: '1:758980168580:web:d81ff4f0f7052ae9e86bd1',
     },
     onFirebaseHosting: false,
     terminateDatabasesAfterGenerate: true,
@@ -92,12 +91,14 @@ export default {
     },
   },
 
-
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
+    icons: {
+      iconfont: 'mdi',
+    },
     theme: {
-      dark: true,
+      dark: false,
       themes: {
         dark: {
           primary: colors.blue.darken2,
@@ -106,15 +107,14 @@ export default {
           info: colors.teal.lighten1,
           warning: colors.amber.base,
           error: colors.deepOrange.accent4,
-          success: colors.green.accent3
-        }
-      }
-    }
+          success: colors.green.accent3,
+        },
+      },
+    },
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: {
-  },
+  build: {},
 
   pwa: {
     workbox: {
@@ -124,4 +124,4 @@ export default {
       dev: process.env.NODE_ENV === 'development',
     },
   },
-}
+};
