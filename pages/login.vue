@@ -97,7 +97,22 @@ export default {
         this.$fire.auth.languageCode = 'Korean'
         const r = await this.$fire.auth.signInWithPopup(provider)
         this.$store.commit('setUser', r.user)
+
+        // Add google user uid in firestore
+        this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`)
+        .get().then(user => {
+          if (user.exists) {
+            console.log("This google user's uid already set in firestore")
+            console.log(this.$fire.auth.currentUser.uid)
+          }
+          else {
+            const ref = this.$fire.firestore.collection('users').doc(this.$fire.auth.currentUser.uid)
+            ref.set({ name: this.$fire.auth.currentUser.displayName })
+          }
+        })
+
         await this.$router.push('/')
+
       } catch (e) {
         console.error(e.message)
       }
