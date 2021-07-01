@@ -206,7 +206,6 @@ export default {
       let y= event.clientY;
       console.log( `Coordinate:(${x},${y})`);
       let note=document.createElement('v-textarea');
-      note.style =
     },
     openDialog(){
       this.dialog=true;
