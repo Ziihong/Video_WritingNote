@@ -18,7 +18,7 @@
     "firebase": "^8.6.7",
     "material-design-icons-iconfont": "^6.1.0",
     "nuxt": "^2.15.3",
-    "prismjs": "^1.23.0",
+    "prismjs": "^1.24.0",
     "tiptap": "^1.32.2",
     "tiptap-extensions": "^1.35.2",
     "vue-froala-wysiwyg": "^4.0.2"
