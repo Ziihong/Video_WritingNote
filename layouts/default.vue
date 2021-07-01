@@ -132,7 +132,7 @@ export default {
         {
           icon: 'mdi-chart-bubble',
           title: 'test',
-          to: '/testPage'
+          to: '/testEditor'
         },
       ],
       miniVariant: false,
