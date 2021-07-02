@@ -73,7 +73,7 @@
         </div>
       </v-row>
       <v-row>
-        <v-btn color="primary">save</v-btn>
+        <v-btn color="primary" @click="onSave">save</v-btn>
         <v-btn color="primary" @click="makeMarker()">Mark</v-btn>
         <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
       </v-row>
@@ -138,6 +138,12 @@ export default {
   props: ["description", "menubar", "readOnly"],
   data() {
     return {
+      description: '',
+      name: '',
+      files: [],
+      fileObj: null,
+      isUploading: false,
+      fileUrls: [],
       isPainting : false,
       paintMode : 'draw',
       canvasImgsrc : '',
@@ -175,7 +181,7 @@ export default {
         Paragraph,
         HardBreak,
       ],
-      content: 'good morning',
+      content: '',
       creator: {
         avatar: 'http://via.placeholder.com/100x100/a74848',
         user: 'owner'
@@ -198,8 +204,55 @@ export default {
     this.context.strokeStyle = '#001dff';
     this.context.fillStyle = '#001dff';
     this.context.lineWidth = 3.5;
+    if(!this.$fire.auth.currentUser)
+      return;
+    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).get().then(docSnap => {
+      if (docSnap.exists) {
+        this.name = docSnap.data().name;
+        this.description = docSnap.data().description;
+      } else {
+        console.log('');
+      }
+    });
+    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+    collection('files').orderBy('texts').onSnapshot((async querySnapshot => {
+      this.files = querySnapshot.docs;
+      const self = this;
+      this.fileUrls = await Promise.all(this.files.map(file => file.data().path ? self.$fire.storage.ref(file.data().path).getDownloadURL() : ''));
+      console.log(self.$fire.storage.ref(file.data().path).getDownloadURL());
+    }));
   },
   methods: {
+    async onSave() {
+      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+      set({name: this.name}, {merge: true}).
+      then(para => {
+        console.log('Save test : '+para);
+      });
+
+      let texts = document.getElementsByClassName('text');
+      let users = document.getElementsByClassName('user');
+      let avatars = document.getElementsByClassName('avatars');
+      let textArr = [];
+      for(let i=0; i<texts.length; i++){
+        textArr.push({user: users[i].innerText, text: texts[i].innerText});
+      }
+      await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/files`).
+      add({texts: textArr});
+      let savedTexts = this.files.map(file => file.data().texts)[0];
+
+      this.comments = [];
+      for(let i=0; i<savedTexts.length; i++){
+        this.comments.push({
+          user: savedTexts[i]['user'],
+          text: savedTexts[i]['text']
+        });
+      }
+    },
+    async removeFile(file) {
+      console.log('file: ', file.id);
+      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${file.id}`).delete();
+    },
     submitComment: function(reply) {
       this.comments.push({
         id: this.comments.length + 1,

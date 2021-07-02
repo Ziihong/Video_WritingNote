@@ -4,10 +4,10 @@
       <a class="username" href="#"><img :src="comment.avatar" alt=""></a>
     </div>
     <div class="user">
-      <span>{{ comment.user }}</span>
+      {{ comment.user }}
     </div>
     <div class="text">
-      <span>{{ comment.text }}</span>
+      {{ comment.text }}
     </div>
   </div>
 </template>
@@ -22,7 +22,7 @@ export default {
 <style scoped>
 .comment {
   display: flex;
-  padding: 10px;
+  padding: 5px 10px;
   margin-bottom: 10px;
   align-items: center;
   color: #333;
