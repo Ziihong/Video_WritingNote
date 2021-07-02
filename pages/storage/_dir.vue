@@ -1,41 +1,37 @@
 <template>
   <div>
     name: {{ this.name }}
+    <br><br>
     <v-btn @click="uploadFile">upload file</v-btn>
     <v-form>
       <v-text-field v-model="createDir.name" label="Directory name"></v-text-field>
-      <v-text-field v-model="createDir.path" label="Directory path"></v-text-field>
+      <v-text-field v-model="createDir.path" label="Directory path ex) /test/test2/"></v-text-field>
     </v-form>
     <v-btn @click="createDirectory">create Directory</v-btn>
+    <v-btn @click="goHome">go Home Dir</v-btn>
 
-    <template v-for="(file, index) of files">
-      <li v-if="file.data.path">
-        <v-img :src="fileUrls[index]"/>
-      </li>
-      <li v-else>{{ file.data().name }}</li>
+    <br><br>
+    <div> Files </div>
 
-      <br>
-      <div> Directory </div>
-      <br>
+    <li v-for="file in docFiles"> {{ file.name }} ________ path: {{ file.path }} </li>
 
-      <li v-for="dir in dirs" @click="clickDir(dir.name, dir.path)">
-        {{ dir.name }} . {{ dir.path }}
-        <router-view :key="$route.fullPath"/>
-      </li>
+    <br>
+    <div> Directory </div>
 
-      <router-link to="/storage" v-for="dir in dirs"> {{ dir.name }} </router-link>
-      <router-view :key="$route.fullPath"></router-view>
-    </template>
+    <li v-for="dir in dirs" @click="clickDir(dir.name, dir.path)">
+      {{ dir.name }} ________ path: {{ dir.path }}
+    </li>
+
   </div>
 </template>
 
 <script>
-
 export default {
   data() {
     return {
       name: null,
       uid: null,
+      currentDir: null,
       files: [],
       fileUrls: [],
 
@@ -44,7 +40,8 @@ export default {
         path: null
       },
 
-      dirs: []
+      dirs: [],
+      docFiles: []
     }
   },
 
@@ -52,18 +49,17 @@ export default {
     if(!this.$fire.auth.currentUser)
       return
 
-    let queryDir = this.$route.query.dir
+    this.currentDir = this.$route.params.dir
 
     // if user in home directory
-    if (queryDir == undefined) {
-      queryDir = '/'
+    if (this.currentDir == undefined) {
+      this.currentDir = '/'
     }
-    console.log(queryDir)
     this.uid = this.$fire.auth.currentUser.uid
 
     // get user name
     this.$fire.firestore.doc(`users/${this.uid}`)
-    .get().then(docSnap => {
+      .get().then(docSnap => {
       if (docSnap.exists) {
         this.name = docSnap.data().name
       }
@@ -74,22 +70,32 @@ export default {
 
     // get user's directory
     this.$fire.firestore.doc(`users/${this.uid}`)
-    .collection('directory').get().then(directory => {
+      .collection('directory').get().then(directory => {
       directory.docs.forEach(dir => {
-        if (dir.data().path === queryDir) {
+        if (dir.data().path === this.currentDir) {
           this.dirs.push(dir.data())
         }
       })
     })
 
+    // get user's file
     this.$fire.firestore.doc(`users/${this.uid}`)
-    .collection('files').orderBy('name').onSnapshot((async querySnapshot => {
+    .collection('files').get().then(files => {
+      files.docs.forEach(file => {
+        if (file.data().path === this.currentDir) {
+          this.docFiles.push(file.data())
+        }
+      })
+    })
+
+    this.$fire.firestore.doc(`users/${this.uid}`)
+      .collection('files').orderBy('name').onSnapshot((async querySnapshot => {
       //console.log(querySnapshot.docs.length)
       this.files = querySnapshot.docs
       const self = this
       this.fileUrls = await Promise.all(this.files.map(file =>
-      file.data().path ? self.$fire.storage.ref(file.data().path).getDownloadURL() : ''))
-      console.log('fileUrls', this.fileUrls)
+        file.data().path ? self.$fire.storage.ref(file.data().path).getDownloadURL() : ''))
+      //console.log('fileUrls', this.fileUrls)
     }))
   },
 
@@ -100,19 +106,33 @@ export default {
           .doc(this.createDir.path.replace('\/','').replace(/\//g,'.') + this.createDir.name)
           .set({ name: this.createDir.name , path: this.createDir.path })
 
+        await this.$router.replace({ params: { dir: this.currentDir }})
+
       } catch (e) {
         console.log(e.message)
       }
     },
 
     async uploadFile() {
-      console.log(this.$route.query)
+      //console.log(this.$route.query)
+    },
+
+    async goHome() {
+      if (this.currentDir == '/') { // if not, caused error
+        return
+      }
+      await this.$router.replace({ params: {dir: '/' }})
     },
 
     async clickDir(name, path) {
-      await this.$router.push({ query: {dir: path + name + '/'}})
+      await this.$router.replace({ params: {dir: path + name + '/' }})
       //await this.$router.push({path: this.$route.path, query: {dir: path + name + '/'}})
+
     }
   }
 }
 </script>
+
+<style scoped>
+
+</style>
