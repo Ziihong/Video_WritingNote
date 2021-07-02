@@ -82,7 +82,6 @@
 <script>
 import jsPDF from 'jspdf'
 import html2canvas from "html2canvas";
-import VueFroala from 'vue-froala-wysiwyg';
 
 import Drawing from "../components/Drawing";
 export default {
