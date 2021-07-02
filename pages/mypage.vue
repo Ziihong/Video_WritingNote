@@ -82,7 +82,6 @@
 <script>
 import jsPDF from 'jspdf'
 import html2canvas from "html2canvas";
-import VueFroala from 'vue-froala-wysiwyg';
 
 import Drawing from "../components/Drawing";
 export default {
@@ -133,9 +132,6 @@ export default {
     textEdit: function (command) {
       document.execCommand(command);
     },
-    choiceFile: function () {
-      document.getElementById("fileupload").click();
-    },
     makeMarker: function () {
       const tmp = document.querySelector("#videoOrigin");
       const time = tmp.currentTime;
@@ -156,10 +152,8 @@ export default {
       }).then(function(canvas){
         let imgData = canvas.toDataURL('image/png');
         let imgWidth = 210;
-        let pageHeight = imgWidth * 1.414;
         let imgHeight = canvas.height * imgWidth / canvas.width;
         console.log(imgHeight);
-        let heightLeft =  imgHeight;
         let doc = new jsPDF('p', 'mm');
         let position = -1;
 
@@ -193,7 +187,7 @@ export default {
       if(mode==='select'||mode==='text') this.isPainting = false;
       this.paintMode = mode;
     },
-    canvasMousedown: function (event){
+    canvasMousedown: function (){
       if(!this.isPainting && (this.paintMode==='draw'||this.paintMode==='light') ) this.isPainting = true;
     },
     canvasMousemove: function (event){
@@ -256,8 +250,9 @@ export default {
       img.src = this.canvasImgsrc;
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
-      this.context.globalAlpha = 1;
+
       this.context.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
     },
   }
 }
