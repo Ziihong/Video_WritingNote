@@ -30,6 +30,8 @@
                @modeCall="selectMode"
                @clearCall="canvasClear"
                @rangeCall="rangeChange"
+               @undoCall="undoExec"
+               @redoCall="redoExec"
       ></Drawing>
     </v-col>
     <v-col cols="4" class="comment-box">
@@ -141,6 +143,8 @@ export default {
       canvasImgsrc : '',
       brushSize : 3.5,
       curColor : '#001dff',
+      undoStack : [],
+      redoStack : [],
       swMenubar: this.menubar,
       linkUrl: null,
       linkMenuIsActive: false,
@@ -230,6 +234,7 @@ export default {
       this.context.strokeStyle = this.curColor;
       this.context.fillStyle = this.curColor;
       this.context.lineWidth = this.brushSize;
+      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
 
       document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
     },
@@ -304,6 +309,7 @@ export default {
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
       this.context.globalAlpha = 1;
+      this.context.lineWidth = this.brushSize;
 
       if(!this.isPainting){
         this.context.beginPath();
@@ -314,12 +320,43 @@ export default {
           this.context.globalAlpha = 0.03;
           this.context.lineWidth = this.brushSize*2;
         }
+        // else if(this.paintMode==='erase'){
+        //   this.context.globalCompositeOperation = "destination-out";
+        //   this.context.strokeStyle = "rgba(0,0,0,1)";
+        //   console.log('erase');
+        // }
         this.context.lineTo(x,y);
         this.context.stroke();
       }
     },
     stopPainting: function (){
+      if(this.isPainting===true){
+        this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
+        this.redoStack.length=0;
+      }
       this.isPainting = false;
+      this.canvas = document.querySelector("#videoCanvas");
+      this.context = this.canvas.getContext('2d');
+    },
+    undoExec: function (){
+      if (this.undoStack.length <= 1){
+        return;
+      }
+      this.canvas = document.querySelector("#videoCanvas");
+      this.context = this.canvas.getContext('2d');
+      this.redoStack.push(this.undoStack[this.undoStack.length - 1]);
+      this.undoStack.pop();
+      this.context.putImageData(this.undoStack[this.undoStack.length - 1],0,0);
+    },
+    redoExec: function (){
+      if (this.redoStack.length < 1){
+        return;
+      }
+      this.canvas = document.querySelector("#videoCanvas");
+      this.context = this.canvas.getContext('2d');
+      this.undoStack.push(this.redoStack[this.redoStack.length - 1]);
+      this.context.putImageData(this.redoStack[this.redoStack.length - 1],0,0);
+      this.redoStack.pop();
     },
     canvasClear: function (){
       const img = new Image();
