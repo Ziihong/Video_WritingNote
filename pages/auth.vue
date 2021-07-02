@@ -68,12 +68,15 @@ export default {
 
         // Add user's file in firestore
         await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`)
-        .collection('files').add({
-          name: 'file'
+        .collection('files').doc('sample').set({
+            name: 'sample',
+            path: '/',
+            timestamp: new Date().toLocaleString()
         })
         await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`)
-        .collection('directory').add({
-            name: 'directory'
+        .collection('directory').doc('home').set({
+            name: 'home',
+            path: ''
         })
 
         await this.$fire.auth.signOut()
