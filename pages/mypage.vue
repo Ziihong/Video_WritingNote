@@ -40,7 +40,7 @@
       </v-row>
       <v-row>
         <v-btn>노트</v-btn>
-        <v-btn>코멘트</v-btn>
+        <v-btn @click="visibleComment">코멘트</v-btn>
       </v-row>
       <v-row class="edit-toolbar">
         <v-btn @click = "textEdit('bold')" >
@@ -65,13 +65,36 @@
         </v-btn>
       </v-row>
       <v-row>
-        <div contenteditable="true" id="content-editor">
+        <div id="content-editor">
+          <tiptap-vuetify id="tiptapVue" :v-model="content" :extensions="extensions" :toolbar-attributes="{ color: 'yellow' }">
+          </tiptap-vuetify>
         </div>
       </v-row>
       <v-row>
         <v-btn color="primary">save</v-btn>
-        <v-btn color="primary" @click.stop="makeMarker()">Mark</v-btn>
+        <v-btn color="primary" @click="makeMarker()">Mark</v-btn>
         <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
+      </v-row>
+      <v-row>
+        <div id="comment" style="visibility: hidden">
+          <div class="owner">
+            <span>{{ comments.length }}개의 comment</span>
+            <div class="ownerAvatar">
+              <a class="username" href="#"><img :src="creator.avatar" alt=""></a>
+            </div>
+            <div class="ownerName">
+              <span>{{ creator.user }}</span>
+            </div>
+          </div>
+          <div>
+            <comments
+              :comments_wrapper_classes="['custom-scrollbar', 'comments-wrapper']"
+              :comments="comments"
+              :current_user="current_user"
+              @submit-comment="submitComment"
+            ></comments>
+          </div>
+        </div>
       </v-row>
     </v-col>
   </v-row>
@@ -80,13 +103,37 @@
 <script>
 import jsPDF from 'jspdf'
 import html2canvas from "html2canvas";
-import VueFroala from 'vue-froala-wysiwyg';
-
 import Drawing from "../components/Drawing";
+import Comments from './comments';
+
+import {
+  TiptapVuetify,
+  Heading,
+  Bold,
+  Italic,
+  Strike,
+  Underline,
+  Code,
+  Paragraph,
+  BulletList,
+  OrderedList,
+  ListItem,
+  Link,
+  Blockquote,
+  HardBreak,
+  HorizontalRule,
+  History,
+  Image,
+} from 'tiptap-vuetify'
+
+
 export default {
   components: {
-    Drawing
+    Drawing,
+    TiptapVuetify,
+    Comments,
   },
+  props: ["description", "menubar", "readOnly"],
   data() {
     return {
       isPainting : false,
@@ -94,6 +141,51 @@ export default {
       canvasImgsrc : '',
       brushSize : 3.5,
       curColor : '#001dff',
+      swMenubar: this.menubar,
+      linkUrl: null,
+      linkMenuIsActive: false,
+      editor: null,
+      extensions: [
+        History,
+        Blockquote,
+        Link,
+        Underline,
+        Strike,
+        Italic,
+        ListItem,
+        BulletList,
+        OrderedList,
+        Image,
+        [
+          Heading,
+          {
+            options: {
+              levels: [1, 2, 3]
+            }
+          }
+        ],
+        Bold,
+        Link,
+        Code,
+        HorizontalRule,
+        Paragraph,
+        HardBreak,
+      ],
+      content: 'good morning',
+      creator: {
+        avatar: 'http://via.placeholder.com/100x100/a74848',
+        user: 'owner'
+      },
+      current_user: {
+        avatar: '/v.png',
+        user: 'user'
+      },
+      comments: [],
+      avatar: [
+        'http://via.placeholder.com/100x100/a74848',
+        'http://via.placeholder.com/100x100/2d58a7',
+        'http://via.placeholder.com/100x100/36846e'
+      ]
     };
   },
   mounted() {
@@ -104,6 +196,23 @@ export default {
     this.context.lineWidth = 3.5;
   },
   methods: {
+    submitComment: function(reply) {
+      this.comments.push({
+        id: this.comments.length + 1,
+        user: this.current_user.user + (this.comments.length+1),
+        avatar: this.avatar[Math.floor(Math.random()*this.avatar.length)],
+        // avatar: this.current_user.avatar,
+        text: reply
+      });
+    },
+    visibleComment: function(){
+      let commentDiv = document.querySelector("#comment")
+      if(commentDiv.style.visibility === "hidden") {
+        commentDiv.style.visibility = "visible";
+      } else {
+        commentDiv.style.visibility = "hidden";
+      }
+    },
     drawVideo: function () {
       this.video = document.querySelector("#videoOrigin");
       this.canvas = document.querySelector("#videoCanvas");
@@ -122,8 +231,7 @@ export default {
       this.context.fillStyle = this.curColor;
       this.context.lineWidth = this.brushSize;
 
-      this.editor = document.querySelector("#content-editor");
-      this.editor.appendChild(imgNode);
+      document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
     },
     textEdit: function (command) {
       document.execCommand(command);
@@ -136,13 +244,13 @@ export default {
       const time = tmp.currentTime;
       const newBtn = document.createElement("button");
       newBtn.innerHTML = '<img src="/v.png" width="20" height="20"/>';
-      document.querySelector("#content-editor").appendChild(newBtn);
+      document.getElementsByClassName("ProseMirror")[0].appendChild(newBtn);
       newBtn.addEventListener('click', function () {
         tmp.currentTime = time;
       });
     },
     saveToPdf: function (){
-      html2canvas(document.querySelector("#content-editor"), {
+      html2canvas(document.getElementsByClassName("tiptap-vuetify-editor__content")[0], {
         scale: 3,
         allowTaint: true,
         useCORS: true,
@@ -153,7 +261,6 @@ export default {
         let imgWidth = 210;
         let pageHeight = imgWidth * 1.414;
         let imgHeight = canvas.height * imgWidth / canvas.width;
-        console.log(imgHeight);
         let heightLeft =  imgHeight;
         let doc = new jsPDF('p', 'mm');
         let position = -1;
@@ -236,19 +343,28 @@ export default {
   height: auto;
 }
 #content-editor{
-  width: 70%;
-  height: 400px;
-  border: 1px solid;
-  overflow-y: auto;
+  position: relative;
+  display: flex;
+  /*width: 70%;*/
+  /*height: 400px;*/
+  /*border: 1px solid;*/
+  /*overflow-y: auto;*/
 }
 .edit-toolbar{
   margin-bottom: 10px;
   margin-top : 10px;
 }
-.timebtn{
-  width: 50px;
-  height: 50px;
-  background-color: lime;
-  borderRadius : 50%;
+#comment {
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  margin-top: 60px;
+}
+.owner .ownerAvatar > a > img {
+  width: 40px;
+  height: 40px;
+  border-radius: 100%;
 }
 </style>
