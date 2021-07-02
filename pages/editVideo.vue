@@ -21,34 +21,28 @@
       </v-btn>
     </v-app-bar>
       <v-row no-gutters>
-        <v-col cols="12" md="7">
-          <v-row no-gutters>
+        <v-col cols="12" md="8">
+          <v-row id="videoArea" no-gutters>
             <video
-              id="currentVideo"
-              style="margin-left: 0px;
-              padding-left: 0px; z-index: 1"
-              width="100%"
-              controls
-              muted
-              src="/video/Cat-66004.mp4"
-              @click="isBookmarking? openDialog: null">
-            </video>
-            <v-btn
+                id="currentVideo"
+                style="margin-left: 0px; padding-left: 0px;"
+                width="100%"
+                controls
+                muted
+                src="/video/Cat-66004.mp4"
+                @click="isBookmarking? openDialog: null"></video>
+            <div
               id="clickPlane"
               v-if="isBookmarking"
-              @click="showCoords($event)"
-              style="
-              background-color: aquamarine;
-              filter: alpha(opacity=70);
-              opacity: 0.7;
-              width: 58.3%;
-              height: 67%;
-              position: absolute;
-              z-index: 2">
-            </v-btn>
+              @click="setNote($event)"
+              class="clickPlane"
+              width="100%">
+              <canvas></canvas>
+            </div>
           </v-row>
+
           <v-divider></v-divider>
-          <v-row no-gutters>
+          <v-row id="bookmarkArea" no-gutters>
             <v-col>
               <p class="text-center" style="margin-bottom: 12px; margin-top: 12px"><v-icon>mdi-star</v-icon>Bookmarks</p>
               <v-divider></v-divider>
@@ -73,7 +67,7 @@
             </v-col>
           </v-row>
         </v-col>
-        <v-col cols="12" md="5">
+        <v-col cols="12" md="4">
           <v-textarea
             id="currentComment"
             filled
@@ -115,6 +109,7 @@ class Bookmark{
     this.title=inputTitle;
     this.time=inputTime;
     this.notecomments=[];
+    this.prenote=null;
   }
   getNote(){
     return this.notecomments;
@@ -178,15 +173,17 @@ export default {
       this.currentVideo = document.getElementById('currentVideo');
       this.currentVideo.pause();
       this.currentTime = this.currentVideo.currentTime
+
       console.log(this.currentTime);
       this.isBookmarking= true;
+
       let item= new Bookmark(this.items.length,`${this.currentTime}`, this.currentTime, null)
       this.items.push(item);
 
     },
     screenshot(){
       const video = document.getElementById("currentVideo")
-      let canvas = document.querySelector("canvas");
+      let canvas = document.getElementById("screenCapture");
       const context = canvas.getContext("2d");
 
       if(!video){
@@ -198,17 +195,38 @@ export default {
 
       console.log(canvas.toDataURL());
     },
-    showCoords(event){
+    goFront(event){
       console.log(event);
-      let x= event.clientX;
-      let y= event.clientY;
+      let target = event.target;
+      let videoArea = document.getElementById('videoArea');
+      let clickArea = document.getElementById('clickPlane');
+
+      if(this.prenote != target){
+
+        console.log('inside If');
+        console.log(this.prenote);
+        console.log(target);
+
+        this.prenote.zIndex;
+        target.zIndex;
+        this.prenote = target;
+      }
+    },
+    setNote(event){
+      let x= event.offsetY;
+      let y= event.offsetX;
       console.log( `Coordinate:(${x},${y})`);
-      let note=document.createElement('v-textarea');
+
+      let note=document.createElement('textarea');
+      note.setAttribute('class', 'note');
+      note.style.top=`${x}px`;note.style.left=`${y}px`;
+      let videoArea=document.getElementById('videoArea');
+      videoArea.appendChild(note);
+      note.onclick=this.goFront;
+      this.prenote = note;
     },
     openDialog(){
       this.dialog=true;
-      this.currentVideo = document.getElementById('currentVideo');
-      this.currentVideo.pause();
     }
   },
 }
@@ -217,8 +235,17 @@ export default {
 <style>
 .note{
   background-color: khaki;
-  position: relative;
-
+  opacity: 70%;
+  border: 1px solid black;
+  position: absolute;
+  text-align: center;
+  z-index: 1;
+}
+.clickPlane{
+  background-color: aquamarine;
+  opacity: 70%;
+  position: absolute;
+  z-index: 1;
 }
 
 </style>
