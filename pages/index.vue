@@ -29,12 +29,14 @@ async createUser() {
 import Logo from '~/components/Logo.vue';
 import VuetifyLogo from '~/components/VuetifyLogo.vue';
 import Auth from '~/components/Auth';
+import TextEditor from "@/components/TextEditor";
 
 export default {
   components: {
     Logo,
     VuetifyLogo,
     Auth,
+    TextEditor,
   },
   data() {
     return {}

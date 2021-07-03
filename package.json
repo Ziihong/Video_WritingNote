@@ -11,8 +11,12 @@
   "dependencies": {
     "@nuxtjs/firebase": "^7.6.1",
     "@nuxtjs/pwa": "^3.3.5",
+    "@tiptap/extension-highlight": "^2.0.0-beta.14",
+    "@tiptap/extension-image": "^2.0.0-beta.14",
+    "@tiptap/extension-text-align": "^2.0.0-beta.20",
     "@tiptap/starter-kit": "^2.0.0-beta.81",
     "@tiptap/vue-2": "^2.0.0-beta.39",
+    "@toast-ui/editor": "^3.0.0",
     "@toast-ui/vue-editor": "^3.0.0",
     "core-js": "^3.9.1",
     "firebase": "^8.6.7",
@@ -21,10 +25,13 @@
     "prismjs": "^1.23.0",
     "tiptap": "^1.32.2",
     "tiptap-extensions": "^1.35.2",
+    "tui-editor": "^1.4.10",
+    "vue-codemirror": "^4.0.6",
     "vue-froala-wysiwyg": "^4.0.2"
   },
   "devDependencies": {
     "@nuxt/types": "~2.15.0",
-    "@nuxtjs/vuetify": "^1.11.3"
+    "@nuxtjs/vuetify": "^1.11.3",
+    "postcss-loader": "^3.0.0"
   }
 }
