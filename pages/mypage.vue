@@ -2,6 +2,21 @@
   <v-row>
     <v-col cols="8">
       <v-row>
+        <div id="dimmed" class="hidden" @click="closePopup"></div>
+        <div id="canvas-container" class="hidden">
+          <Drawing @colorCall="colorChange"
+                   @modeCall="selectMode"
+                   @clearCall="canvasClear"
+                   @rangeCall="rangeChange"
+                   @undoCall="undoExec"
+                   @redoCall="redoExec"
+          ></Drawing>
+          <canvas id="drawing-canvas"
+          @mousemove="canvasMousemove"
+          @mousedown="canvasMousedown"
+          @mouseleave="stopPainting"
+          @mouseup="stopPainting"></canvas>
+        </div>
         <v-btn color="primary">
           <v-icon left>
             mdi-arrow-left-circle
@@ -284,12 +299,14 @@ export default {
       this.canvasImgsrc = this.canvas.toDataURL();
       imgNode.width = this.canvas.width/4;
       imgNode.height = this.canvas.height/4;
+      imgNode.addEventListener("click",this.popupCanvas);
       this.context.strokeStyle = this.curColor;
       this.context.fillStyle = this.curColor;
       this.context.lineWidth = this.brushSize;
       this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
 
-      document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
+      document.getElementById('content-editor').appendChild(imgNode);
+      //document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
     },
     textEdit: function (command) {
       document.execCommand(command);
@@ -409,14 +426,27 @@ export default {
       this.redoStack.pop();
     },
     canvasClear: function (){
-      const img = new Image();
-      img.src = this.canvasImgsrc;
+      const originImg = document.createElement('img');
+      originImg.src = this.canvasImgsrc;
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
 
-      this.context.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+      this.context.drawImage(originImg, 0, 0, this.canvas.width, this.canvas.height);
       this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
     },
+    popupCanvas: function (event){
+      document.getElementById('dimmed').classList.remove('hidden');
+      document.getElementById('canvas-container').classList.remove('hidden');
+      this.canvas = document.getElementById('drawing-canvas');
+      this.context = this.canvas.getContext('2d');
+      const printImg = document.createElement('img');
+      printImg.src = event.target.src;
+      this.context.drawImage(printImg, 0, 0, this.canvas.width, this.canvas.height);
+    },
+    closePopup: function (){
+      document.getElementById('dimmed').classList.add('hidden');
+      document.getElementById('canvas-container').classList.add('hidden');
+    }
   }
 }
 </script>
@@ -454,5 +484,32 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 100%;
+}
+#dimmed{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  opacity: .8;
+  z-index: 10;
+}
+#canvas-container{
+  position: absolute;
+  top : 10%;
+  left: 10%;
+  width: 80%;
+  height: auto;
+  background-color: white;
+  z-index: 100;
+}
+#drawing-canvas{
+  width: 80%;
+  height: auto;
+  background-color: dimgrey;
+}
+.hidden{
+  display: none;
 }
 </style>
