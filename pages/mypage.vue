@@ -69,10 +69,12 @@
       <v-row>
         <div id="content-editor" contenteditable="true">
           <template v-for="note of notes">
-            <div>
-              {{note.data().text}}
-            </div>
-<!--            <img :src="note.data().captureImage" alt="">-->
+<!--            <div>-->
+<!--              {{note.data().time}}-->
+<!--            </div>-->
+            <v-btn @click="goToMarkTime(note.data().time)">
+              <img src="/v.png" width="20" height="20">
+            </v-btn>
           </template>
         </div>
       </v-row>
@@ -82,7 +84,7 @@
         <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
       </v-row>
       <v-row>
-        <div id="comment" style="visibility: hidden">
+        <div id="commentArea">
           <div class="owner">
             <span>{{ comments.length }}개의 comment</span>
             <div class="ownerAvatar">
@@ -92,29 +94,28 @@
               <span>{{ creator.user }}</span>
             </div>
           </div>
-            <template v-for="comment of comments" class="savedComment">
-              <div class="custom-scrollbar">
-                <div class="comment">
-                  <div class="avatar">
-                    <a class="username" href="#"><img :src="comment.data().avatar" alt=""></a>
-                  </div>
-                  <div class="user">
-                    {{ comment.data().user }}
-                    {{ comment.data().texts }}
-                  </div>
-                  <button class="inlineBtn">
-                    <v-icon right @click="removeComment(comment)">mdi-close-box</v-icon>
-                  </button>
+            <div class="custom-scrollbar">
+              <div class="comment" v-for="comment of comments">
+                <div class="avatar">
+                  <a class="username" href="#"><img :src="comment.data().avatar" alt=""></a>
                 </div>
+                <div class="user">
+                  {{ comment.data().user }}
+                </div>
+                <div class="texts">
+                  {{ comment.data().texts }}
+                </div>
+                <button class="inlineBtn">
+                  <v-icon right @click="removeComment(comment)">mdi-close-box</v-icon>
+                </button>
               </div>
-            </template>
-            <comments
-              :comments_wrapper_classes="['custom-scrollbar', 'comments-wrapper']"
-              :comments="commentsArr"
-              :current_user="current_user"
-              @submit-comment="submitComment">
-            </comments>
-          </div>
+            </div>
+          <comments
+            :comments_wrapper_classes="['custom-scrollbar', 'comments-wrapper']"
+            :current_user="current_user"
+            @submit-comment="submitComment">
+          </comments>
+        </div>
       </v-row>
     </v-col>
   </v-row>
@@ -175,6 +176,7 @@ export default {
       swMenubar: this.menubar,
       linkUrl: null,
       linkMenuIsActive: false,
+      markerTimeArr: [],
       editor: null,
       extensions: [
         History,
@@ -236,48 +238,20 @@ export default {
       }
     });
     this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-    collection('comments').orderBy('texts').onSnapshot((async querySnapshot => {
+    collection('comments').orderBy('timestamp').onSnapshot((async querySnapshot => {
       this.comments = querySnapshot.docs;
       const self = this;
       this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
     }));
 
     this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-    collection('notes').orderBy('text').onSnapshot((async querySnapshot => {
+    collection('notes').onSnapshot((async querySnapshot => {
       this.notes = querySnapshot.docs;
       const self = this;
       this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
     }));
   },
   methods: {
-    async onSaveComment() {
-      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-      set({name: this.name}, {merge: true}).
-      then(para => {
-        console.log('Save test : '+para);
-      });
-
-      let texts = document.getElementsByClassName('texts');
-      for(let i=0; i<texts.length; i++){
-        await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/comments`).add({
-          user: this.current_user.user,
-          avatar: this.current_user.avatar,
-          texts: texts[i].innerText
-        });
-      }
-
-      this.comments = [];
-      const fileStorageRef = this.$fire.firestore
-        .collection(`users/${this.$fire.auth.currentUser.uid}/comments`);
-      fileStorageRef.orderBy('user')
-        .onSnapshot((async querySnapshot => {
-          //console.log(querySnapshot.docs.length);
-          this.comments = querySnapshot.docs;
-          const self = this;
-          this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
-        }));
-
-    },
     async onSaveNote() {
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
       set({name: this.name}, {merge: true}).
@@ -292,12 +266,16 @@ export default {
           text: this.noteTexts[i].innerText
         });
       }
-      for(let i=0; i<this.noteCaptures.length; i++){
+      // for(let i=0; i<this.noteCaptures.length; i++){
+      //   await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/notes`).add({
+      //     captureImage: this.noteCaptures[i].src
+      //   });
+      // }
+      for(let i=0; i<this.markerTimeArr.length; i++){
         await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/notes`).add({
-          captureImage: this.noteCaptures[i].src
+          time: this.markerTimeArr[i]
         });
       }
-
       this.notes = [];
       const fileStorageRef = this.$fire.firestore
         .collection(`users/${this.$fire.auth.currentUser.uid}/notes`);
@@ -318,16 +296,34 @@ export default {
       console.log('note: ', note.id);
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/notes/${note.id}`).delete();
     },
-    submitComment: function(reply) {
-      this.commentsArr.push({
-        user: this.current_user.user,
-        avatar: this.current_user.avatar,
-        texts: reply
+    async submitComment(reply) {
+      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+      set({name: this.name}, {merge: true}).
+      then(para => {
+        console.log('Save test : '+para);
       });
-      this.onSaveComment();
+
+      const self = this;
+      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/comments`).add({
+        user: self.current_user.user,
+        avatar: self.current_user.avatar,
+        texts: reply,
+        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
+      });
+
+      this.comments = [];
+      const fileStorageRef = this.$fire.firestore
+        .collection(`users/${this.$fire.auth.currentUser.uid}/comments`);
+      fileStorageRef.orderBy('user')
+        .onSnapshot((async querySnapshot => {
+          //console.log(querySnapshot.docs.length);
+          this.comments = querySnapshot.docs;
+          const self = this;
+          this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
+        }));
     },
     visibleComment: function(){
-      let commentDiv = document.querySelector("#comment")
+      let commentDiv = document.querySelector("#commentArea")
       if(commentDiv.style.visibility === "hidden") {
         commentDiv.style.visibility = "visible";
       } else {
@@ -362,16 +358,21 @@ export default {
       document.getElementById("fileupload").click();
     },
     makeMarker: function () {
-      const tmp = document.querySelector("#videoOrigin");
-      const time = tmp.currentTime;
-      const newBtn = document.createElement("button");
+      const originVideo = document.querySelector("#videoOrigin");
+      const time = originVideo.currentTime;
+      const newBtn = document.createElement("v-btn");
       newBtn.innerHTML = '<img src="/v.png" width="20" height="20"/>';
       document.querySelector("#content-editor").appendChild(newBtn);
       newBtn.addEventListener('click', function () {
-        tmp.currentTime = time;
+        originVideo.currentTime = time;
       });
+      this.markerTimeArr.push(time);
     },
-    saveToPdf: function (){
+    goToMarkTime: function(time) {
+      const originVideo = document.querySelector("#videoOrigin");
+      originVideo.currentTime = time;
+    },
+    saveToPdf: function () {
       html2canvas(document.querySelector("#content-editor"), {
         scale: 3,
         allowTaint: true,
@@ -506,7 +507,7 @@ export default {
   margin-bottom: 10px;
   margin-top : 10px;
 }
-#comment {
+#commentArea {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -543,12 +544,19 @@ export default {
   text-align: left;
   margin-left: 5px;
 }
-.savedComment .custom-scrollbar{
+.comment .texts {
+  text-align: left;
+  margin-left: 15px;
+}
+.comment .inlineBtn {
+  display: inline;
+}
+.custom-scrollbar{
   max-height: 250px;
   overflow-y: auto;
   padding-right: 10px;
 }
-.savedComment .custom-scrollbar::-webkit-scrollbar-track
+.custom-scrollbar::-webkit-scrollbar-track
 {
   -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
   -moz-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
@@ -556,20 +564,17 @@ export default {
   border-radius: 10px;
   background-color: #fff;
 }
-.savedComment .custom-scrollbar::-webkit-scrollbar
+.custom-scrollbar::-webkit-scrollbar
 {
   width: 8px;
   background-color: #fff;
 }
-.savedComment .custom-scrollbar::-webkit-scrollbar-thumb
+.custom-scrollbar::-webkit-scrollbar-thumb
 {
   border-radius: 10px;
   -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
   -moz-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
   box-shadow: inset 0 0 6px rgba(0,0,0,.3);
   background-color: #555;
-}
-.inlineBtn {
-  display: inline;
 }
 </style>
