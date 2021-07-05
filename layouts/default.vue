@@ -136,7 +136,7 @@ export default {
           icon: 'mdi-folder-multiple',
           title: 'Mypage',
           to: '/mypage'
-        }
+        },
       ],
       miniVariant: false,
       right: true,
