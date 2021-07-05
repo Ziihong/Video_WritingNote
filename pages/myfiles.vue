@@ -1,4 +1,5 @@
 <template>
+
   <v-col>
     <!-- directory path -->
     <v-col>
@@ -51,7 +52,7 @@
         <div>폴더</div>
       </v-row>
       <v-row>
-        <template v-for="dir of directories" >
+        <template v-for="dir of directories">
           <div class="directory">
             <div class="inlineBtn" @click="moveDirectory(dir)">
               <v-icon left>mdi-folder</v-icon>
@@ -70,13 +71,14 @@
       <v-row>
         <div>파일</div>
       </v-row>
+
       <v-row>
-        <template v-for="file of files">
-          <div class="directory">
-            <div class="inlineBtn">
-              <v-icon left>mdi-file</v-icon>
-              <span>{{ file.data().name }}</span>
-            </div>
+        <template v-for="(file,index) of files">
+          <div class="videoFile">
+            <span @click="moveFile(file)">
+            <video :src="`${fileUrls[index]}#t=0.5`" muted width="100%">{{ fileUrls[index] }}</video>
+            <span> {{ file.data().name }}</span>
+            </span>
             <button class="inlineBtn">
               <v-icon right @click="removeFile(file)">mdi-close-box</v-icon>
             </button>
@@ -93,7 +95,7 @@ import Auth from '~/components/Auth';
 
 export default {
   components: {
-    Auth
+    Auth,
   },
   data() {
     return {
@@ -103,11 +105,14 @@ export default {
       directories: [],
       files: [],
       currentDirectory: '',
+      fileObj: null,
+      isUploading: false,
+      fileUrls: [],
       pathIds: [
         {
-          pathId:'',
-          pathName:'내 보관함',
-          parentId:'',
+          pathId: '',
+          pathName: '내 보관함',
+          parentId: '',
         }
       ],
     }
@@ -206,6 +211,10 @@ export default {
       }
       this.viewFiles();
     },
+    moveFile(file){
+      //console.log(file);
+      this.$router.push(`/videonotes/${file.id}`);
+    },
     async makeDirectory() {
       if (!this.newName?.length) {
         return alert("폴더명을 입력해주세요");
@@ -215,7 +224,7 @@ export default {
       const sameRef = await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`)
         .collection('directories')
       const querySnap = await sameRef.where("parentId", "==", this.currentDirectory).where('name', '==', this.newName).get();
-      if (querySnap.docs.length){
+      if (querySnap.docs.length) {
         return alert("이미 존재하는 폴더명입니다. 다른 이름을 입력하세요.");
       }
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`).collection('directories')
@@ -223,7 +232,7 @@ export default {
           name: this.newName,
           parentId: this.currentDirectory
         })
-      this.newName ='';
+      this.newName = '';
       alert("폴더가 생성되었습니다.");
       this.viewFiles();
     },
@@ -274,7 +283,7 @@ export default {
         //const docReference
         await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
           parentId: self.currentDirectory,
-          name: uploadTask.snapshot.ref.fullPath,
+          name: self.fileObj.name,
           path: uploadTask.snapshot.ref.fullPath,
           timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
         })
@@ -284,7 +293,7 @@ export default {
         });
       });
     },
-    async removeDirectory(dir){
+    async removeDirectory(dir) {
       const delConfirm = confirm("폴더와 하위 항목들을 완전히 삭제하시겠습니까?");
       if (delConfirm == true) {
         let subDirectories = [dir.id];
@@ -324,16 +333,15 @@ export default {
         this.viewFiles();
       }
     },
-    async removeFile(file){
+    async removeFile(file) {
       //console.log(file);
       const delConfirm = confirm("파일을 완전히 삭제하시겠습니까?");
-      if (delConfirm == true){
+      if (delConfirm == true) {
         await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${file.id}`).delete();
         alert("파일이 삭제되었습니다.");
         this.viewFiles();
       }
     }
-
   },
 }
 
@@ -372,10 +380,20 @@ export default {
 }
 
 .directory {
-  display: inline;
+  display: inline-block;
   padding: 10px;
   margin: 10px;
   border-radius: 10px;
   border: solid 2px cornflowerblue;
 }
+
+.videoFile {
+  display: inline;
+  padding: 10px;
+  margin: 10px;
+  width: 350px;
+  border-radius: 10px;
+  border: solid 2px cornflowerblue;
+}
+
 </style>
