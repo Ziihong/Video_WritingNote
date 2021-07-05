@@ -129,5 +129,8 @@ export default {
 }
 .canvas-drawbar{
   display: block;
+  background-color: white;
+  margin-bottom: 1%;
+  margin-left: 1%;
 }
 </style>

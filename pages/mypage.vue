@@ -33,7 +33,7 @@
         </video>
       </v-row>
       <v-row id="draw">
-        <canvas id="videoCanvas" ref="textarea"
+        <canvas id="videoCanvas" ref="textarea" class="hidden"
                 @mousemove="canvasMousemove"
                 @mousedown="canvasMousedown"
                 @mouseleave="stopPainting"
@@ -41,13 +41,6 @@
         ></canvas>
         <div id="marker"></div>
       </v-row>
-      <Drawing @colorCall="colorChange"
-               @modeCall="selectMode"
-               @clearCall="canvasClear"
-               @rangeCall="rangeChange"
-               @undoCall="undoExec"
-               @redoCall="redoExec"
-      ></Drawing>
     </v-col>
     <v-col cols="4" class="comment-box">
       <v-row>
@@ -82,9 +75,9 @@
         </v-btn>
       </v-row>
       <v-row>
-        <div id="content-editor">
-          <tiptap-vuetify id="tiptapVue" :v-model="content" :extensions="extensions" :toolbar-attributes="{ color: 'yellow' }">
-          </tiptap-vuetify>
+        <div id="content-editor" contenteditable="true">
+<!--          <tiptap-vuetify id="tiptapVue" :v-model="content" :extensions="extensions" :toolbar-attributes="{ color: 'yellow' }">-->
+<!--          </tiptap-vuetify>-->
         </div>
       </v-row>
       <v-row>
@@ -289,21 +282,23 @@ export default {
       this.video = document.querySelector("#videoOrigin");
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
+      this.drawcanvas = document.querySelector("#drawing-canvas");
+      this.drawcontext = this.canvas.getContext('2d');
 
       this.canvas.width = this.video.clientWidth;
       this.canvas.height = this.video.clientHeight;
+      this.drawcanvas.width = this.video.clientWidth;
+      this.drawcanvas.height = this.video.clientHeight;
 
       this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       const imgNode = document.createElement("img");
       imgNode.src = this.canvas.toDataURL();
+
       this.canvasImgsrc = this.canvas.toDataURL();
       imgNode.width = this.canvas.width/4;
       imgNode.height = this.canvas.height/4;
+
       imgNode.addEventListener("click",this.popupCanvas);
-      this.context.strokeStyle = this.curColor;
-      this.context.fillStyle = this.curColor;
-      this.context.lineWidth = this.brushSize;
-      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
 
       document.getElementById('content-editor').appendChild(imgNode);
       //document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
@@ -351,16 +346,19 @@ export default {
     },
     colorChange: function (color){
       const self = this;
-      self.canvas = document.querySelector("#videoCanvas");
+      self.canvas = document.querySelector("#drawing-canvas");
       self.context = this.canvas.getContext('2d');
       self.curColor = color;
 
       self.context.strokeStyle = color;
     },
     rangeChange: function (range){
-      this.canvas = document.querySelector("#videoCanvas");
+      this.vidcanvas = document.querySelector("#videoCanvas");
+      this.vidcontext = this.canvas.getContext('2d');
+      this.canvas = document.querySelector("#drawing-canvas");
       this.context = this.canvas.getContext('2d');
       this.context.lineWidth = range;
+      this.vidcontext.lineWidth = range;
       this.brushSize = range;
     },
     selectMode: function (mode){
@@ -373,43 +371,47 @@ export default {
     canvasMousemove: function (event){
       const x = event.offsetX;
       const y = event.offsetY;
-      this.canvas = document.querySelector("#videoCanvas");
-      this.context = this.canvas.getContext('2d');
-      this.context.globalAlpha = 1;
-      this.context.lineWidth = this.brushSize;
+
+      const self = this;
+      self.canvas = document.querySelector("#drawing-canvas");
+      self.context = self.canvas.getContext('2d');
+      this.consize = document.querySelector('#canvas-container');
+      self.context.globalAlpha = 1;
+      self.context.lineWidth = this.brushSize;
+      console.log('canvas size : '+this.consize.clientWidth+' ,'+this.consize.clientHeight);
 
       if(!this.isPainting){
-        this.context.beginPath();
-        this.context.moveTo(x,y);
+        self.context.beginPath();
+        self.context.moveTo(x,y);
       }
       else{
         if(this.paintMode==='light'){
-          this.context.globalAlpha = 0.03;
-          this.context.lineWidth = this.brushSize*2;
+          self.context.globalAlpha = 0.03;
+          self.context.lineWidth = self.brushSize*2;
         }
         // else if(this.paintMode==='erase'){
         //   this.context.globalCompositeOperation = "destination-out";
         //   this.context.strokeStyle = "rgba(0,0,0,1)";
         //   console.log('erase');
         // }
-        this.context.lineTo(x,y);
-        this.context.stroke();
+        self.context.lineTo(x,y);
+        self.context.stroke();
       }
     },
     stopPainting: function (){
+      this.canvas = document.querySelector("#drawing-canvas");
+      this.context = this.canvas.getContext('2d');
       if(this.isPainting===true){
         this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
         this.redoStack.length=0;
       }
       this.isPainting = false;
-      this.canvas = document.querySelector("#videoCanvas");
-      this.context = this.canvas.getContext('2d');
     },
     undoExec: function (){
       if (this.undoStack.length <= 1){
         return;
       }
-      this.canvas = document.querySelector("#videoCanvas");
+      this.canvas = document.querySelector("#drawing-canvas");
       this.context = this.canvas.getContext('2d');
       this.redoStack.push(this.undoStack[this.undoStack.length - 1]);
       this.undoStack.pop();
@@ -419,7 +421,7 @@ export default {
       if (this.redoStack.length < 1){
         return;
       }
-      this.canvas = document.querySelector("#videoCanvas");
+      this.canvas = document.querySelector("#drawing-canvas");
       this.context = this.canvas.getContext('2d');
       this.undoStack.push(this.redoStack[this.redoStack.length - 1]);
       this.context.putImageData(this.redoStack[this.redoStack.length - 1],0,0);
@@ -428,7 +430,7 @@ export default {
     canvasClear: function (){
       const originImg = document.createElement('img');
       originImg.src = this.canvasImgsrc;
-      this.canvas = document.querySelector("#videoCanvas");
+      this.canvas = document.querySelector("#drawing-canvas");
       this.context = this.canvas.getContext('2d');
 
       this.context.drawImage(originImg, 0, 0, this.canvas.width, this.canvas.height);
@@ -440,12 +442,21 @@ export default {
       this.canvas = document.getElementById('drawing-canvas');
       this.context = this.canvas.getContext('2d');
       const printImg = document.createElement('img');
+
+      this.canvasImgsrc = event.target.src;
       printImg.src = event.target.src;
       this.context.drawImage(printImg, 0, 0, this.canvas.width, this.canvas.height);
+      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
+
+      this.context.strokeStyle = this.curColor;
+      this.context.lineWidth = this.brushSize;
+      console.log('canvas wid, hei '+this.canvas.width+' '+this.canvas.height);
     },
     closePopup: function (){
       document.getElementById('dimmed').classList.add('hidden');
       document.getElementById('canvas-container').classList.add('hidden');
+      this.undoStack.length = 0;
+      this.redoStack.length = 0;
     }
   }
 }
@@ -454,7 +465,6 @@ export default {
 <style scoped>
 .comment-box{
   height: 600px;
-  background-color: white;
 }
 .video-frame{
   max-width: 100%;
@@ -462,11 +472,11 @@ export default {
 }
 #content-editor{
   position: relative;
-  display: flex;
-  /*width: 70%;*/
-  /*height: 400px;*/
-  /*border: 1px solid;*/
-  /*overflow-y: auto;*/
+  width: 70%;
+  height: 400px;
+  padding: 10px;
+  border: 1px solid;
+  overflow-y: auto;
 }
 .edit-toolbar{
   margin-bottom: 10px;
@@ -497,17 +507,19 @@ export default {
 }
 #canvas-container{
   position: absolute;
-  top : 10%;
-  left: 10%;
+  top : auto;
+  left: auto;
   width: 80%;
   height: auto;
+  padding: 1%;
   background-color: white;
   z-index: 100;
 }
 #drawing-canvas{
-  width: 80%;
-  height: auto;
+  /*width: 80%;*/
+  /*height: auto;*/
   background-color: dimgrey;
+  object-fit: cover;
 }
 .hidden{
   display: none;
