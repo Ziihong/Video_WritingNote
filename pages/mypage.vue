@@ -67,14 +67,18 @@
         </v-btn>
       </v-row>
       <v-row>
-        <div id="content-editor">
-          <tiptap-vuetify id="tiptapVue" :v-model="content" :extensions="extensions" :toolbar-attributes="{ color: 'yellow' }">
-          </tiptap-vuetify>
+        <div id="content-editor" contenteditable="true">
+          <template v-for="note of notes">
+            <div>
+              {{note.data().text}}
+            </div>
+<!--            <img :src="note.data().captureImage" alt="">-->
+          </template>
         </div>
       </v-row>
       <v-row>
-        <v-btn color="primary" @click="onSave">save</v-btn>
-        <v-btn color="primary" @click="makeMarker()">Mark</v-btn>
+        <v-btn color="primary" @click="onSaveNote">save</v-btn>
+        <v-btn color="primary" @click="makeMarker">Mark</v-btn>
         <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
       </v-row>
       <v-row>
@@ -88,15 +92,29 @@
               <span>{{ creator.user }}</span>
             </div>
           </div>
-          <div>
+            <template v-for="comment of comments" class="savedComment">
+              <div class="custom-scrollbar">
+                <div class="comment">
+                  <div class="avatar">
+                    <a class="username" href="#"><img :src="comment.data().avatar" alt=""></a>
+                  </div>
+                  <div class="user">
+                    {{ comment.data().user }}
+                    {{ comment.data().texts }}
+                  </div>
+                  <button class="inlineBtn">
+                    <v-icon right @click="removeComment(comment)">mdi-close-box</v-icon>
+                  </button>
+                </div>
+              </div>
+            </template>
             <comments
               :comments_wrapper_classes="['custom-scrollbar', 'comments-wrapper']"
-              :comments="comments"
+              :comments="commentsArr"
               :current_user="current_user"
-              @submit-comment="submitComment"
-            ></comments>
+              @submit-comment="submitComment">
+            </comments>
           </div>
-        </div>
       </v-row>
     </v-col>
   </v-row>
@@ -127,23 +145,26 @@ import {
   History,
   Image,
 } from 'tiptap-vuetify'
-
+import SingleComment from "./singleComment";
 
 export default {
   components: {
+    SingleComment,
     Drawing,
     TiptapVuetify,
     Comments,
   },
-  props: ["description", "menubar", "readOnly"],
+  props: ["description", "menubar", "readOnly", "comments_wrapper_classes"],
   data() {
     return {
       description: '',
       name: '',
-      files: [],
-      fileObj: null,
+      comments: [],
+      commentObj: null,
+      notes: [],
+      noteUrls: [],
       isUploading: false,
-      fileUrls: [],
+      commentUrls: [],
       isPainting : false,
       paintMode : 'draw',
       canvasImgsrc : '',
@@ -187,15 +208,15 @@ export default {
         user: 'owner'
       },
       current_user: {
-        avatar: '/v.png',
-        user: 'user'
+        avatar: 'http://via.placeholder.com/100x100/36846e',
+        user: 'user',
       },
-      comments: [],
-      avatar: [
-        'http://via.placeholder.com/100x100/a74848',
-        'http://via.placeholder.com/100x100/2d58a7',
-        'http://via.placeholder.com/100x100/36846e'
-      ]
+      commentsArr: [],
+      // avatarArr: [
+      //   'http://via.placeholder.com/100x100/a74848',
+      //   'http://via.placeholder.com/100x100/2d58a7',
+      //   'http://via.placeholder.com/100x100/36846e'
+      // ]
     };
   },
   mounted() {
@@ -215,52 +236,95 @@ export default {
       }
     });
     this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-    collection('files').orderBy('texts').onSnapshot((async querySnapshot => {
-      this.files = querySnapshot.docs;
+    collection('comments').orderBy('texts').onSnapshot((async querySnapshot => {
+      this.comments = querySnapshot.docs;
       const self = this;
-      this.fileUrls = await Promise.all(this.files.map(file => file.data().path ? self.$fire.storage.ref(file.data().path).getDownloadURL() : ''));
-      console.log(self.$fire.storage.ref(file.data().path).getDownloadURL());
+      this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
+    }));
+
+    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+    collection('notes').orderBy('text').onSnapshot((async querySnapshot => {
+      this.notes = querySnapshot.docs;
+      const self = this;
+      this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
     }));
   },
   methods: {
-    async onSave() {
+    async onSaveComment() {
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
       set({name: this.name}, {merge: true}).
       then(para => {
         console.log('Save test : '+para);
       });
 
-      let texts = document.getElementsByClassName('text');
-      let users = document.getElementsByClassName('user');
-      let avatars = document.getElementsByClassName('avatars');
-      let textArr = [];
+      let texts = document.getElementsByClassName('texts');
       for(let i=0; i<texts.length; i++){
-        textArr.push({user: users[i].innerText, text: texts[i].innerText});
-      }
-      await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/files`).
-      add({texts: textArr});
-      let savedTexts = this.files.map(file => file.data().texts)[0];
-
-      this.comments = [];
-      for(let i=0; i<savedTexts.length; i++){
-        this.comments.push({
-          user: savedTexts[i]['user'],
-          text: savedTexts[i]['text']
+        await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/comments`).add({
+          user: this.current_user.user,
+          avatar: this.current_user.avatar,
+          texts: texts[i].innerText
         });
       }
+
+      this.comments = [];
+      const fileStorageRef = this.$fire.firestore
+        .collection(`users/${this.$fire.auth.currentUser.uid}/comments`);
+      fileStorageRef.orderBy('user')
+        .onSnapshot((async querySnapshot => {
+          //console.log(querySnapshot.docs.length);
+          this.comments = querySnapshot.docs;
+          const self = this;
+          this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
+        }));
+
     },
-    async removeFile(file) {
-      console.log('file: ', file.id);
-      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${file.id}`).delete();
+    async onSaveNote() {
+      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+      set({name: this.name}, {merge: true}).
+      then(para => {
+        console.log('Save test : '+para);
+      });
+
+      this.noteTexts = document.getElementById('content-editor').getElementsByTagName('div');
+      this.noteCaptures = document.getElementById('content-editor').getElementsByTagName('img');
+      for(let i=0; i<this.noteTexts.length; i++){
+        await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/notes`).add({
+          text: this.noteTexts[i].innerText
+        });
+      }
+      for(let i=0; i<this.noteCaptures.length; i++){
+        await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/notes`).add({
+          captureImage: this.noteCaptures[i].src
+        });
+      }
+
+      this.notes = [];
+      const fileStorageRef = this.$fire.firestore
+        .collection(`users/${this.$fire.auth.currentUser.uid}/notes`);
+      fileStorageRef.orderBy('user')
+        .onSnapshot((async querySnapshot => {
+          //console.log(querySnapshot.docs.length);
+          this.notes = querySnapshot.docs;
+          const self = this;
+          this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
+        }));
+
+    },
+    async removeComment(comment) {
+      console.log('comment: ', comment.id);
+      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/comments/${comment.id}`).delete();
+    },
+    async removeNote(note) {
+      console.log('note: ', note.id);
+      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/notes/${note.id}`).delete();
     },
     submitComment: function(reply) {
-      this.comments.push({
-        id: this.comments.length + 1,
-        user: this.current_user.user + (this.comments.length+1),
-        avatar: this.avatar[Math.floor(Math.random()*this.avatar.length)],
-        // avatar: this.current_user.avatar,
-        text: reply
+      this.commentsArr.push({
+        user: this.current_user.user,
+        avatar: this.current_user.avatar,
+        texts: reply
       });
+      this.onSaveComment();
     },
     visibleComment: function(){
       let commentDiv = document.querySelector("#comment")
@@ -289,7 +353,7 @@ export default {
       this.context.lineWidth = this.brushSize;
       this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
 
-      document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
+      document.querySelector("#content-editor").appendChild(imgNode);
     },
     textEdit: function (command) {
       document.execCommand(command);
@@ -302,13 +366,13 @@ export default {
       const time = tmp.currentTime;
       const newBtn = document.createElement("button");
       newBtn.innerHTML = '<img src="/v.png" width="20" height="20"/>';
-      document.getElementsByClassName("ProseMirror")[0].appendChild(newBtn);
+      document.querySelector("#content-editor").appendChild(newBtn);
       newBtn.addEventListener('click', function () {
         tmp.currentTime = time;
       });
     },
     saveToPdf: function (){
-      html2canvas(document.getElementsByClassName("tiptap-vuetify-editor__content")[0], {
+      html2canvas(document.querySelector("#content-editor"), {
         scale: 3,
         allowTaint: true,
         useCORS: true,
@@ -433,12 +497,10 @@ export default {
   height: auto;
 }
 #content-editor{
-  position: relative;
-  display: flex;
-  /*width: 70%;*/
-  /*height: 400px;*/
-  /*border: 1px solid;*/
-  /*overflow-y: auto;*/
+  width: 70%;
+  height: 400px;
+  border: 1px solid;
+  overflow-y: auto;
 }
 .edit-toolbar{
   margin-bottom: 10px;
@@ -456,5 +518,58 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 100%;
+}
+.comment {
+  display: flex;
+  padding: 5px 10px;
+  margin-bottom: 10px;
+  align-items: center;
+  color: #333;
+  background-color: #F2F2F2;
+  border-radius: 30px;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+.comment .username {
+  align-self: flex-start;
+  margin-top: 5px;
+}
+.comment .avatar > a > img {
+  width: 40px;
+  height: 40px;
+  border-radius: 100%;
+  align-self: start;
+}
+.comment .user{
+  text-align: left;
+  margin-left: 5px;
+}
+.savedComment .custom-scrollbar{
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+.savedComment .custom-scrollbar::-webkit-scrollbar-track
+{
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  -moz-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  border-radius: 10px;
+  background-color: #fff;
+}
+.savedComment .custom-scrollbar::-webkit-scrollbar
+{
+  width: 8px;
+  background-color: #fff;
+}
+.savedComment .custom-scrollbar::-webkit-scrollbar-thumb
+{
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+  -moz-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+  box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+  background-color: #555;
+}
+.inlineBtn {
+  display: inline;
 }
 </style>

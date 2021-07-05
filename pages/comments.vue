@@ -56,8 +56,8 @@ export default {
   margin-top: 20px;
   padding: 20px;
   padding-top: 0;
-  min-width: 500px;
-  max-width: 500px;
+  min-width: 300px;
+  max-width: 300px;
 }
 .comments-wrapper {
   max-height: 250px;
