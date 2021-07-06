@@ -11,16 +11,13 @@
       <!-- button : make new directory -->
       <v-row class="btnContainer">
         <div class="btn">
-          <v-btn color="primary" class="filebox" @click="makeDirectory">
+          <v-btn color="primary" class="filebox" @click="modalCreateDir">
             <v-icon left>mdi-folder-plus-outline</v-icon>
             새폴더
           </v-btn>
-          <v-text-field clearable placeholder="새폴더 이름을 입력하세요" v-model="newName"/>
+<!--          <v-text-field clearable placeholder="새폴더 이름을 입력하세요" v-model="newName"/>-->
         </div>
-      </v-row>
 
-      <!-- upload buttons container -->
-      <v-row class="btnContainer">
         <!-- button: upload directory -->
         <div class="btn">
           <v-btn color="primary" class="filebox">
@@ -28,8 +25,10 @@
               <v-icon left>mdi-folder-upload-outline</v-icon>
               폴더 업로드
             </label>
-            <v-file-input class="selectFile" id="up-directory" @change="upDirectory" v-model="name" light
+            <v-file-input class="selectFile" id="up-directory" @change="upDirectory" v-model="names" light
                           webkitdirectory
+                          webkitRelativePath
+                          mozdirectory
                           directory multiple/>
           </v-btn>
         </div>
@@ -59,6 +58,9 @@
               <span>{{ dir.data().name }}</span>
             </div>
             <button class="inlineBtn">
+              <v-icon right class="rename" @click="modalRenameDir(dir)">mdi-pen</v-icon>
+            </button>
+            <button class="inlineBtn">
               <v-icon right @click="removeDirectory(dir)">mdi-close-box</v-icon>
             </button>
           </div>
@@ -71,7 +73,6 @@
       <v-row>
         <div>파일</div>
       </v-row>
-
       <v-row>
         <template v-for="(file,index) of files">
           <div class="videoFile">
@@ -80,6 +81,9 @@
             <span> {{ file.data().name }}</span>
             </span>
             <button class="inlineBtn">
+              <v-icon right class="rename" @click="modalRenameFile(file)">mdi-pen</v-icon>
+            </button>
+            <button class="inlineBtn">
               <v-icon right @click="removeFile(file)">mdi-close-box</v-icon>
             </button>
           </div>
@@ -87,20 +91,40 @@
       </v-row>
     </v-col>
 
+    <!-- modal -->
+    <modal
+      :isModalViewed="this.isModalViewed"
+      :title="this.title"
+      :name="this.modalName"
+      @modal-close="modalClose"
+      @modal-ok="modalOk">
+    </modal>
+
   </v-col>
 </template>
 
 <script>
+import modal from '/components/modal';
 
 export default {
+  components: {
+    modal,
+  },
   data() {
     return {
+      title : "title",
+      isModalViewed : false,
+      whyModal: '',
       name: '',
+      names:'',
       newName: '',
+      modalName:'',
       path: '',
       directories: [],
       files: [],
       currentDirectory: '',
+      uploadDirectory:'',
+      renameObj:'',
       fileObj: null,
       isUploading: false,
       fileUrls: [],
@@ -129,6 +153,49 @@ export default {
     this.viewFiles();
   },
   methods: {
+    modalClose(){
+      this.isModalViewed = false;
+    },
+    modalRenameDir(dir){
+      this.whyModal = 'renameDir';
+      this.modalName = dir.data().name;
+      this.title = '이름 바꾸기';
+      this.renameObj = dir;
+      this.isModalViewed = true;
+    },
+    modalRenameFile(file){
+      this.whyModal = 'renameFile';
+      this.modalName = file.data().name;
+      this.title = '이름 바꾸기';
+      this.renameObj = file;
+      this.isModalViewed = true;
+    },
+    modalCreateDir(){
+      this.whyModal = 'create';
+      this.modalName = '새폴더';
+      this.title = '새 폴더';
+      this.isModalViewed = true;
+    },
+    modalOk(rename){
+      this.isModalViewed = false;
+      console.log('modal ok!');
+      console.log(rename);
+      this.newName = rename;
+      // create new directory
+      if (this.whyModal == 'create'){
+        // console.log('make directory');
+        this.createDirectory();
+      }
+      // rename directory
+      else if (this.whyModal == 'renameDir'){
+        //console.log('rename Directory');
+        this.renameDirectory();
+      }
+      // rename file
+      else if (this.whyModal == 'renameFile'){
+        this.renameFile();
+      }
+    },
     viewFiles() {
       // view directories
       this.directories = [];
@@ -149,11 +216,11 @@ export default {
           this.files = querySnapshot.docs;
           const self = this;
           this.fileUrls = await Promise.all(this.files.map(file => file.data().path ? self.$fire.storage.ref(file.data().path).getDownloadURL() : ''));
-          console.log('fileUrls', this.fileUrls);
+          //console.log('fileUrls', this.fileUrls);
         }));
     },
     async movePath(path) {
-      // console.log(path);
+      console.log(path);
       // if user clicks '내 보관함'
       if (path.pathId == '') {
         this.currentDirectory = '';
@@ -212,17 +279,9 @@ export default {
       //console.log(file);
       this.$router.push(`/videonotes/${file.id}`);
     },
-    async makeDirectory() {
+    async createDirectory() {
       if (!this.newName?.length) {
-        return alert("폴더명을 입력해주세요");
-      }
-
-      // if it is same name directory in same path, user can't make directory for newName.
-      const sameRef = await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`)
-        .collection('directories')
-      const querySnap = await sameRef.where("parentId", "==", this.currentDirectory).where('name', '==', this.newName).get();
-      if (querySnap.docs.length) {
-        return alert("이미 존재하는 폴더명입니다. 다른 이름을 입력하세요.");
+        return alert("이름을 입력해주세요");
       }
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`).collection('directories')
         .add({
@@ -230,14 +289,103 @@ export default {
           parentId: this.currentDirectory
         })
       this.newName = '';
-      alert("폴더가 생성되었습니다.");
+      // alert("폴더가 생성되었습니다.");
       this.viewFiles();
     },
-    upDirectory() {
-      return;
+    async upDirectory() {
+      console.log(this.names);
+      // create upload directory
+      let theFiles = this.names;
+      let relativePath = theFiles[0].webkitRelativePath;
+      let directory = relativePath.split("/");
+      this.newName = directory[0];
+
+      // can't upload using same directory name
+      const sameRef = await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`)
+        .collection('directories')
+      const sameQuerySnap = await sameRef.where("parentId", "==", this.currentDirectory).where('name', '==', this.newName).get();
+      if (sameQuerySnap.docs.length) {
+        this.newName = '';
+        return alert('기존 항목이 존재합니다.');
+      }
+
+      // create upload directory
+      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`).collection('directories')
+        .add({
+          name: this.newName,
+          parentId: this.currentDirectory
+        })
+      const storageRef = await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`)
+        .collection('directories');
+
+      // set path for uploading files
+      const querySnap = await storageRef.where("parentId", "==", this.currentDirectory).where('name', '==', this.newName).get();
+      if (querySnap.docs.length) {
+        this.uploadDirectory = querySnap.docs[0].id;
+      }
+
+      // upload file
+      while(this.names.length > 0){
+        console.log('function: upFile!');
+        this.fileObj = this.names.pop();
+        if (!this.$fire.auth.currentUser) {
+          return alert('로그인해주세요.');
+        }
+        if (!this.fileObj) {
+          return alert('파일을 선택해주세요.');
+        }
+
+        const storageRef = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${this.fileObj.name}`);
+        console.log('storageRef:', storageRef);
+        console.log('fileObj.name:', this.fileObj.name);
+        storageRef.put(this.fileObj);
+        const uploadTask = storageRef.put(this.fileObj);
+        this.isUploading = true;
+        const self = this;
+        uploadTask.on('state_changed', async function (snapshot) {        // Observe state change events such as progress, pause, and resume
+          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+
+          console.log('Upload is ' + progress + '% done');
+          switch (snapshot.state) {
+            case self.$fireModule.storage.TaskState.PAUSED: // or 'paused'
+              console.log('Upload is paused');
+              break;
+            case self.$fireModule.storage.TaskState.RUNNING: // or 'running'
+              console.log('Upload is running');
+              break;
+          }
+        }, function (error) {
+          // Handle unsuccessful uploads
+          alert('error');
+          this.isUploading = false;
+        }, async function () {
+          console.log('success!');
+          // Handle successful uploads on complete
+          // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+          console.log(uploadTask.snapshot.ref.fullPath);
+
+          //const docReference
+          console.log("firebse upload");
+          await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
+            parentId: self.uploadDirectory,
+            name: uploadTask.snapshot.ref.name,
+            path: uploadTask.snapshot.ref.fullPath,
+            timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
+          })
+
+          uploadTask.snapshot.ref.getDownloadURL().then(function (downloadURL) {
+            console.log('File available at', downloadURL);
+          });
+        });
+      }
+
+      // clear text-input-field
+      this.newName = '';
+      this.viewFiles();
+
     },
     upFile(file) {
-      console.log('file:', file);
       this.fileObj = file;
       console.log('fileObj:', this.fileObj);
       if (!this.$fire.auth.currentUser) {
@@ -279,9 +427,10 @@ export default {
         console.log(uploadTask.snapshot.ref.fullPath);
 
         //const docReference
+        console.log("firebse upload");
         await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
           parentId: self.currentDirectory,
-          name: self.fileObj.name,
+          name: uploadTask.snapshot.ref.name,
           path: uploadTask.snapshot.ref.fullPath,
           timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
         })
@@ -336,9 +485,29 @@ export default {
       const delConfirm = confirm("파일을 완전히 삭제하시겠습니까?");
       if (delConfirm == true) {
         await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${file.id}`).delete();
-        alert("파일이 삭제되었습니다.");
-        this.viewFiles();
       }
+    },
+    async renameDirectory(){
+      // console.log("function", this.renameObj);
+      if (!this.newName?.length) {
+        return alert("이름을 입력해주세요");
+      }
+      await this.$fire.firestore
+        .doc(`users/${this.$fire.auth.currentUser.uid}/directories/${this.renameObj.id}`)
+        .update({
+          name: this.newName,
+        })
+      this.viewFiles();
+    },
+    async renameFile(){
+      if (!this.newName?.length) {
+        return alert("이름을 입력해주세요");
+      }
+      await this.$fire.firestore
+        .doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.renameObj.id}`)
+        .update({
+          name: this.newName,
+        })
     }
   },
 }
