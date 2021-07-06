@@ -129,16 +129,21 @@ export default {
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
 
-      this.canvas.width = this.video.clientWidth;
-      this.canvas.height = this.video.clientHeight;
+      this.video.crossorigin = 'anonymous';
+      this.video.onload = function(){
+        this.canvas.width = this.video.clientWidth;
+        this.canvas.height = this.video.clientHeight;
+        this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+        console.log('Video onload');
+      };
 
-      this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       const imgNode = document.createElement("img");
 
       const self = this;
-      imgNode.crossOrigin = "Anonymous";
+      //imgNode.crossOrigin = '*';
+      //imgNode.setAttribute('src',`url/timestamp=${new Date().getTime()}`)
       imgNode.src = this.canvas.toDataURL();
-
+      console.log(imgNode);
 
       // this.canvasImgsrc = this.canvas.toDataURL();
       imgNode.width = this.canvas.width/4;

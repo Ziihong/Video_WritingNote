@@ -91,12 +91,8 @@
 </template>
 
 <script>
-import Auth from '~/components/Auth';
 
 export default {
-  components: {
-    Auth,
-  },
   data() {
     return {
       name: '',

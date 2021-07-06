@@ -378,7 +378,6 @@ export default {
       this.consize = document.querySelector('#canvas-container');
       self.context.globalAlpha = 1;
       self.context.lineWidth = this.brushSize;
-      console.log('canvas size : '+this.consize.clientWidth+' ,'+this.consize.clientHeight);
 
       if(!this.isPainting){
         self.context.beginPath();
@@ -450,7 +449,6 @@ export default {
 
       this.context.strokeStyle = this.curColor;
       this.context.lineWidth = this.brushSize;
-      console.log('canvas wid, hei '+this.canvas.width+' '+this.canvas.height);
     },
     closePopup: function (){
       document.getElementById('dimmed').classList.add('hidden');
