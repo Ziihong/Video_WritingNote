@@ -45,7 +45,7 @@ export default{
 
 
 <template>
-  <div>
+  <div style="margin-left: 6px;">
     <div v-if="editor" class="editBar">
       <v-btn text icon @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }"><v-icon>mdi-format-bold</v-icon></v-btn>
       <v-btn text icon @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }"><v-icon>mdi-format-italic</v-icon></v-btn>
@@ -76,7 +76,7 @@ export default{
       <v-btn text icon @click="editor.chain().focus().setTextAlign('justify').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'justify' }) }"><v-icon>mdi-format-align-justify</v-icon></v-btn>
       <v-btn text icon id="addImage" @click="addImage()"><v-icon>mdi-monitor-screenshot</v-icon></v-btn>
     </div>
-    <editor-content :editor="editor" class="editDoc"/>
+    <editor-content :editor="editor" class="editDoc" style="height: 460px; background-color: lightgray"/>
     <canvas id="screenshot" style="border: 1px solid black; width: 100%;" hidden></canvas>
 
 <!--    tooltip test-->

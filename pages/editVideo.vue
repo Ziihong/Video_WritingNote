@@ -11,10 +11,11 @@
         </v-icon>
         Home
       </v-btn>
-      <v-toolbar-title class="text-center" v-text="title" />
-      <v-spacer />
-      <v-btn icon id="newBtn" @click.stop="isBookmarking ? addBookmark(): showBookmark()">
-        <v-icon>mdi-{{`${isBookmarking? 'file' : 'star'}`}}</v-icon>
+      <v-toolbar-title class="text-center" v-text="title" style="padding-left: 2%; padding-right: 2%"/>
+      <v-btn v-if="isBookmarking" @click="removeNotesAll()">clear all</v-btn>
+      <v-spacer/>
+      <v-btn icon id="newBtn" @click.stop="isBookmarking ? openDialog() : showBookmark()">
+        <v-icon>mdi-{{`${isBookmarking? 'book-edit' : 'star'}`}}</v-icon>
       </v-btn>
       <v-btn icon id="pecilBtn" @click="isPencil=!isPencil">
         <v-icon>mdi-{{`${isPencil? 'pencil' : 'pencil-off'}`}}</v-icon>
@@ -37,15 +38,15 @@
                   width="100%"
                   controls
                   muted
-                  src="/video/Cat-66004.mp4"
-                  @click="isBookmarking? openDialog: null"></video>
+                  src="/video/Cat-66004.mp4"></video>
               </v-col>
             </v-row>
-
             <v-divider></v-divider>
             <v-row id="bookmarkArea" no-gutters>
               <v-col>
-                <p class="text-center" style="margin-bottom: 12px; margin-top: 12px;"><v-icon>mdi-star</v-icon>Bookmarks</p>
+                <p class="text-center"
+                   style="margin-bottom: 12px; margin-top: 12px;">
+                  <v-icon>mdi-star</v-icon>Bookmarks</p>
                 <v-divider></v-divider>
                 <v-list
                   style="max-height: 140px; min-height: 140px"
@@ -58,11 +59,16 @@
                     exact
                   >
                     <v-list-item-action>
-                      <v-icon>{{ item.icon }}</v-icon>
+                      <v-icon>{{ i+1 }}</v-icon>
                     </v-list-item-action>
                     <v-list-item-content>
                       <v-list-item-title v-text="item.title" />
                     </v-list-item-content>
+                    <v-btn icon id="editbookmarkTitle" @click="">
+                      <v-icon>mdi-square-edit-outline</v-icon></v-btn>
+                    <v-btn icon id="deletebookmarkTitle" style="color: red"
+                           @click="deleteBookmark($event)">
+                      <v-icon>mdi-minus</v-icon></v-btn>
                   </v-list-item>
                 </v-list>
               </v-col>
@@ -73,18 +79,28 @@
         </v-col>
       </v-row>
 
-    <v-dialog v-model="dialog" width="500" v-if="dialog">
-        <v-card-text class="text-center">
-          <em><small>&mdash; Write anything</small></em>
+    <v-dialog id="bookamarkNamedialog"
+              v-model="dialog"
+              v-if="dialog"
+              max-width="400">
+        <v-card-text class="text-center" style="background-color: lightgray">
+          <em><small>&mdash; Bookmark Name</small></em>
           <hr class="my-3">
+          <v-text-field id="bookmarkName" placeholder="default title is current time."></v-text-field>
         </v-card-text>
-        <v-card-actions>
+        <v-card-actions style="background-color: lightgray">
           <v-spacer></v-spacer>
+          <v-btn
+            id ="cancelBtn"
+            color="primary"
+            @click="dialog=false">
+            Cancel
+          </v-btn>
           <v-btn
             id ="addBtn"
             color="primary"
-            to="/editVideo">
-            BTN
+            @click="setbookmarkTitle();addBookmark()">
+            Add
           </v-btn>
         </v-card-actions>
       </v-dialog>
@@ -93,8 +109,7 @@
 
 <script>
 
-import TextEditor from "@/components/TextEditor";
-
+import TextEditor from "@/components/TextEditor"
 import { Editor, EditorContent } from '@tiptap/vue-2'
 import StarterKit from '@tiptap/starter-kit'
 import Document from '@tiptap/extension-document'
@@ -136,30 +151,28 @@ export default {
       isPencil: false,
       currentTime: null,
       currentVideo: null,
+      bookmarkTitle: null,
+      prenote:null,
       items: [
         {
-          icon: 1,
           title: 'Start',
           time: 0,
           notecomments: [{xcomponent: 60 , ycomponent: 300, comment: 'This is the start of video.'}]
         },
         {
-          icon: 2,
           title: 'Bookmark',
           time: 3,
           notecomments: []
         },
         {
-          icon: 3,
           title: 'Bookmark',
           time: 5,
           notecomments: []
         },
         {
-          icon: 4,
           title: 'Bookmark',
           time: 9,
-          notecomments: []
+          notecomments: [{xcomponent: 60 , ycomponent: 300, comment: 'This is the end of video.'}]
         }
       ],
     }
@@ -182,26 +195,44 @@ export default {
     this.editor.destroy()
   },
   methods:{
-    jumpTime(item){
+    //bookmark methods
+    jumpTime(item){ //method for time jump in video
       this.currentVideo = document.getElementById('currentVideo');
       this.currentVideo.currentTime = item.time;
       this.currentVideo.pause();
       this.showBookmark(item);
     },
-    addBookmark(){
+    openDialog(){ //method for opening bookmark title dialog
+      if(this.itemNow == null){
+        this.dialog = true;
+      }
+      else{
+        this.addBookmark();
+      }
+      //document.getElementById('bookmarkName').value = this.currentTime;
+    },
+    setbookmarkTitle(){ //method for setting bookmark name
       this.currentVideo = document.getElementById('currentVideo');
       this.currentTime = this.currentVideo.currentTime;
+      if(document.getElementById('bookmarkName').value){
+        this.bookmarkTitle = document.getElementById('bookmarkName').value;
+      }
+      else{
+        this.bookmarkTitle = this.currentTime;
+      }
+      this.dialog = false;
+    },
+    addBookmark(){
       const videoArea = document.getElementById('videoArea');
       const notes=[];
 
-      if(this.itemNow == null){
-        // removing & saving floating notes
+      if(this.itemNow == null) { // add new bookmark
         for(let i = 0; i<videoArea.children.length;){
-          if(videoArea.children[i].className === 'note'){
+          if(videoArea.children[i].className === 'noteWrap'){
             // save note object in array
             notes.push(new Note(videoArea.children[i].style.top.replace('px', ''),
               videoArea.children[i].style.left.replace('px', ''),
-              videoArea.children[i].value));
+              videoArea.children[i].children[0].value));
             // remove notes
             videoArea.removeChild(videoArea.children[i]);
           }
@@ -210,18 +241,18 @@ export default {
           }
         } // end remove
 
-        let item= new Bookmark(this.items.length,`${this.currentTime}`, this.currentTime, notes);
+        let item= new Bookmark(this.items.length,this.bookmarkTitle, this.currentTime, notes);
         this.items.push(item);
 
         //console.log(item);
       }
       else{
         for(let i = 0; i<videoArea.children.length;){
-          if(videoArea.children[i].className === 'note'){
+          if(videoArea.children[i].className === 'noteWrap'){
             // save note object in array
             notes.push(new Note(videoArea.children[i].style.top.replace('px', ''),
               videoArea.children[i].style.left.replace('px', ''),
-              videoArea.children[i].value));
+              videoArea.children[i].children[0].value));
             // remove notes
             videoArea.removeChild(videoArea.children[i]);
           }
@@ -241,9 +272,8 @@ export default {
         this.addBookmark();
       }
       this.isBookmarking = true;
-      let noteTemp =null;
-      //console.log(item);
-      if(item != null){
+      if(item != null){ // show item comments on screen
+        let noteTemp =null;
         this.itemNow = item;
         let length = item.notecomments.length;
         const videoArea = document.getElementById('videoArea');
@@ -253,37 +283,83 @@ export default {
                           noteTemp.ycomponent,
                           noteTemp.comment);
         }
-      }
+      } // show end
     },
-    createNote(x, y, comment){
+    deleteBookmark(event){
+      console.log(event);
+    },
+    //notes methods
+    createNote(x, y, comment){ //method for creating notes
       let note=document.createElement('textarea');
+      let noteWrap=document.createElement('div');
+      let deleteButton = document.createElement('button');
+
+      noteWrap.setAttribute('class', 'noteWrap');
       note.setAttribute('class', 'note');
-      note.style.top=`${x}px`;note.style.left=`${y}px`;
-      document.getElementById('videoArea').appendChild(note);
+      deleteButton.setAttribute('class', 'noteDeleteButton');
+
       note.value = comment
       note.onclick=this.goFront;
+      deleteButton.innerText='❌';
+      deleteButton.onclick = this.deleteNote;
+
+      noteWrap.style.top=`${x}px`;noteWrap.style.left=`${y}px`;
+      deleteButton.style.top='-10px';deleteButton.style.left='-10px';
+      document.getElementById('videoArea').appendChild(noteWrap);
+      noteWrap.appendChild(note);
+      noteWrap.appendChild(deleteButton);
+
       if(this.prenote){
+        this.prenote.children[1].style.visibility='hidden';
         this.prenote.style.zIndex='1';
+        this.prenote.style.opacity='40%';
       }
-      this.prenote = note;
+      this.prenote = noteWrap;
     },
-    goFront(event){
-      console.log(event);
-      let target = event.target;
+    deleteNote(event){ // method for deleting a note
+      let target = event.path[1];
+      document.getElementById('videoArea').removeChild(target);
+      let notes = document.getElementsByClassName('noteWrap');
+      let next = notes[notes.length-1];
+      if(next){
+        next.children[1].style.visibility = "visible";
+        next.style.zIndex="2";
+        next.style.opacity="80%"
+        this.prenote = next;
+      }
+    },
+    removeNotesAll() {
+      const videoArea = document.getElementById('videoArea');
+      for (let i = 0; i < videoArea.children.length;) {
+        if (videoArea.children[i].className === 'noteWrap') {
+          // remove notes
+          videoArea.removeChild(videoArea.children[i]);
+        } else {
+          i++;
+        }
+      } // end remove
+    },
+    goFront(event){ // method for moving note to front
+      let target = event.path[1];
       if(this.prenote != target){
+        this.prenote.children[1].style.visibility='hidden';
         this.prenote.style.zIndex="1";
+        this.prenote.style.opacity="40%"
+        target.children[1].style.visibility = "visible";
         target.style.zIndex="2";
+        target.style.opacity="80%"
         this.prenote = target;
       }
     },
-    setNote(event){
+    setNote(event){ // method for getting the click point and make a note
       let x= event.offsetY;
       let y= event.offsetX;
       //console.log( `Coordinate:(${x},${y})`);
 
       this.createNote(x, y, 'Some notes...')
     },
-    setCanvas(){ // need to look at this once more, I set canvas width and height offset, not following that of video
+
+    setClickplane(){ // need to look at this once more, I set canvas width and height offset, not following that of video
       const canvas = document.getElementById('clickPlane');
       const vid = document.getElementById('currentVideo');
       const vidStyle = vid.getBoundingClientRect();
@@ -294,20 +370,28 @@ export default {
       }
 
     },
-    openDialog(){ //?
-      this.dialog=true;
-      this.currentVideo = document.getElementById('currentVideo');
-      this.currentVideo.pause();
-    },
   },
 }
 </script>
 
 <style>
+.noteDeleteButton{
+  background-color: white;
+  border-radius:50%;
+  position: relative;
+  text-align: center;
+  z-index: 2;
+}
+.noteWrap{
+  background-color: transparent;
+  opacity: 80%;
+  position: absolute;
+  text-align: center;
+  z-index: 1;
+}
 .note{
   background-color: khaki;
-  opacity: 40%;
-  border: 1px solid black;
+  opacity: 100%;
   position: absolute;
   text-align: center;
   z-index: 1;
@@ -320,4 +404,5 @@ export default {
   width: 66.7%;
   height: 59%;
 }
+
 </style>
