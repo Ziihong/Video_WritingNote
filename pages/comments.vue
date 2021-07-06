@@ -19,13 +19,9 @@
 </template>
 
 <script>
-import singleComment from './singleComment'
 
 export default {
   name: 'comments',
-  components: {
-    singleComment
-  },
   data() {
     return {
       reply: ''
@@ -39,7 +35,7 @@ export default {
       }
     }
   },
-  props: ['comments', 'current_user', 'comments_wrapper_classes']
+  props: ['comments', 'current_user']
 }
 </script>
 
@@ -47,8 +43,8 @@ export default {
 .comments {
   margin-top: 20px;
   padding-top: 0;
-  min-width: 300px;
-  max-width: 300px;
+  min-width: 500px;
+  max-width: 500px;
 }
 .reply {
   display: flex;

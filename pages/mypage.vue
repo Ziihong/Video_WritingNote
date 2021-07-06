@@ -39,7 +39,17 @@
                 @mouseleave="stopPainting"
                 @mouseup="stopPainting"
         ></canvas>
-        <div id="marker"></div>
+        <v-stepper v-model="el">
+          <v-stepper-header>
+            <v-stepper-step v-for="mark of marks" v-bind:key="mark.timeline"
+            :step="mark.data().time.toFixed(1)">
+              <v-btn @click="goToMarkTime(mark.data().time)">
+                <img src="/v.png" width="20" height="20">
+                <v-icon right @click="removeMark(mark)">mdi-close-box</v-icon>
+              </v-btn>
+            </v-stepper-step>
+          </v-stepper-header>
+        </v-stepper>
       </v-row>
     </v-col>
     <v-col cols="4" class="comment-box">
@@ -50,7 +60,66 @@
       </v-row>
       <v-row>
         <v-btn>노트</v-btn>
-        <v-btn @click="visibleComment">코멘트</v-btn>
+        <v-dialog
+          transition="dialog-bottom-transition"
+          max-width="600"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              color="primary"
+              v-bind="attrs"
+              v-on="on"
+            >코멘트</v-btn>
+          </template>
+          <template v-slot:default="dialog">
+            <v-card>
+              <v-toolbar
+                color="primary"
+                dark
+              >코멘트</v-toolbar>
+              <div id="commentArea">
+                <div class="owner">
+                  <span>{{ comments.length }}개의 comment</span>
+                  <div class="ownerAvatar">
+                    <a class="username" href="#"><img :src="creator.avatar" alt=""></a>
+                  </div>
+                  <div class="ownerName">
+                    <span>{{ creator.user }}</span>
+                  </div>
+                </div>
+                <div class="custom-scrollbar">
+                  <div class="comment" v-for="comment of comments">
+                    <div class="avatar">
+                      <a class="username" href="#"><img :src="comment.data().avatar" alt=""></a>
+                    </div>
+                    <div class="user">
+                      {{ comment.data().user }}
+                    </div>
+                    <div class="texts">
+                      {{ comment.data().texts }}
+                    </div>
+                    <div class="time">
+                      {{timestampToDate(comment.data().timestamp)}}
+                    </div>
+                    <button class="inlineBtn">
+                      <v-icon right @click="removeComment(comment)">mdi-close-box</v-icon>
+                    </button>
+                  </div>
+                </div>
+                <comments
+                  :current_user="current_user"
+                  @submit-comment="submitComment">
+                </comments>
+              </div>
+              <v-card-actions class="justify-end">
+                <v-btn
+                  text
+                  @click="dialog.value = false"
+                >Close</v-btn>
+              </v-card-actions>
+            </v-card>
+          </template>
+        </v-dialog>
       </v-row>
       <v-row class="edit-toolbar">
         <v-btn @click = "textEdit('bold')" >
@@ -77,12 +146,9 @@
       <v-row>
         <div id="content-editor" contenteditable="true">
           <template v-for="note of notes">
-<!--            <div>-->
-<!--              {{note.data().time}}-->
-<!--            </div>-->
-            <v-btn @click="goToMarkTime(note.data().time)">
-              <img src="/v.png" width="20" height="20">
-            </v-btn>
+            <div>
+              {{note.data().text}}
+            </div>
           </template>
         </div>
       </v-row>
@@ -90,40 +156,6 @@
         <v-btn color="primary" @click="onSaveNote">save</v-btn>
         <v-btn color="primary" @click="makeMarker">Mark</v-btn>
         <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
-      </v-row>
-      <v-row>
-        <div id="commentArea">
-          <div class="owner">
-            <span>{{ comments.length }}개의 comment</span>
-            <div class="ownerAvatar">
-              <a class="username" href="#"><img :src="creator.avatar" alt=""></a>
-            </div>
-            <div class="ownerName">
-              <span>{{ creator.user }}</span>
-            </div>
-          </div>
-            <div class="custom-scrollbar">
-              <div class="comment" v-for="comment of comments">
-                <div class="avatar">
-                  <a class="username" href="#"><img :src="comment.data().avatar" alt=""></a>
-                </div>
-                <div class="user">
-                  {{ comment.data().user }}
-                </div>
-                <div class="texts">
-                  {{ comment.data().texts }}
-                </div>
-                <button class="inlineBtn">
-                  <v-icon right @click="removeComment(comment)">mdi-close-box</v-icon>
-                </button>
-              </div>
-            </div>
-          <comments
-            :comments_wrapper_classes="['custom-scrollbar', 'comments-wrapper']"
-            :current_user="current_user"
-            @submit-comment="submitComment">
-          </comments>
-        </div>
       </v-row>
     </v-col>
   </v-row>
@@ -134,6 +166,7 @@ import jsPDF from 'jspdf'
 import html2canvas from "html2canvas";
 import Drawing from "../components/Drawing";
 import Comments from './comments';
+import { VueHorizontalTimeline } from "vue-horizontal-timeline";
 
 import {
   TiptapVuetify,
@@ -161,10 +194,12 @@ export default {
     Drawing,
     TiptapVuetify,
     Comments,
+    VueHorizontalTimeline,
   },
   props: ["description", "menubar", "readOnly"],
   data() {
     return {
+      el: 1,
       description: '',
       name: '',
       comments: [],
@@ -183,7 +218,8 @@ export default {
       swMenubar: this.menubar,
       linkUrl: null,
       linkMenuIsActive: false,
-      markerTimeArr: [],
+      marks: [],
+      markUrls: [],
       editor: null,
       extensions: [
         History,
@@ -226,6 +262,8 @@ export default {
       //   'http://via.placeholder.com/100x100/2d58a7',
       //   'http://via.placeholder.com/100x100/36846e'
       // ]
+      items: ["8", "20"],
+      selectedFont: null,
     };
   },
   mounted() {
@@ -252,10 +290,17 @@ export default {
     }));
 
     this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-    collection('notes').onSnapshot((async querySnapshot => {
+    collection('notes').orderBy('timestamp').onSnapshot((async querySnapshot => {
       this.notes = querySnapshot.docs;
       const self = this;
       this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
+    }));
+
+    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+    collection('marks').orderBy('timestamp').onSnapshot((async querySnapshot => {
+      this.marks = querySnapshot.docs;
+      const self = this;
+      this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
     }));
   },
   methods: {
@@ -266,42 +311,31 @@ export default {
         console.log('Save test : '+para);
       });
 
-      this.noteTexts = document.getElementById('content-editor').getElementsByTagName('div');
-      this.noteCaptures = document.getElementById('content-editor').getElementsByTagName('img');
-      for(let i=0; i<this.noteTexts.length; i++){
-        await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/notes`).add({
-          text: this.noteTexts[i].innerText
-        });
-      }
-      // for(let i=0; i<this.noteCaptures.length; i++){
-      //   await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/notes`).add({
-      //     captureImage: this.noteCaptures[i].src
-      //   });
-      // }
-      for(let i=0; i<this.markerTimeArr.length; i++){
-        await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/notes`).add({
-          time: this.markerTimeArr[i]
-        });
-      }
+      this.noteTexts = document.getElementById('content-editor');
+      const self = this;
+      console.log(this.noteTexts.innerText);
+      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/notes`).add({
+        text: self.noteTexts.innerText,
+        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
+      });
       this.notes = [];
       const fileStorageRef = this.$fire.firestore
         .collection(`users/${this.$fire.auth.currentUser.uid}/notes`);
-      fileStorageRef.orderBy('user')
+      fileStorageRef.orderBy('timestamp')
         .onSnapshot((async querySnapshot => {
           //console.log(querySnapshot.docs.length);
           this.notes = querySnapshot.docs;
           const self = this;
           this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
         }));
-
+      this.noteTexts.innerHTML = "";
     },
     async removeComment(comment) {
       console.log('comment: ', comment.id);
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/comments/${comment.id}`).delete();
     },
-    async removeNote(note) {
-      console.log('note: ', note.id);
-      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/notes/${note.id}`).delete();
+    async removeMark(mark) {
+      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/marks/${mark.id}`).delete();
     },
     async submitComment(reply) {
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
@@ -321,21 +355,13 @@ export default {
       this.comments = [];
       const fileStorageRef = this.$fire.firestore
         .collection(`users/${this.$fire.auth.currentUser.uid}/comments`);
-      fileStorageRef.orderBy('user')
+      fileStorageRef.orderBy('timestamp')
         .onSnapshot((async querySnapshot => {
           //console.log(querySnapshot.docs.length);
           this.comments = querySnapshot.docs;
           const self = this;
           this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
         }));
-    },
-    visibleComment: function(){
-      let commentDiv = document.querySelector("#commentArea")
-      if(commentDiv.style.visibility === "hidden") {
-        commentDiv.style.visibility = "visible";
-      } else {
-        commentDiv.style.visibility = "hidden";
-      }
     },
     drawVideo: function () {
       this.video = document.querySelector("#videoOrigin");
@@ -368,16 +394,47 @@ export default {
     choiceFile: function () {
       document.getElementById("fileupload").click();
     },
-    makeMarker: function () {
+    timestampToDate: function(timestamp) {
+      try {
+        let date = timestamp.toDate();
+        let now = new Date();
+        this.currentDate = new Date(now.getFullYear(), now.getMonth()+1, now.getDate(), now.getHours(), now.getMinutes());
+        this.stampDate = new Date(date.getFullYear(), date.getMonth()+1, date.getDate(), date.getHours(), date.getMinutes());
+        this.calMsec = this.currentDate.getTime() - this.stampDate.getTime();
+        this.calMin = parseInt(this.calMsec / 1000 / 60);
+        this.calHour = parseInt(this.calMsec / 1000 / 60 / 60);
+        if(this.calHour >= 1) return (this.calHour + '시간 전');
+        else return (this.calMin + '분 전');
+      }
+      catch (e) {
+        console.log(e);
+      }
+    },
+    async makeMarker() {
       const originVideo = document.querySelector("#videoOrigin");
-      const time = originVideo.currentTime;
-      const newBtn = document.createElement("v-btn");
-      newBtn.innerHTML = '<img src="/v.png" width="20" height="20"/>';
-      document.querySelector("#content-editor").appendChild(newBtn);
-      newBtn.addEventListener('click', function () {
-        originVideo.currentTime = time;
+
+      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+      set({name: this.name}, {merge: true}).
+      then(para => {
+        console.log('Save test : '+para);
       });
-      this.markerTimeArr.push(time);
+
+      const self = this;
+      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/marks`).add({
+        time: originVideo.currentTime,
+        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
+      });
+
+      this.marks = [];
+      const fileStorageRef = this.$fire.firestore
+        .collection(`users/${this.$fire.auth.currentUser.uid}/marks`);
+      fileStorageRef.orderBy('timestamp')
+        .onSnapshot((async querySnapshot => {
+          //console.log(querySnapshot.docs.length);
+          this.marks = querySnapshot.docs;
+          const self = this;
+          this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
+        }));
     },
     goToMarkTime: function(time) {
       const originVideo = document.querySelector("#videoOrigin");
@@ -540,7 +597,7 @@ export default {
 #content-editor{
   position: relative;
   width: 70%;
-  height: 400px;
+  height: 600px;
   padding: 10px;
   border: 1px solid;
   overflow-y: auto;
@@ -589,6 +646,10 @@ export default {
 .comment .texts {
   text-align: left;
   margin-left: 15px;
+}
+.comment .time {
+  text-align: left;
+  margin-left: 20px;
 }
 .comment .inlineBtn {
   display: inline;
