@@ -6,8 +6,8 @@
     <div class="user">
       {{ comment.user }}
     </div>
-    <div class="text">
-      {{ comment.text }}
+    <div class="texts">
+      {{ comment.texts }}
     </div>
   </div>
 </template>
@@ -44,11 +44,8 @@ export default {
   text-align: left;
   margin-left: 5px;
 }
-.comment .text {
+.comment .texts {
   text-align: left;
-  margin-left: 5px;
-}
-.comment .text span {
   margin-left: 5px;
 }
 

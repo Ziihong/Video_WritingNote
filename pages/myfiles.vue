@@ -141,6 +141,7 @@ export default {
   },
   async mounted() {
     if (!this.$fire.auth.currentUser) {
+      // if(confirm('로그인이 필요합니다. 로그인 하시겠습니까?')) await this.$router.push('/login');
       return;
     }
     this.path = `users/${this.$fire.auth.currentUser.uid}`
@@ -390,7 +391,8 @@ export default {
       this.fileObj = file;
       console.log('fileObj:', this.fileObj);
       if (!this.$fire.auth.currentUser) {
-        return alert('로그인해주세요.');
+        if(confirm('로그인이 필요합니다. 로그인 하시겠습니까?')) this.$router.push('/login');
+        return;
       }
       if (!this.fileObj) {
         return alert('파일을 선택해주세요.');
