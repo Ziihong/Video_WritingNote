@@ -2,6 +2,21 @@
   <v-row>
     <v-col cols="8">
       <v-row>
+        <div id="dimmed" class="hidden" @click="closePopup"></div>
+        <div id="canvas-container" class="hidden">
+          <Drawing @colorCall="colorChange"
+                   @modeCall="selectMode"
+                   @clearCall="canvasClear"
+                   @rangeCall="rangeChange"
+                   @undoCall="undoExec"
+                   @redoCall="redoExec"
+          ></Drawing>
+          <canvas id="drawing-canvas"
+          @mousemove="canvasMousemove"
+          @mousedown="canvasMousedown"
+          @mouseleave="stopPainting"
+          @mouseup="stopPainting"></canvas>
+        </div>
         <v-btn color="primary">
           <v-icon left>
             mdi-arrow-left-circle
@@ -18,21 +33,24 @@
         </video>
       </v-row>
       <v-row id="draw">
-        <canvas id="videoCanvas" ref="textarea"
+        <canvas id="videoCanvas" ref="textarea" class="hidden"
                 @mousemove="canvasMousemove"
                 @mousedown="canvasMousedown"
                 @mouseleave="stopPainting"
                 @mouseup="stopPainting"
         ></canvas>
-        <div id="marker"></div>
+        <v-stepper v-model="el">
+          <v-stepper-header>
+            <v-stepper-step v-for="mark of marks" v-bind:key="mark.timeline"
+            :step="mark.data().time.toFixed(1)">
+              <v-btn @click="goToMarkTime(mark.data().time)">
+                <img src="/v.png" width="20" height="20">
+                <v-icon right @click="removeMark(mark)">mdi-close-box</v-icon>
+              </v-btn>
+            </v-stepper-step>
+          </v-stepper-header>
+        </v-stepper>
       </v-row>
-      <Drawing @colorCall="colorChange"
-               @modeCall="selectMode"
-               @clearCall="canvasClear"
-               @rangeCall="rangeChange"
-               @undoCall="undoExec"
-               @redoCall="redoExec"
-      ></Drawing>
     </v-col>
     <v-col cols="4" class="comment-box">
       <v-row>
@@ -42,7 +60,66 @@
       </v-row>
       <v-row>
         <v-btn>노트</v-btn>
-        <v-btn @click="visibleComment">코멘트</v-btn>
+        <v-dialog
+          transition="dialog-bottom-transition"
+          max-width="600"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              color="primary"
+              v-bind="attrs"
+              v-on="on"
+            >코멘트</v-btn>
+          </template>
+          <template v-slot:default="dialog">
+            <v-card>
+              <v-toolbar
+                color="primary"
+                dark
+              >코멘트</v-toolbar>
+              <div id="commentArea">
+                <div class="owner">
+                  <span>{{ comments.length }}개의 comment</span>
+                  <div class="ownerAvatar">
+                    <a class="username" href="#"><img :src="creator.avatar" alt=""></a>
+                  </div>
+                  <div class="ownerName">
+                    <span>{{ creator.user }}</span>
+                  </div>
+                </div>
+                <div class="custom-scrollbar">
+                  <div class="comment" v-for="comment of comments">
+                    <div class="avatar">
+                      <a class="username" href="#"><img :src="comment.data().avatar" alt=""></a>
+                    </div>
+                    <div class="user">
+                      {{ comment.data().user }}
+                    </div>
+                    <div class="texts">
+                      {{ comment.data().texts }}
+                    </div>
+                    <div class="time">
+                      {{timestampToDate(comment.data().timestamp)}}
+                    </div>
+                    <button class="inlineBtn">
+                      <v-icon right @click="removeComment(comment)">mdi-close-box</v-icon>
+                    </button>
+                  </div>
+                </div>
+                <comments
+                  :current_user="current_user"
+                  @submit-comment="submitComment">
+                </comments>
+              </div>
+              <v-card-actions class="justify-end">
+                <v-btn
+                  text
+                  @click="dialog.value = false"
+                >Close</v-btn>
+              </v-card-actions>
+            </v-card>
+          </template>
+        </v-dialog>
       </v-row>
       <v-row class="edit-toolbar">
         <v-btn @click = "textEdit('bold')" >
@@ -67,36 +144,18 @@
         </v-btn>
       </v-row>
       <v-row>
-        <div id="content-editor">
-          <tiptap-vuetify id="tiptapVue" :v-model="content" :extensions="extensions" :toolbar-attributes="{ color: 'yellow' }">
-          </tiptap-vuetify>
+        <div id="content-editor" contenteditable="true">
+          <template v-for="note of notes">
+            <div>
+              {{note.data().text}}
+            </div>
+          </template>
         </div>
       </v-row>
       <v-row>
-        <v-btn color="primary" @click="onSave">save</v-btn>
-        <v-btn color="primary" @click="makeMarker()">Mark</v-btn>
+        <v-btn color="primary" @click="onSaveNote">save</v-btn>
+        <v-btn color="primary" @click="makeMarker">Mark</v-btn>
         <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
-      </v-row>
-      <v-row>
-        <div id="comment" style="visibility: hidden">
-          <div class="owner">
-            <span>{{ comments.length }}개의 comment</span>
-            <div class="ownerAvatar">
-              <a class="username" href="#"><img :src="creator.avatar" alt=""></a>
-            </div>
-            <div class="ownerName">
-              <span>{{ creator.user }}</span>
-            </div>
-          </div>
-          <div>
-            <comments
-              :comments_wrapper_classes="['custom-scrollbar', 'comments-wrapper']"
-              :comments="comments"
-              :current_user="current_user"
-              @submit-comment="submitComment"
-            ></comments>
-          </div>
-        </div>
       </v-row>
     </v-col>
   </v-row>
@@ -107,6 +166,7 @@ import jsPDF from 'jspdf'
 import html2canvas from "html2canvas";
 import Drawing from "../components/Drawing";
 import Comments from './comments';
+import { VueHorizontalTimeline } from "vue-horizontal-timeline";
 
 import {
   TiptapVuetify,
@@ -134,16 +194,20 @@ export default {
     Drawing,
     TiptapVuetify,
     Comments,
+    VueHorizontalTimeline,
   },
   props: ["description", "menubar", "readOnly"],
   data() {
     return {
+      el: 1,
       description: '',
       name: '',
-      files: [],
-      fileObj: null,
+      comments: [],
+      commentObj: null,
+      notes: [],
+      noteUrls: [],
       isUploading: false,
-      fileUrls: [],
+      commentUrls: [],
       isPainting : false,
       paintMode : 'draw',
       canvasImgsrc : '',
@@ -154,6 +218,8 @@ export default {
       swMenubar: this.menubar,
       linkUrl: null,
       linkMenuIsActive: false,
+      marks: [],
+      markUrls: [],
       editor: null,
       extensions: [
         History,
@@ -187,15 +253,17 @@ export default {
         user: 'owner'
       },
       current_user: {
-        avatar: '/v.png',
-        user: 'user'
+        avatar: 'http://via.placeholder.com/100x100/36846e',
+        user: 'user',
       },
-      comments: [],
-      avatar: [
-        'http://via.placeholder.com/100x100/a74848',
-        'http://via.placeholder.com/100x100/2d58a7',
-        'http://via.placeholder.com/100x100/36846e'
-      ]
+      commentsArr: [],
+      // avatarArr: [
+      //   'http://via.placeholder.com/100x100/a74848',
+      //   'http://via.placeholder.com/100x100/2d58a7',
+      //   'http://via.placeholder.com/100x100/36846e'
+      // ]
+      items: ["8", "20"],
+      selectedFont: null,
     };
   },
   mounted() {
@@ -215,81 +283,110 @@ export default {
       }
     });
     this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-    collection('files').orderBy('texts').onSnapshot((async querySnapshot => {
-      this.files = querySnapshot.docs;
+    collection('comments').orderBy('timestamp').onSnapshot((async querySnapshot => {
+      this.comments = querySnapshot.docs;
       const self = this;
-      this.fileUrls = await Promise.all(this.files.map(file => file.data().path ? self.$fire.storage.ref(file.data().path).getDownloadURL() : ''));
-      console.log(self.$fire.storage.ref(file.data().path).getDownloadURL());
+      this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
+    }));
+
+    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+    collection('notes').orderBy('timestamp').onSnapshot((async querySnapshot => {
+      this.notes = querySnapshot.docs;
+      const self = this;
+      this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
+    }));
+
+    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+    collection('marks').orderBy('timestamp').onSnapshot((async querySnapshot => {
+      this.marks = querySnapshot.docs;
+      const self = this;
+      this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
     }));
   },
   methods: {
-    async onSave() {
+    async onSaveNote() {
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
       set({name: this.name}, {merge: true}).
       then(para => {
         console.log('Save test : '+para);
       });
 
-      let texts = document.getElementsByClassName('text');
-      let users = document.getElementsByClassName('user');
-      let avatars = document.getElementsByClassName('avatars');
-      let textArr = [];
-      for(let i=0; i<texts.length; i++){
-        textArr.push({user: users[i].innerText, text: texts[i].innerText});
-      }
-      await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/files`).
-      add({texts: textArr});
-      let savedTexts = this.files.map(file => file.data().texts)[0];
+      this.noteTexts = document.getElementById('content-editor');
+      const self = this;
+      console.log(this.noteTexts.innerText);
+      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/notes`).add({
+        text: self.noteTexts.innerText,
+        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
+      });
+      this.notes = [];
+      const fileStorageRef = this.$fire.firestore
+        .collection(`users/${this.$fire.auth.currentUser.uid}/notes`);
+      fileStorageRef.orderBy('timestamp')
+        .onSnapshot((async querySnapshot => {
+          //console.log(querySnapshot.docs.length);
+          this.notes = querySnapshot.docs;
+          const self = this;
+          this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
+        }));
+      this.noteTexts.innerHTML = "";
+    },
+    async removeComment(comment) {
+      console.log('comment: ', comment.id);
+      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/comments/${comment.id}`).delete();
+    },
+    async removeMark(mark) {
+      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/marks/${mark.id}`).delete();
+    },
+    async submitComment(reply) {
+      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+      set({name: this.name}, {merge: true}).
+      then(para => {
+        console.log('Save test : '+para);
+      });
+
+      const self = this;
+      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/comments`).add({
+        user: self.current_user.user,
+        avatar: self.current_user.avatar,
+        texts: reply,
+        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
+      });
 
       this.comments = [];
-      for(let i=0; i<savedTexts.length; i++){
-        this.comments.push({
-          user: savedTexts[i]['user'],
-          text: savedTexts[i]['text']
-        });
-      }
-    },
-    async removeFile(file) {
-      console.log('file: ', file.id);
-      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${file.id}`).delete();
-    },
-    submitComment: function(reply) {
-      this.comments.push({
-        id: this.comments.length + 1,
-        user: this.current_user.user + (this.comments.length+1),
-        avatar: this.avatar[Math.floor(Math.random()*this.avatar.length)],
-        // avatar: this.current_user.avatar,
-        text: reply
-      });
-    },
-    visibleComment: function(){
-      let commentDiv = document.querySelector("#comment")
-      if(commentDiv.style.visibility === "hidden") {
-        commentDiv.style.visibility = "visible";
-      } else {
-        commentDiv.style.visibility = "hidden";
-      }
+      const fileStorageRef = this.$fire.firestore
+        .collection(`users/${this.$fire.auth.currentUser.uid}/comments`);
+      fileStorageRef.orderBy('timestamp')
+        .onSnapshot((async querySnapshot => {
+          //console.log(querySnapshot.docs.length);
+          this.comments = querySnapshot.docs;
+          const self = this;
+          this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
+        }));
     },
     drawVideo: function () {
       this.video = document.querySelector("#videoOrigin");
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
+      this.drawcanvas = document.querySelector("#drawing-canvas");
+      this.drawcontext = this.canvas.getContext('2d');
 
       this.canvas.width = this.video.clientWidth;
       this.canvas.height = this.video.clientHeight;
+      this.drawcanvas.width = this.video.clientWidth;
+      this.drawcanvas.height = this.video.clientHeight;
 
       this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       const imgNode = document.createElement("img");
       imgNode.src = this.canvas.toDataURL();
+
       this.canvasImgsrc = this.canvas.toDataURL();
       imgNode.width = this.canvas.width/4;
       imgNode.height = this.canvas.height/4;
-      this.context.strokeStyle = this.curColor;
-      this.context.fillStyle = this.curColor;
-      this.context.lineWidth = this.brushSize;
-      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
 
-      document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
+      imgNode.addEventListener("click",this.popupCanvas);
+
+      document.getElementById('content-editor').appendChild(imgNode);
+      //document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
     },
     textEdit: function (command) {
       document.execCommand(command);
@@ -297,18 +394,54 @@ export default {
     choiceFile: function () {
       document.getElementById("fileupload").click();
     },
-    makeMarker: function () {
-      const tmp = document.querySelector("#videoOrigin");
-      const time = tmp.currentTime;
-      const newBtn = document.createElement("button");
-      newBtn.innerHTML = '<img src="/v.png" width="20" height="20"/>';
-      document.getElementsByClassName("ProseMirror")[0].appendChild(newBtn);
-      newBtn.addEventListener('click', function () {
-        tmp.currentTime = time;
-      });
+    timestampToDate: function(timestamp) {
+      try {
+        let date = timestamp.toDate();
+        let now = new Date();
+        this.currentDate = new Date(now.getFullYear(), now.getMonth()+1, now.getDate(), now.getHours(), now.getMinutes());
+        this.stampDate = new Date(date.getFullYear(), date.getMonth()+1, date.getDate(), date.getHours(), date.getMinutes());
+        this.calMsec = this.currentDate.getTime() - this.stampDate.getTime();
+        this.calMin = parseInt(this.calMsec / 1000 / 60);
+        this.calHour = parseInt(this.calMsec / 1000 / 60 / 60);
+        if(this.calHour >= 1) return (this.calHour + '시간 전');
+        else return (this.calMin + '분 전');
+      }
+      catch (e) {
+        console.log(e);
+      }
     },
-    saveToPdf: function (){
-      html2canvas(document.getElementsByClassName("tiptap-vuetify-editor__content")[0], {
+    async makeMarker() {
+      const originVideo = document.querySelector("#videoOrigin");
+
+      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+      set({name: this.name}, {merge: true}).
+      then(para => {
+        console.log('Save test : '+para);
+      });
+
+      const self = this;
+      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/marks`).add({
+        time: originVideo.currentTime,
+        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
+      });
+
+      this.marks = [];
+      const fileStorageRef = this.$fire.firestore
+        .collection(`users/${this.$fire.auth.currentUser.uid}/marks`);
+      fileStorageRef.orderBy('timestamp')
+        .onSnapshot((async querySnapshot => {
+          //console.log(querySnapshot.docs.length);
+          this.marks = querySnapshot.docs;
+          const self = this;
+          this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
+        }));
+    },
+    goToMarkTime: function(time) {
+      const originVideo = document.querySelector("#videoOrigin");
+      originVideo.currentTime = time;
+    },
+    saveToPdf: function () {
+      html2canvas(document.querySelector("#content-editor"), {
         scale: 3,
         allowTaint: true,
         useCORS: true,
@@ -337,65 +470,72 @@ export default {
     },
     colorChange: function (color){
       const self = this;
-      self.canvas = document.querySelector("#videoCanvas");
+      self.canvas = document.querySelector("#drawing-canvas");
       self.context = this.canvas.getContext('2d');
       self.curColor = color;
 
       self.context.strokeStyle = color;
     },
     rangeChange: function (range){
-      this.canvas = document.querySelector("#videoCanvas");
+      this.vidcanvas = document.querySelector("#videoCanvas");
+      this.vidcontext = this.canvas.getContext('2d');
+      this.canvas = document.querySelector("#drawing-canvas");
       this.context = this.canvas.getContext('2d');
       this.context.lineWidth = range;
+      this.vidcontext.lineWidth = range;
       this.brushSize = range;
     },
     selectMode: function (mode){
       if(mode==='select'||mode==='text') this.isPainting = false;
       this.paintMode = mode;
     },
-    canvasMousedown: function (event){
+    canvasMousedown: function (){
       if(!this.isPainting && (this.paintMode==='draw'||this.paintMode==='light') ) this.isPainting = true;
     },
     canvasMousemove: function (event){
       const x = event.offsetX;
       const y = event.offsetY;
-      this.canvas = document.querySelector("#videoCanvas");
-      this.context = this.canvas.getContext('2d');
-      this.context.globalAlpha = 1;
-      this.context.lineWidth = this.brushSize;
+
+      const self = this;
+      self.canvas = document.querySelector("#drawing-canvas");
+      self.context = self.canvas.getContext('2d');
+      this.consize = document.querySelector('#canvas-container');
+      self.context.globalAlpha = 1;
+      self.context.lineWidth = this.brushSize;
+      console.log('canvas size : '+this.consize.clientWidth+' ,'+this.consize.clientHeight);
 
       if(!this.isPainting){
-        this.context.beginPath();
-        this.context.moveTo(x,y);
+        self.context.beginPath();
+        self.context.moveTo(x,y);
       }
       else{
         if(this.paintMode==='light'){
-          this.context.globalAlpha = 0.03;
-          this.context.lineWidth = this.brushSize*2;
+          self.context.globalAlpha = 0.03;
+          self.context.lineWidth = self.brushSize*2;
         }
         // else if(this.paintMode==='erase'){
         //   this.context.globalCompositeOperation = "destination-out";
         //   this.context.strokeStyle = "rgba(0,0,0,1)";
         //   console.log('erase');
         // }
-        this.context.lineTo(x,y);
-        this.context.stroke();
+        self.context.lineTo(x,y);
+        self.context.stroke();
       }
     },
     stopPainting: function (){
+      this.canvas = document.querySelector("#drawing-canvas");
+      this.context = this.canvas.getContext('2d');
       if(this.isPainting===true){
         this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
         this.redoStack.length=0;
       }
       this.isPainting = false;
-      this.canvas = document.querySelector("#videoCanvas");
-      this.context = this.canvas.getContext('2d');
     },
     undoExec: function (){
       if (this.undoStack.length <= 1){
         return;
       }
-      this.canvas = document.querySelector("#videoCanvas");
+      this.canvas = document.querySelector("#drawing-canvas");
       this.context = this.canvas.getContext('2d');
       this.redoStack.push(this.undoStack[this.undoStack.length - 1]);
       this.undoStack.pop();
@@ -405,20 +545,43 @@ export default {
       if (this.redoStack.length < 1){
         return;
       }
-      this.canvas = document.querySelector("#videoCanvas");
+      this.canvas = document.querySelector("#drawing-canvas");
       this.context = this.canvas.getContext('2d');
       this.undoStack.push(this.redoStack[this.redoStack.length - 1]);
       this.context.putImageData(this.redoStack[this.redoStack.length - 1],0,0);
       this.redoStack.pop();
     },
     canvasClear: function (){
-      const img = new Image();
-      img.src = this.canvasImgsrc;
-      this.canvas = document.querySelector("#videoCanvas");
+      const originImg = document.createElement('img');
+      originImg.src = this.canvasImgsrc;
+      this.canvas = document.querySelector("#drawing-canvas");
       this.context = this.canvas.getContext('2d');
-      this.context.globalAlpha = 1;
-      this.context.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
+
+      this.context.drawImage(originImg, 0, 0, this.canvas.width, this.canvas.height);
+      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
     },
+    popupCanvas: function (event){
+      document.getElementById('dimmed').classList.remove('hidden');
+      document.getElementById('canvas-container').classList.remove('hidden');
+      this.canvas = document.getElementById('drawing-canvas');
+      this.context = this.canvas.getContext('2d');
+      const printImg = document.createElement('img');
+
+      this.canvasImgsrc = event.target.src;
+      printImg.src = event.target.src;
+      this.context.drawImage(printImg, 0, 0, this.canvas.width, this.canvas.height);
+      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
+
+      this.context.strokeStyle = this.curColor;
+      this.context.lineWidth = this.brushSize;
+      console.log('canvas wid, hei '+this.canvas.width+' '+this.canvas.height);
+    },
+    closePopup: function (){
+      document.getElementById('dimmed').classList.add('hidden');
+      document.getElementById('canvas-container').classList.add('hidden');
+      this.undoStack.length = 0;
+      this.redoStack.length = 0;
+    }
   }
 }
 </script>
@@ -426,7 +589,6 @@ export default {
 <style scoped>
 .comment-box{
   height: 600px;
-  background-color: white;
 }
 .video-frame{
   max-width: 100%;
@@ -434,17 +596,17 @@ export default {
 }
 #content-editor{
   position: relative;
-  display: flex;
-  /*width: 70%;*/
-  /*height: 400px;*/
-  /*border: 1px solid;*/
-  /*overflow-y: auto;*/
+  width: 70%;
+  height: 600px;
+  padding: 10px;
+  border: 1px solid;
+  overflow-y: auto;
 }
 .edit-toolbar{
   margin-bottom: 10px;
   margin-top : 10px;
 }
-#comment {
+#commentArea {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -456,5 +618,95 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 100%;
+}
+.comment {
+  display: flex;
+  padding: 5px 10px;
+  margin-bottom: 10px;
+  align-items: center;
+  color: #333;
+  background-color: #F2F2F2;
+  border-radius: 30px;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+.comment .username {
+  align-self: flex-start;
+  margin-top: 5px;
+}
+.comment .avatar > a > img {
+  width: 40px;
+  height: 40px;
+  border-radius: 100%;
+  align-self: start;
+}
+.comment .user{
+  text-align: left;
+  margin-left: 5px;
+}
+.comment .texts {
+  text-align: left;
+  margin-left: 15px;
+}
+.comment .time {
+  text-align: left;
+  margin-left: 20px;
+}
+.comment .inlineBtn {
+  display: inline;
+}
+.custom-scrollbar{
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-track
+{
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  -moz-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+  border-radius: 10px;
+  background-color: #fff;
+}
+.custom-scrollbar::-webkit-scrollbar
+{
+  width: 8px;
+  background-color: #fff;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb
+{
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+  -moz-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+  box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+  background-color: #555;
+}
+#dimmed{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  opacity: .8;
+  z-index: 10;
+}
+#canvas-container{
+  position: absolute;
+  top : auto;
+  left: auto;
+  width: 80%;
+  height: auto;
+  padding: 1%;
+  background-color: white;
+  z-index: 100;
+}
+#drawing-canvas{
+  /*width: 80%;*/
+  /*height: auto;*/
+  background-color: dimgrey;
+  object-fit: cover;
+}
+.hidden{
+  display: none;
 }
 </style>

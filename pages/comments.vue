@@ -1,13 +1,5 @@
 <template>
   <div class="comments">
-    <div :class="comments_wrapper_classes">
-      <single-comment
-        v-for="comment in comments"
-        :comment="comment"
-        :key="comment.id"
-      ></single-comment>
-    </div>
-    <hr>
     <div class="reply">
       <div class="avatar">
         <img :src="current_user.avatar" alt="">
@@ -27,13 +19,9 @@
 </template>
 
 <script>
-import singleComment from './singleComment'
 
 export default {
   name: 'comments',
-  components: {
-    singleComment
-  },
   data() {
     return {
       reply: ''
@@ -47,43 +35,16 @@ export default {
       }
     }
   },
-  props: ['comments', 'current_user', 'comments_wrapper_classes']
+  props: ['comments', 'current_user']
 }
 </script>
 
 <style scoped>
 .comments {
   margin-top: 20px;
-  padding: 20px;
   padding-top: 0;
   min-width: 500px;
   max-width: 500px;
-}
-.comments-wrapper {
-  max-height: 250px;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-track
-{
-  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-  -moz-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-  box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-  border-radius: 10px;
-  background-color: #fff;
-}
-.custom-scrollbar::-webkit-scrollbar
-{
-  width: 8px;
-  background-color: #fff;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb
-{
-  border-radius: 10px;
-  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-  -moz-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-  box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-  background-color: #555;
 }
 .reply {
   display: flex;

@@ -140,10 +140,11 @@ export default {
 
       this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       const imgNode = document.createElement("img");
-      console.log("imgNode:", imgNode);
-      console.log("src", imgNode.src);
+
       const self = this;
-      //imgNode.src = self.canvas.toDataURL();
+      imgNode.crossOrigin = "Anonymous";
+      imgNode.src = this.canvas.toDataURL();
+
 
       // this.canvasImgsrc = this.canvas.toDataURL();
       imgNode.width = this.canvas.width/4;

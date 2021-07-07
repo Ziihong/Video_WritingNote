@@ -127,4 +127,10 @@ export default {
 .active{
   border : dimgrey solid 5px;
 }
+.canvas-drawbar{
+  display: block;
+  background-color: white;
+  margin-bottom: 1%;
+  margin-left: 1%;
+}
 </style>
