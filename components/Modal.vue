@@ -7,8 +7,8 @@
       <div id="modal-box">
         <h2> {{ title }}</h2>
         <v-text-field clearable placeholder="이름을 입력하세요" v-model="rename"></v-text-field>
-        <v-btn color="white" @click="$emit('modal-close')">취소</v-btn>
         <v-btn color="primary" @click="$emit('modal-ok', rename)">확인</v-btn>
+        <v-btn color="white" @click="$emit('modal-close')">취소</v-btn>
       </div>
       <label id="modal-bg"></label>
       </template>

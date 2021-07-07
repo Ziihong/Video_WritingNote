@@ -2,13 +2,14 @@
   <v-row>
     <v-col cols="8">
       <v-row>
-        <v-btn color="primary">
+        <v-btn color="primary" @click="toStorage">
           <v-icon left>
             mdi-arrow-left-circle
           </v-icon>
           내 파일함</v-btn>
-        <input placeholder="제목을 입력하세요" type="text"
-               style="width: 40%; background-color:white;"/>
+<!--        <input placeholder="제목을 입력하세요" type="text"-->
+<!--               style="width: 40%; background-color:white;"/>-->
+        <span id="file-title"> {{ this.fileName }}</span>
       </v-row>
       <v-row>
         <video class="video-frame" controls autoplay muted
@@ -99,6 +100,7 @@ export default {
       undoStack : [],
       redoStack : [],
       fileId:this.$route.params.id,
+      fileName:'',
       video:'',
       videoUrl:'',
     };
@@ -117,12 +119,16 @@ export default {
         .collection(`users/${this.$fire.auth.currentUser.uid}/files`).doc(this.fileId).get()
         .then((doc) =>{
           const self = this;
+          this.fileName = doc.data().name;
           this.video = doc.data().path ? self.$fire.storage.ref(doc.data().path).getDownloadURL() : '';
         });
 
       // video url
       this.video.then(url => this.videoUrl = url);
       // console.log(this.videoUrl);
+    },
+    toStorage: function() {
+      this.$router.push("/myfiles");
     },
     drawVideo: function () {
       this.video = document.querySelector("#videoOrigin");
