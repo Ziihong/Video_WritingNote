@@ -13,6 +13,7 @@
       </v-btn>
       <v-toolbar-title class="text-center" v-text="title" style="padding-left: 2%; padding-right: 2%"/>
       <v-btn v-if="isBookmarking" @click="removeNotesAll()">clear all</v-btn>
+      <v-btn v-if="isBookmarking" @click="removeNotesAll(), isBookmarking=false">cancel</v-btn>
       <v-spacer/>
       <v-btn icon id="newBtn" @click.stop="isBookmarking ? openDialog() : showBookmark()">
         <v-icon>mdi-{{`${isBookmarking? 'book-edit' : 'star'}`}}</v-icon>
@@ -108,7 +109,7 @@
             id ="cancelBtn"
             color="primary"
             @click="dialog=false">
-            Cancel
+            Back
           </v-btn>
           <v-btn
             id ="addBtn"
@@ -216,7 +217,8 @@ export default {
 
   methods:{
     //BOOKMARKS METHODS
-    jumpTime(item){ //method for time jump in video
+    //method for time jump in video
+    jumpTime(item){
       this.currentVideo = document.getElementById('currentVideo');
       this.currentVideo.currentTime = item.time;
       this.currentVideo.pause();
