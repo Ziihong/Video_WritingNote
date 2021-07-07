@@ -7,10 +7,13 @@
           <v-icon left @click="goDirectory(dir)">mdi-folder</v-icon>
           <span @click="goDirectory(dir)"> {{ dir.data().name }}</span>
           <button>
-            <v-icon right @click="modalOpen(dir)">mdi-pen</v-icon>
+            <v-icon @click="renameModalOpen(dir)">mdi-pen</v-icon>
           </button>
           <button>
-            <v-icon right @click="removeDirectory(dir)">mdi-close-box</v-icon>
+            <v-icon @click="moveModalOpen(dir)">mdi-swap-horizontal</v-icon>
+          </button>
+          <button>
+            <v-icon @click="removeDirectory(dir)">mdi-close-box</v-icon>
           </button>
         </div>
       </template>
@@ -18,9 +21,14 @@
     <ModalRename
       :isShowed="this.isRename"
       :title="'이름 바꾸기'"
-      @modal-close="modalClose"
-      @modal-ok="modalRename">
+      @rename-close="renameModalClose"
+      @rename-ok="renameModalOk">
     </ModalRename>
+    <ModalMove
+      :isShowed="this.isMove"
+      @move-close="moveModalClose"
+      @move-ok="moveModalOk">
+    </ModalMove>
   </v-col>
 </template>
 
@@ -40,9 +48,12 @@ export default {
   data() {
     return {
       isRename: false,
+      isMove: false,
       directories: [],
       fileUrls: [],
       renameDirectory: '', //obj
+      moveDirectory:'',
+      moveDirectoryId:''
     }
   },
   mounted() {
@@ -103,11 +114,31 @@ export default {
         this.viewDirectories();
       }
     },
-    modalOpen(dir) {
+    moveModalOpen(dir){
+      this.moveDirectory = dir;
+      this.isMove = true;
+    },
+    moveModalClose(){
+      this.isMove = false;
+    },
+    async moveModalOk(dir){
+      const selectDirectory = dir;
+      if (selectDirectory.id == this.moveDirectory.id) return alert('선택한 폴더로는 이동할 수 없습니다.');
+      await this.$fire.firestore
+        .doc(`users/${this.$fire.auth.currentUser.uid}/directories/${this.moveDirectory.id}`)
+        .update({
+          parentId: selectDirectory.id,
+        });
+      this.isMove = false;
+    },
+    renameModalOpen(dir) {
       this.isRename = true;
       this.renameDirectory = dir;
     },
-    async modalRename(rename) {
+    renameModalClose() {
+      this.isRename = false;
+    },
+    async renameModalOk(rename) {
       if (rename == undefined) {
         return alert("이름을 입력해주세요");
       } else {
@@ -119,9 +150,6 @@ export default {
         this.isRename = false;
         this.viewDirectories();
       }
-    },
-    modalClose() {
-      this.isRename = false;
     },
   },
 }
