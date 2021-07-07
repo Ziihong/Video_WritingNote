@@ -15,26 +15,31 @@
         </div>
       </template>
     </v-row>
-    <modal
-      :isModalViewed="this.isModalViewed"
+    <ModalRename
+      :isShowed="this.isRename"
       :title="'이름 바꾸기'"
       @modal-close="modalClose"
       @modal-ok="modalRename">
-    </modal>
+    </ModalRename>
   </v-col>
 </template>
 
 <script>
-import Modal from '~/components/Modal'
+import ModalRename from "/components/ModalRename";
+import ModalMove from "/components/ModalMove";
 
 export default {
   name: "SubDirectories",
+  components: {
+    ModalRename,
+    ModalMove,
+  },
   props: {
     parentId: String,
   },
   data() {
     return {
-      isModalViewed: false,
+      isRename: false,
       directories: [],
       fileUrls: [],
       renameDirectory: '', //obj
@@ -51,6 +56,7 @@ export default {
       dirStorageRef.orderBy('name').where('parentId', '==', this.parentId)
         .onSnapshot((async querySnapshot => {
           this.directories = querySnapshot.docs;
+          // console.log(this.directories);
         }));
     },
     goDirectory(dir) {
@@ -98,7 +104,7 @@ export default {
       }
     },
     modalOpen(dir) {
-      this.isModalViewed = true;
+      this.isRename = true;
       this.renameDirectory = dir;
     },
     async modalRename(rename) {
@@ -110,12 +116,12 @@ export default {
           .update({
             name: rename,
           });
-        this.isModalViewed = false;
+        this.isRename = false;
         this.viewDirectories();
       }
     },
     modalClose() {
-      this.isModalViewed = false;
+      this.isRename = false;
     },
   },
 }

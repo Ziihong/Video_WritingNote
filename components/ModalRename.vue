@@ -2,7 +2,7 @@
   <div>
     <!-- modal box -->
     <div id="modal-wrap">
-      <template v-if="isModalViewed">
+      <template v-if="isShowed">
       <!-- inner modal -->
       <div id="modal-box">
         <h2> {{ title }}</h2>
@@ -22,7 +22,7 @@ export default {
   props: {
     title: String,
     name: String,
-    isModalViewed: Boolean,
+    isShowed: Boolean,
   },
   data(){
     return{
@@ -34,8 +34,6 @@ export default {
 </script>
 
 <style scoped>
-
-/* 모달창 팝업 시 배경 어둡게 */
 #modal-bg {
   position: fixed;
   top: 0;
@@ -48,7 +46,6 @@ export default {
   z-index: 100;
 }
 
-/* 모달 박스 */
 #modal-box {
   position: fixed;
   top: 50%;

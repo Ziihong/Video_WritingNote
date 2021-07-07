@@ -2,37 +2,50 @@
   <v-col>
     <v-row> 파일 </v-row>
     <v-row>
-      <template v-for="(file,index) of files" class="file">
+      <template v-for="(file,index) of files">
           <div class="file">
             <video :src="`${fileUrls[index]}#t=0.5`" muted width="100%" @click="goFile(file)">{{ fileUrls[index] }}</video>
             <span @click="goFile(file)"> {{ file.data().name }}</span>
             <button>
-              <v-icon right @click="modalOpen(file)">mdi-pen</v-icon>
+              <v-icon @click="modalOpen(file)">mdi-pen</v-icon>
             </button>
             <button>
-              <v-icon right @click="removeFile(file)">mdi-close-box</v-icon>
+              <v-icon @click="moveFile(file)">mdi-swap-horizontal</v-icon>
+            </button>
+            <button>
+              <v-icon @click="removeFile(file)">mdi-close-box</v-icon>
             </button>
           </div>
       </template>
     </v-row>
-    <modal
-      :isModalViewed="this.isModalViewed"
+    <ModalRename
+      :isShowed="this.isRename"
       :title="'이름 바꾸기'"
       @modal-close="modalClose"
       @modal-ok="modalRename">
-    </modal>
+    </ModalRename>
+    <ModalMove
+      :isModalViewed="this.isMove">
+    </ModalMove>
   </v-col>
 </template>
 
 <script>
-import Modal from '~/components/Modal'
+import ModalRename from "/components/ModalRename";
+import ModalMove from "/components/ModalMove";
+
 export default {
+  components: {
+    ModalRename,
+    ModalMove,
+  },
   props: {
     parentId: String,
   },
   data() {
     return {
-      isModalViewed : false,
+      isRename : false,
+      isMove: false,
       files: [],
       fileUrls: [],
       renameFile:'', //obj
@@ -64,8 +77,11 @@ export default {
         await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${file.id}`).delete();
       }
     },
+    moveFile(file){
+      console.log("move ", file);
+    },
     modalOpen(file){
-      this.isModalViewed = true;
+      this.isRename = true;
       this.renameFile = file;
     },
     async modalRename(rename){
@@ -78,11 +94,11 @@ export default {
           .update({
             name: rename,
           });
-        this.isModalViewed = false;
+        this.isRename = false;
       }
     },
     modalClose(){
-      this.isModalViewed = false;
+      this.isRename = false;
     },
   }
 }

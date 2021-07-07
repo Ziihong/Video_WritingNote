@@ -4,40 +4,36 @@
       <v-icon left>mdi-folder-plus-outline</v-icon>
       <span>새 폴더</span>
     </v-btn>
-    <modal
-      :isModalViewed="this.isModalViewed"
+    <ModalRename
+      :isShowed="this.isRename"
       :title="'새 폴더'"
       @modal-close="modalClose"
       @modal-ok="modalCreate">
-  </modal>
+    </ModalRename>
 </span>
 </template>
 
 <script>
+import ModalRename from "/components/ModalRename";
+import ModalMove from "./ModalMove";
+
 export default {
   name: "CreateDir",
+  components: {
+    ModalRename,
+  },
   props: {
     parentId: String,
   },
   data() {
     return {
-      isModalViewed : false,
+      isRename : false,
       createName:'',
-      directories: [],
     }
   },
   methods:{
-    viewDirectories(){
-      this.directories = [];
-      const dirStorageRef = this.$fire.firestore
-        .collection(`users/${this.$fire.auth.currentUser.uid}/directories`);
-      dirStorageRef.orderBy('name').where('parentId', '==', this.parentId)
-        .onSnapshot((async querySnapshot => {
-          this.directories = querySnapshot.docs;
-        }));
-    },
     modalOpen(){
-      this.isModalViewed = true;
+      this.isRename = true;
     },
     async modalCreate(createName){
       if (createName == undefined) {
@@ -50,12 +46,12 @@ export default {
             name: createName,
             parentId: this.parentId,
           });
-        this.isModalViewed = false;
+        this.isRename = false;
         this.$emit('reload');
       }
     },
     modalClose(){
-      this.isModalViewed = false;
+      this.isRename = false;
     },
   }
 }
