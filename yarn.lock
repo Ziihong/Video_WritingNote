@@ -1793,7 +1793,7 @@
 
 "@tiptap/extension-code-block@^2.0.0-beta.16":
   version "2.0.0-beta.16"
-  resolved "https://registry.npmjs.org/@tiptap/extension-code-block/-/extension-code-block-2.0.0-beta.16.tgz"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-code-block/-/extension-code-block-2.0.0-beta.16.tgz#7788ee1af04eb84fe194261bb1bb835dbe7ad59e"
   integrity sha512-FgKuobqybmkVidRsOSatgVYEyHldvGPBu7/nr5z131PHMqTe7Z35c4r2ts5DCZRsOoby17Nn4iLAENqtsmyyJQ==
   dependencies:
     prosemirror-inputrules "^1.1.3"

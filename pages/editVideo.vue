@@ -68,7 +68,7 @@
               </v-col>
             </v-row>
         </v-col>
-        <v-col>
+        <v-col id="docArea">
           <TextEditor/>
         </v-col>
       </v-row>
@@ -319,5 +319,8 @@ export default {
   z-index: 1;
   width: 66.7%;
   height: 59%;
+}
+#docArea{
+  padding-left: 1px;
 }
 </style>
