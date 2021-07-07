@@ -42,19 +42,22 @@
               </v-col>
             </v-row>
             <v-divider></v-divider>
-            <v-row id="bookmarkArea" no-gutters>
-              <v-col>
+            <v-row id="bookmarkArea" no-gutters >
+              <v-col style="background-color: lightcyan">
                 <p class="text-center"
                    style="margin-bottom: 12px; margin-top: 12px;">
                   <v-icon>mdi-star</v-icon>Bookmarks</p>
                 <v-divider></v-divider>
                 <v-list
-                  style="max-height: 140px; min-height: 140px"
+                  style="max-height: 140px; min-height: 140px; padding-top: 0px"
                   class="overflow-y-auto">
+                  <p v-if="items.length == 0"
+                        style="text-align: center;font-size: 25px; color: lightgray">No Bookmarks! Add one.</p>
                   <v-list-item
                     v-for="(item, i) in items"
                     :key="i"
                     @click="jumpTime(item)"
+                    style="border-bottom: 1px solid lightgray"
                     router
                     exact
                   >
@@ -62,15 +65,25 @@
                       <v-icon>{{ i+1 }}</v-icon>
                     </v-list-item-action>
                     <v-list-item-content>
-                      <v-list-item-title v-text="item.title" />
+                      <v-list-item-title v-if="clickedIndex != i" v-text="item.title"/>
+                      <v-text-field v-else
+                                    placeholder ="Write your bookmark name."
+                                    v-model="item.title"
+                                    @click="$event.stopPropagation()"
+                                    v-click-outside="editbookmarkTitle"
+                                    style="margin: 0; padding: 0;"
+                                    hide-details=true
+                                    ></v-text-field>
                     </v-list-item-content>
-                    <v-btn icon id="editbookmarkTitle" @click="">
+                    <v-btn icon id="editbookmarkTitle" style="z-index: 1"
+                           @click.stop= "isNamechange? null : editbookmarkTitle($event,i)">
                       <v-icon>mdi-square-edit-outline</v-icon></v-btn>
-                    <v-btn icon id="deletebookmarkTitle" style="color: red"
-                           @click="deleteBookmark($event)">
+                    <v-btn icon id="deletebookmarkTitle" style="color: red; z-index: 1"
+                           @click.stop="deleteBookmark($event,i)">
                       <v-icon>mdi-minus</v-icon></v-btn>
                   </v-list-item>
                 </v-list>
+                <v-divider></v-divider>
               </v-col>
             </v-row>
         </v-col>
@@ -121,13 +134,13 @@ import TextAlign from '@tiptap/extension-text-align'
 import Highlight from '@tiptap/extension-highlight'
 
 class Bookmark{
-  constructor(index, inputTitle, inputTime, noteComments){
-    this.icon=index+1;
+  constructor( inputTitle, inputTime, noteComments){
     this.title=inputTitle;
     this.time=inputTime;
     this.notecomments=noteComments;
   }
 }
+
 class Note{
   constructor(x, y, comment) {
     this.xcomponent = x;
@@ -147,36 +160,40 @@ export default {
       title: 'Video Comment',
       dialog: false,
       isBookmarking: false,
-      itemNow: null,
       isPencil: false,
+      isNamechange: false,
+      clickedIndex: null,
+      itemNow: null,
       currentTime: null,
       currentVideo: null,
       bookmarkTitle: null,
-      prenote:null,
+      prenote: null,
       items: [
         {
           title: 'Start',
           time: 0,
-          notecomments: [{xcomponent: 60 , ycomponent: 300, comment: 'This is the start of video.'}]
+          notecomments: [{xcomponent: 60 , ycomponent: 300, comment: 'This is the start of video.'},
+            {xcomponent: 120 , ycomponent: 430, comment: 'Nothing special, just testing.'}]
         },
         {
-          title: 'Bookmark',
+          title: 'I wanna go home',
           time: 3,
-          notecomments: []
+          notecomments: [{xcomponent: 70 , ycomponent: 400, comment: 'I want to go on a vacation.'}]
         },
         {
-          title: 'Bookmark',
+          title: 'Cute Cute Cat',
           time: 5,
-          notecomments: []
+          notecomments: [{xcomponent: 100 , ycomponent: 370, comment: 'This cat is cute, though.'}]
         },
         {
-          title: 'Bookmark',
+          title: 'Video End',
           time: 9,
           notecomments: [{xcomponent: 60 , ycomponent: 300, comment: 'This is the end of video.'}]
         }
       ],
     }
   },
+
   mounted() {
     this.editor = new Editor({
       extensions: [
@@ -191,27 +208,30 @@ export default {
       ],
     })
   },
+
   beforeDestroy() {
     this.editor.destroy()
   },
+
   methods:{
-    //bookmark methods
+    //BOOKMARKS METHODS
     jumpTime(item){ //method for time jump in video
       this.currentVideo = document.getElementById('currentVideo');
       this.currentVideo.currentTime = item.time;
       this.currentVideo.pause();
       this.showBookmark(item);
     },
-    openDialog(){ //method for opening bookmark title dialog
+    //method for opening bookmark title dialog
+    openDialog(){
       if(this.itemNow == null){
         this.dialog = true;
       }
       else{
         this.addBookmark();
       }
-      //document.getElementById('bookmarkName').value = this.currentTime;
     },
-    setbookmarkTitle(){ //method for setting bookmark name
+    //method for setting bookmark name
+    setbookmarkTitle(){
       this.currentVideo = document.getElementById('currentVideo');
       this.currentTime = this.currentVideo.currentTime;
       if(document.getElementById('bookmarkName').value){
@@ -222,6 +242,7 @@ export default {
       }
       this.dialog = false;
     },
+    // add notes to item list using constructor
     addBookmark(){
       const videoArea = document.getElementById('videoArea');
       const notes=[];
@@ -241,7 +262,7 @@ export default {
           }
         } // end remove
 
-        let item= new Bookmark(this.items.length,this.bookmarkTitle, this.currentTime, notes);
+        let item= new Bookmark(this.bookmarkTitle, this.currentTime, notes);
         this.items.push(item);
 
         //console.log(item);
@@ -265,6 +286,7 @@ export default {
       this.itemNow=null;
       this.isBookmarking= false;
     },
+    // loading notes on screen based on items
     showBookmark(item){
       this.currentVideo = document.getElementById('currentVideo');
       this.currentVideo.pause();
@@ -285,18 +307,42 @@ export default {
         }
       } // show end
     },
-    deleteBookmark(event){
-      console.log(event);
+    // method for opening bookmark name edit
+    editbookmarkTitle(event, index){
+      event.stopPropagation();
+      if(this.isNamechange){
+        this.clickedIndex= null;
+        this.isNamechange = false;
+      }
+      else{
+        this.clickedIndex= index;
+        this.isNamechange = true;
+      }
     },
-    //notes methods
-    createNote(x, y, comment){ //method for creating notes
+    // method for deleting bookmark clicked
+    deleteBookmark(event,index){
+      event.stopPropagation();
+      if(this.isBookmarking){ //check if deleting is currently open
+        if(this.items[index] === this.itemNow){
+          this.removeNotesAll();
+          this.isBookmarking = false;
+        }
+      } // delete on screen end
+      this.items.splice(index,1); console.log(this.items);
+    },
+
+    //NOTES METHODS
+    //method for creating notes
+    createNote(x, y, comment){
       let note=document.createElement('textarea');
       let noteWrap=document.createElement('div');
       let deleteButton = document.createElement('button');
 
       noteWrap.setAttribute('class', 'noteWrap');
       note.setAttribute('class', 'note');
-      deleteButton.setAttribute('class', 'noteDeleteButton');
+      deleteButton.setAttribute('class', 'v-btn v-btn--icon v-btn--round ' +
+        'theme--light v-size--x-small noteDeleteButton');
+      deleteButton.setAttribute('type', 'button');
 
       note.value = comment
       note.onclick=this.goFront;
@@ -316,7 +362,8 @@ export default {
       }
       this.prenote = noteWrap;
     },
-    deleteNote(event){ // method for deleting a note
+    // method for deleting a note
+    deleteNote(event){
       let target = event.path[1];
       document.getElementById('videoArea').removeChild(target);
       let notes = document.getElementsByClassName('noteWrap');
@@ -328,6 +375,7 @@ export default {
         this.prenote = next;
       }
     },
+    // remove all the currently opened notes
     removeNotesAll() {
       const videoArea = document.getElementById('videoArea');
       for (let i = 0; i < videoArea.children.length;) {
@@ -339,8 +387,9 @@ export default {
         }
       } // end remove
     },
-    goFront(event){ // method for moving note to front
-      let target = event.path[1];
+    // method for moving note to front
+    goFront(event){
+      const target = event.path[1];
       if(this.prenote != target){
         this.prenote.children[1].style.visibility='hidden';
         this.prenote.style.zIndex="1";
@@ -351,7 +400,8 @@ export default {
         this.prenote = target;
       }
     },
-    setNote(event){ // method for getting the click point and make a note
+    // method for getting the click point and make a note
+    setNote(event){
       let x= event.offsetY;
       let y= event.offsetX;
       //console.log( `Coordinate:(${x},${y})`);
@@ -377,8 +427,8 @@ export default {
 <style>
 .noteDeleteButton{
   background-color: white;
-  border-radius:50%;
   position: relative;
+  border: 1px solid black;
   text-align: center;
   z-index: 2;
 }
