@@ -91,7 +91,7 @@ export default{
       </v-menu>
       <v-btn text icon id="addImage" @click="addImage()"><v-icon>mdi-camera-iris</v-icon></v-btn>
     </div>
-    <editor-content @click="test()" :editor="editor" class="editDoc" style="border: 2px solid lightslategrey"/>
+    <editor-content :editor="editor" class="editDoc"/>
     <canvas id="screenshot" style="border: 1px solid black; width: 100%;" hidden></canvas>
     <v-btn style="align-self: center" @click="saveComment">save</v-btn>
   </div>
@@ -139,7 +139,7 @@ export default {
           types: ['heading', 'paragraph'],
         }),
       ],
-      content: `<p style="line-height: 500px;"></p>`,
+      content: ``,
     })
   },
   beforeDestroy() {
@@ -151,8 +151,8 @@ export default {
       let canvas = document.querySelector("#screenshot");
       const context = canvas.getContext("2d");
 
-      canvas.width = 300
-      canvas.height = 150
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
 
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
@@ -176,5 +176,15 @@ export default {
   font-family: 'Noto Sans', sans-serif;
   font-family: 'Noto Sans JP', sans-serif;
   font-family: 'Noto Sans KR', sans-serif;
+}
+
+.ProseMirror{
+  min-height: 30em;
+  border: 2px solid lightslategrey;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
 }
 </style>
