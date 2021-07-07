@@ -41,6 +41,7 @@
                   src="/video/Cat-66004.mp4"></video>
               </v-col>
             </v-row>
+
             <v-divider></v-divider>
             <v-row id="bookmarkArea" no-gutters>
               <v-col>
@@ -74,7 +75,7 @@
               </v-col>
             </v-row>
         </v-col>
-        <v-col>
+        <v-col id="docArea">
           <TextEditor/>
         </v-col>
       </v-row>
@@ -404,5 +405,7 @@ export default {
   width: 66.7%;
   height: 59%;
 }
-
+#docArea{
+  padding-left: 1px;
+}
 </style>
