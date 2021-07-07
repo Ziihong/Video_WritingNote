@@ -12,7 +12,8 @@
       </v-row>
       <v-row>
         <video class="video-frame" controls autoplay muted
-               :src="`${videoUrl}#t=0.5`" id="videoOrigin" width="100%" height="500"
+               :src="`${videoUrl}#t=0.5`"
+               id="videoOrigin" width="100%" height="500"
         >
           브라우저가 비디오 플레이를 지원하지 않습니다
         </video>
@@ -129,23 +130,28 @@ export default {
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
 
-      this.video.crossorigin = 'anonymous';
-      this.video.onload = function(){
-        this.canvas.width = this.video.clientWidth;
-        this.canvas.height = this.video.clientHeight;
-        this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-        console.log('Video onload');
-      };
+      //this.video.crossOrigin = 'anonymous';
 
+      this.canvas.width = this.video.clientWidth;
+      this.canvas.height = this.video.clientHeight;
+      this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       const imgNode = document.createElement("img");
 
-      const self = this;
-      //imgNode.crossOrigin = '*';
-      //imgNode.setAttribute('src',`url/timestamp=${new Date().getTime()}`)
-      imgNode.src = this.canvas.toDataURL();
-      console.log(imgNode);
+      // html2canvas(document.querySelector('#videoCanvas'), {
+      //   // scale: 3,
+      //   allowTaint: true,
+      //   useCORS: true,
+      //   logging: false,
+      // }).then(function (canvas) {
+      //   imgNode.src = canvas.toDataURL('image/png');
+      // });
 
-      // this.canvasImgsrc = this.canvas.toDataURL();
+      const self = this;
+      //imgNode.crossOrigin = '';
+      console.log(imgNode);
+      //imgNode.src = this.canvas.toDataURL();
+
+      //this.canvasImgsrc = this.canvas.toDataURL();
       imgNode.width = this.canvas.width/4;
       imgNode.height = this.canvas.height/4;
       this.context.strokeStyle = this.curColor;
