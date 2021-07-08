@@ -59,33 +59,17 @@
       </v-row>
       <v-row>
         <v-btn>노트</v-btn>
-        <v-dialog transition="dialog-bottom-transition" max-width="600">
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn color="primary" v-bind="attrs" v-on="on">코멘트</v-btn>
-          </template>
-          <template v-slot:default="dialog">
-            <v-card>
-              <v-toolbar color="primary" dark>코멘트</v-toolbar>
-              <div>
-                <comments
-                  :creator="creator"
-                  :comments="comments"
-                  :current_user="current_user"
-                  @submit-comment="submitComment">
-                </comments>
-              </div>
-              <v-card-actions class="justify-end">
-                <v-btn text @click="dialog.value = false">Close</v-btn>
-              </v-card-actions>
-            </v-card>
-          </template>
-        </v-dialog>
+        <Comment
+          :creator="creator"
+          :comments="comments"
+          :current_user="current_user">
+        </Comment>
       </v-row>
       <div class="edit-toolbar">
-        <toolbar></toolbar>
+        <Toolbar></Toolbar>
       </div>
       <v-row>
-        <div id="content-editor" contenteditable="true">
+        <div id="content-editor" contenteditable="true" ref="hi">
           <template v-for="note of notes">
             <div>
               {{note.data().text}}
@@ -106,14 +90,14 @@
 import jsPDF from 'jspdf'
 import html2canvas from "html2canvas";
 import Drawing from "../components/Drawing";
-import Comments from '../components/comments';
-import toolbar from "../components/toolbar";
+import Comments from '../components/Comment';
+import Toolbar from "../components/Toolbar";
 
 export default {
   components: {
     Drawing,
     Comments,
-    toolbar,
+    Toolbar,
   },
   data() {
     return {
@@ -190,43 +174,34 @@ export default {
   },
   methods: {
     async onSaveNote() {
-      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-      set({name: this.name}, {merge: true}).
-      then(para => {
-        console.log('Save test : '+para);
-      });
-
       this.noteTexts = document.getElementById('content-editor').getElementsByTagName('div');
       const self = this;
-      const arr = [];
-      //contentEditable div text
+      const textArr = [];
+      //add contentEditable div text because this is not in div tag
       let strSplit = document.getElementById('content-editor').innerHTML.split('<div>');
       if(this.notes.length === 0){
-        arr.push(strSplit[0]);
+        textArr.push(strSplit[0]);
       }
       for(let i=0; i<self.noteTexts.length; i++){
-        arr.push(self.noteTexts[i].innerText);
+        textArr.push(self.noteTexts[i].innerText);
       }
-
+      //delete all that has saved before
       let i = this.notes.length;
       while(i !== 0){
         await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/notes/${this.notes[0].id}`).delete();
         i--;
       }
-
-      for(const i of arr){
+      for(const i of textArr){
         await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/notes`).add({
           text: i,
           timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
         });
       }
-
       this.notes = [];
       const fileStorageRef = this.$fire.firestore
         .collection(`users/${this.$fire.auth.currentUser.uid}/notes`);
       fileStorageRef.orderBy('timestamp')
         .onSnapshot((async querySnapshot => {
-          //console.log(querySnapshot.docs.length);
           this.notes = querySnapshot.docs;
           const self = this;
           this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
@@ -235,39 +210,6 @@ export default {
     },
     async removeMark(mark) {
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/marks/${mark.id}`).delete();
-    },
-    async submitComment(reply) {
-      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-      set({name: this.name}, {merge: true}).
-      then(para => {
-        console.log('Save test : '+para);
-      });
-
-      const self = this;
-      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/comments`).add({
-        avatar: self.current_user.avatar,
-        texts: reply,
-        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
-      });
-
-      this.comments = [];
-      const fileStorageRef = this.$fire.firestore
-        .collection(`users/${this.$fire.auth.currentUser.uid}/comments`);
-      fileStorageRef.orderBy('timestamp')
-        .onSnapshot((async querySnapshot => {
-          //console.log(querySnapshot.docs.length);
-          this.comments = querySnapshot.docs;
-          const self = this;
-          this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
-        }));
-    },
-    async modifyComment(comment, reply) {
-      this.renameObj = comment;
-      await this.$fire.firestore
-        .doc(`users/${this.$fire.auth.currentUser.uid}/comments/${this.renameObj.id}`)
-        .update({
-          texts: reply,
-        })
     },
     drawVideo: function () {
       this.video = document.querySelector("#videoOrigin");
@@ -299,25 +241,17 @@ export default {
     },
     async makeMarker() {
       const originVideo = document.querySelector("#videoOrigin");
-
-      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-      set({name: this.name}, {merge: true}).
-      then(para => {
-        console.log('Save test : '+para);
-      });
-
       const self = this;
+
       await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/marks`).add({
         time: originVideo.currentTime,
         timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
       });
 
       this.marks = [];
-      const fileStorageRef = this.$fire.firestore
-        .collection(`users/${this.$fire.auth.currentUser.uid}/marks`);
+      const fileStorageRef = this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/marks`);
       fileStorageRef.orderBy('timestamp')
         .onSnapshot((async querySnapshot => {
-          //console.log(querySnapshot.docs.length);
           this.marks = querySnapshot.docs;
           const self = this;
           this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
@@ -337,21 +271,11 @@ export default {
       }).then(function(canvas){
         let imgData = canvas.toDataURL('image/png');
         let imgWidth = 210;
-        let pageHeight = imgWidth * 1.414;
         let imgHeight = canvas.height * imgWidth / canvas.width;
-        let heightLeft =  imgHeight;
         let doc = new jsPDF('p', 'mm');
         let position = -1;
 
         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
-
-        // heightLeft -= pageHeight;
-        // while(heightLeft >= 20){
-        //  position -= heightLeft - imgHeight;
-        //  doc.addPage();
-        //  doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
-        //  heightLeft -= pageHeight;
-        //}
         doc.save('sample.pdf');
       });
     },

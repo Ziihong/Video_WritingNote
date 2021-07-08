@@ -20,6 +20,8 @@
         mdi-format-strikethrough
       </v-icon>
     </v-btn>
+    <v-select :items="items" item-value="items.item" item-text="item" outlined @change="editFontSize"
+    ></v-select>
   </v-row>
 </template>
 
@@ -28,13 +30,17 @@ export default {
   name: "toolbar",
   data() {
     return{
-
+      items: [{item: '8'}, {item: '14'}]
     }
   },
   methods: {
     textEdit: function (command) {
       document.execCommand(command);
     },
+    editFontSize: function(value) {
+      console.log(this.items)
+      document.execCommand("fontsize", false, value.item);
+    }
   }
 }
 </script>

@@ -1,54 +1,77 @@
 <template>
-  <div class="comments">
-    <div id="commentArea" >
-      <div class="owner">
-        <span>{{ comments.length }}개의 comment</span>
-        <div class="ownerAvatar">
-          <a class="username" href="#"><img :src="creator.avatar" alt=""></a>
-        </div>
-        <div class="ownerName">
-          <span>{{ creator.user }}</span>
-        </div>
-      </div>
-      <div class="custom-scrollbar">
-        <div class="comment" v-for="comment of comments">
-          <div class="avatar">
-            <a class="username" href="#"><img :src="comment.data().avatar" alt=""></a>
+  <v-dialog transition="dialog-bottom-transition" max-width="600">
+    <template v-slot:activator="{ on, attrs }">
+      <v-btn color="primary" v-bind="attrs" v-on="on">코멘트</v-btn>
+    </template>
+    <template v-slot:default="dialog">
+      <v-card>
+        <v-toolbar color="primary" dark>코멘트</v-toolbar>
+          <div class="comments">
+            <div id="commentArea" >
+              <div class="owner">
+                <span>{{ comments.length }}개의 comment</span>
+                <div class="ownerAvatar">
+                  <a class="username" href="#"><img :src="creator.avatar" alt=""></a>
+                </div>
+                <div class="ownerName">
+                  <span>{{ creator.user }}</span>
+                </div>
+              </div>
+              <div class="custom-scrollbar">
+                <div class="comment" v-for="comment of comments">
+                    <div class="avatar">
+                      <a class="username" href="#"><img :src="comment.data().avatar" alt=""></a>
+                    </div>
+                    <div class="user">
+                      {{ authUser.nickname }}
+                    </div>
+                    <div class="texts">
+                      <div>
+                        {{ comment.data().texts }}
+                      </div>
+                    </div>
+                    <div class="time">
+                      {{timestampToDate(comment.data().timestamp)}}
+                    </div>
+                    <v-dialog max-width="600">
+                      <template v-slot:activator="{ on, attrs }">
+                        <button class="inlineBtn" v-bind="attrs" v-on="on"><v-icon right>mdi-comment-edit</v-icon></button>
+                      </template>
+                      <template v-slot:default="dialog">
+                        <v-card>
+                          <div class="reply">
+                            <div class="avatar">
+                              <img :src="current_user.avatar" alt="">
+                            </div>
+                            <input type="text" v-model.trim="modifyReply" class="replyText" maxlength="250" required
+                                   @keyup.enter="[modifyComment(comment), dialog.value=false]"/>
+                            <button class="replyButton" @click.prevent="[modifyComment(comment), dialog.value=false]">수정</button>
+                          </div>
+                        </v-card>
+                      </template>
+                    </v-dialog>
+                    <button class="inlineBtn" @click="removeComment(comment)">
+                      <v-icon right>mdi-close-box</v-icon>
+                    </button>
+                </div>
+              </div>
+            </div>
+            <div class="reply">
+              <div class="avatar">
+                <img :src="current_user.avatar" alt="">
+              </div>
+              <input type="text" v-model.trim="reply" class="replyText" placeholder="Leave a comment..." maxlength="250" required
+                     @keyup.enter="submitComment"
+              />
+              <button class="replyButton" @click.prevent="submitComment">Send</button>
+            </div>
           </div>
-          <div class="user">
-            {{ authUser.nickname }}
-          </div>
-          <div class="texts">
-            {{ comment.data().texts }}
-          </div>
-          <div class="time">
-            {{timestampToDate(comment.data().timestamp)}}
-          </div>
-          <button class="inlineBtn">
-            <v-icon right>mdi-comment-edit</v-icon>
-          </button>
-          <button class="inlineBtn">
-            <v-icon right @click="removeComment(comment)">mdi-close-box</v-icon>
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="reply">
-      <div class="avatar">
-        <img :src="current_user.avatar" alt="">
-      </div>
-      <input
-        type="text"
-        v-model.trim="reply"
-        class="replyText"
-        placeholder="Leave a comment..."
-        maxlength="250"
-        required
-        @keyup.enter="submitComment"
-      />
-      <button class="replyButton" @click.prevent="submitComment"><i class="fa fa-paper-plane"></i> Send</button>
-    </div>
-  </div>
+        <v-card-actions class="justify-end">
+          <v-btn text @click="dialog.value = false">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </template>
+  </v-dialog>
 </template>
 <script>
 
@@ -56,7 +79,7 @@ import {mapGetters, mapState} from "vuex";
 
 export default {
   name: 'comments',
-  props: ['creator', 'current_user', 'comments'],
+  props: ['creator', 'current_user', 'comments', {name: String}],
   computed: {
     ...mapState({
       authUser: state => state.authUser,
@@ -68,18 +91,37 @@ export default {
   data() {
     return {
       reply: '',
+      modifyReply: '',
     }
   },
   methods: {
-    submitComment() {
-      if(this.reply != '') {
-        this.$emit('submit-comment', this.reply);
-        this.reply = '';
-      }
+    async submitComment() {
+      const self = this;
+      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/comments`).add({
+        avatar: self.current_user.avatar,
+        texts: this.reply,
+        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
+      });
+
+      this.comments = [];
+      const fileStorageRef = this.$fire.firestore
+        .collection(`users/${this.$fire.auth.currentUser.uid}/comments`);
+      fileStorageRef.orderBy('timestamp')
+        .onSnapshot((async querySnapshot => {
+          this.comments = querySnapshot.docs;
+          const self = this;
+          this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
+        }));
     },
     async removeComment(comment) {
-      console.log('comment: ', comment.id);
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/comments/${comment.id}`).delete();
+    },
+    async modifyComment(comment) {
+      await this.$fire.firestore
+        .doc(`users/${this.$fire.auth.currentUser.uid}/comments/${comment.id}`)
+        .update({
+          texts: this.modifyReply,
+        });
     },
     timestampToDate: function(timestamp) {
       try {
@@ -190,6 +232,7 @@ export default {
   border-radius: 30px;
   padding: 5px 10px;
   overflow: hidden;
+  margin-top: 10px;
 }
 .reply .avatar {
   position: absolute;
