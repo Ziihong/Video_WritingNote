@@ -156,7 +156,7 @@ class Note{
   constructor(x, y, comment) {
     this.xcomponent = x;
     this.ycomponent = y;
-    this.comment = comment
+    this.comment = comment;
   }
 }
 
@@ -283,7 +283,7 @@ export default {
         } // end remove
 
         let item= new Bookmark(this.bookmarkTitle, this.currentTime, notes);
-        this.items.push(item);
+        this.items.push(item)
 
         //console.log(item);
       }
@@ -302,8 +302,13 @@ export default {
           }
         } // end remove
         this.itemNow.notecomments = notes;
+        this.itemNow=null;
       }
-      this.itemNow=null;
+
+      // comments change to JSON
+      const commentsJSONString = JSON.stringify(this.items);
+      console.log(commentsJSONString);
+
       this.isBookmarking= false;
     },
     // loading notes on screen based on items
@@ -348,7 +353,11 @@ export default {
           this.isBookmarking = false;
         }
       } // delete on screen end
-      this.items.splice(index,1); console.log(this.items);
+      this.items.splice(index,1);
+
+      // comments change to JSON
+      const commentsJSONString = JSON.stringify(this.items);
+      console.log(commentsJSONString);
     },
 
     //NOTES METHODS
@@ -364,7 +373,8 @@ export default {
         'theme--light v-size--x-small noteDeleteButton');
       deleteButton.setAttribute('type', 'button');
 
-      note.value = comment
+      note.value = comment;
+      note.placeholder = 'Write note here';
       note.onclick=this.goFront;
       deleteButton.innerText='❌';
       deleteButton.onclick = this.deleteNote;
@@ -426,7 +436,7 @@ export default {
       let y= event.offsetX;
       //console.log( `Coordinate:(${x},${y})`);
 
-      this.createNote(x, y, 'Some notes...')
+      this.createNote(x, y, '')
     },
 
     setClickplane(){ // need to look at this once more, I set canvas width and height offset, not following that of video

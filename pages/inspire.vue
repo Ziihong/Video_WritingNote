@@ -2,9 +2,10 @@
   <v-row>
     <v-col class="text-center">
       <img
-        src="/v.png"
+        src="/brightn.png"
         alt="Vuetify.js"
         class="mb-5"
+        style="max-height: 7%"
       >
 
       <div class="text-left">
