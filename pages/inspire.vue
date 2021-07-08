@@ -1,20 +1,22 @@
 <template>
   <v-row>
     <v-col class="text-center">
-      <img
-        src="/brightn.png"
-        alt="Vuetify.js"
-        class="mb-5"
-        style="max-height: 7%"
-      >
-
       <div class="text-left">
-        <span id="fileField"></span>
-        <span id="addVideobtn">
+        <div id="addVideobtn">
         <v-btn class="addFilebtn" @click="dialog = !dialog">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
-        </span>
+        </div>
+        <div id="fileField">
+          <v-list-item v-for="(file,index) of files" style="display: inline" to="/editVideo">
+            <v-list-item-action v-if="file.data().path">
+              <video :src="fileUrls[index]" width="100px"/>
+              {{ file.data().title }}
+            </v-list-item-action>
+            <v-list-item-action v-else>{{ file.data().title }}</v-list-item-action>
+          </v-list-item>
+          <hr>
+        </div>
       </div>
 
       <!--check below code for add/remove file collection & file upload-->
@@ -23,50 +25,33 @@
         description: {{ description }}
         <v-text-field v-model="name" light/>
         <v-btn @click="onSave" v-html="`저장`" light/>
-
-        <template v-for="(file,index) of files">
-          <li v-if="file.data().path" @click="removeFile(file)" >
-            <v-img :src="fileUrls[index]" />
-          </li>
-          <li v-else @click="removeFile(file)" >{{ file.data().name }}</li>
-        </template>
-        <hr>
-        <h3>파일 업로드</h3>
-        <v-file-input
-          truncate-length="15"
-          label="파일선택" color="red" @change="onSelect"/>
-        <v-btn @click="startUpload" v-html="'업로드'" />
       </div>
       <!-- End of file management Example-->
 
-      <blockquote class="blockquote">
-        &#8220;First, solve the problem. Then, write the code.&#8221;
-        <footer>
-          <small>
-            <em>&mdash;John Johnson</em>
-          </small>
-        </footer>
-      </blockquote>
-
       <v-dialog v-model="dialog" width="500" v-if="dialog">
-        <v-file-input id="inputVideo" accept=".mp4" label="File input">
-        </v-file-input>
-        <v-input>Name</v-input>
-        <v-card-text class="text-center">
-          <em><small>&mdash; Only MP4 format allowed</small></em>
-          <hr class="my-3">
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            id ="addBtn"
-            color="primary"
-            to="/editVideo"
-            @click="addVideo"
-          >
-            Add Video
-          </v-btn>
-        </v-card-actions>
+        <v-card style="background-color: lightgray">
+          <v-card-text class="text-center" >
+            <v-file-input id="inputVideo" accept=".mp4" label="File input"
+                          style="background-color: lightgray"
+                          messages="﹣ Only MP4 format allowed"
+                          @change="onSelect">
+            </v-file-input>
+            <v-text-field id="inputVideoTitle"
+                          style="background-color: lightgray; padding-left: 7%"
+                          placeholder="Default title will be file's name"></v-text-field>
+            <hr class="my-3">
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              id ="addBtn"
+              color="primary"
+              @click="addVideo"
+            >
+              Add Video
+            </v-btn>
+          </v-card-actions>
+        </v-card>
       </v-dialog>
     </v-col>
   </v-row>
@@ -74,11 +59,9 @@
 
 <script>
 export default {
-
   data(){
     return{
       dialog: false,
-      src : null,
       description: '',
       name: '',
       files: [],
@@ -115,13 +98,25 @@ export default {
   },
 
   methods: {
-
+    // method for adding video on screen
     addVideo(){
-      this.src= document.getElementById('inputVideo').files[0];
-      console.log(this.src);
-      this.dialog=false;
+      const src= document.getElementById('inputVideo').files[0];
+      let title = document.getElementById('inputVideoTitle').value;
+      if(src){
+        console.log(src.name);
+        console.log(title)
+        if(!title){
+          title = src.name;
+        }
+        this.startUpload(title);
+        this.dialog = false;
+      }
+      else{
+        return alert('No video file!');
+      }
     },
 
+    // Fire store example methods
     async onSave() {
       // this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).update({name: this.name}).then(() => {
       //   console.log('saved!');
@@ -133,7 +128,7 @@ export default {
       });
 
       await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/files`).
-      add({name: `test${this.files.length}`});
+      add({name: `test${this.files.length}`, title: `test${this.files.length}`});
     },
 
     async removeFile(file) {
@@ -146,7 +141,7 @@ export default {
       this.fileObj = file;
     },
 
-    startUpload(){
+    startUpload(title){
       if(!this.$fire.auth.currentUser) {
         return alert('로그인해주세요.');
       }
@@ -185,6 +180,7 @@ export default {
         console.log(uploadTask.snapshot.ref.fullPath);
 
         await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
+          title: title,
           name: uploadTask.snapshot.ref.fullPath,
           path: uploadTask.snapshot.ref.fullPath,
           timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
@@ -196,6 +192,7 @@ export default {
         });
       });
     }
+
   },
 }
 </script>
