@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <div v-if="isLoggedIn">
     <v-col>
       <v-container>
         <v-row>
@@ -20,6 +21,10 @@
         <sub-files :parentId="this.directoryId"></sub-files>
       </v-container>
     </v-col>
+    </div>
+    <div v-else>
+      <login></login>
+    </div>
   </div>
 </template>
 
@@ -30,15 +35,26 @@ import CreateDirBtn from "/components/CreateDirBtn";
 import UpFileBtn from "/components/UpFileBtn";
 import UpDirBtn from "/components/UpDirBtn";
 import DirPath from "/components/DirPath";
+import login from "/pages/login";
+import {mapGetters, mapState} from 'vuex';
 
 export default {
   components: {
+    login,
     DirPath,
     UpDirBtn,
     UpFileBtn,
     CreateDirBtn,
     SubDirectories,
     SubFiles,
+  },
+  computed:{
+    ...mapState({
+      authUser: state => state.authUser,
+    }),
+    ...mapGetters({
+      isLoggedIn: 'isLoggedIn',
+    }),
   },
   data() {
     return {
