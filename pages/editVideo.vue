@@ -123,17 +123,26 @@
 </template>
 
 <script>
-
-import TextEditor from "@/components/TextEditor"
-import { Editor, EditorContent } from '@tiptap/vue-2'
+import { Editor ,EditorContent } from '@tiptap/vue-2'
 import StarterKit from '@tiptap/starter-kit'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
+import CodeBlock from '@tiptap/extension-code-block'
 import Image from '@tiptap/extension-image'
 import Dropcursor from '@tiptap/extension-dropcursor'
 import TextAlign from '@tiptap/extension-text-align'
 import Highlight from '@tiptap/extension-highlight'
+import Underline from '@tiptap/extension-underline'
+import VTooltip from 'v-tooltip'
+import Typography from '@tiptap/extension-typography'
+
+
+// import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+// // load all highlight.js languages
+// import lowlight from 'lowlight'
+
+import TextEditor from "@/components/TextEditor";
 
 class Bookmark{
   constructor( inputTitle, inputTime, noteComments){
@@ -203,10 +212,18 @@ export default {
         Document,
         Paragraph,
         Text,
+        CodeBlock,
         Image,
         Dropcursor,
         TextAlign,
         Highlight,
+        Underline,
+        Typography,
+        VTooltip,
+        TextAlign.configure({
+          types: ['heading', 'paragraph'],
+        }),
+
       ],
     })
   },

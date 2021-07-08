@@ -43,11 +43,9 @@ export default{
 </script>
 -->
 
-
 <template>
   <div>
     <div v-if="editor" class="editBar" style="border: 2px solid lightgray">
-      <!--tooltip O -->
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }"><v-icon>mdi-format-bold</v-icon></v-btn></template><span>Bold</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }"><v-icon>mdi-format-italic</v-icon></v-btn></template><span>Italic</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleStrike().run()" :class="{ 'is-active': editor.isActive('strike') }"><v-icon>mdi-format-strikethrough</v-icon></v-btn></template><span>Strike</span></v-tooltip>
@@ -69,15 +67,15 @@ export default{
           <v-btn text icon @click="editor.chain().focus().toggleHeading({ level: 6 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 6 }) }"><v-icon>mdi-format-header-6</v-icon></v-btn>
         </v-list>
       </v-menu>
-      <v-btn text icon @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }"><v-icon>mdi-format-list-bulleted</v-icon></v-btn>
-      <v-btn text icon @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'is-active': editor.isActive('orderedList') }"><v-icon>mdi-format-list-numbered</v-icon></v-btn>
-      <v-btn text icon @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ 'is-active': editor.isActive('codeBlock') }">CB</v-btn>
-      <v-btn text icon @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }"><v-icon>mdi-format-quote-close</v-icon></v-btn>
-      <v-btn text icon @click="editor.chain().focus().setHorizontalRule().run()"><v-icon>mdi-minus</v-icon></v-btn>
-      <v-btn text icon @click="editor.chain().focus().setHardBreak().run()">hard break</v-btn>
-      <v-btn text icon @click="editor.chain().focus().undo().run()"><v-icon>mdi-undo</v-icon></v-btn>
-      <v-btn text icon @click="editor.chain().focus().redo().run()"><v-icon>mdi-redo</v-icon></v-btn>
-      <v-btn text icon @click="editor.chain().focus().toggleHighlight().run()" :class="{ 'is-active': editor.isActive('highlight') }"><v-icon>mdi-marker</v-icon></v-btn>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }"><v-icon>mdi-format-list-bulleted</v-icon></v-btn></template><span>Bullet List</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'is-active': editor.isActive('orderedList') }"><v-icon>mdi-format-list-numbered</v-icon></v-btn></template><span>Number List</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleCodeBlock().run()" :class="{ 'is-active': editor.isActive('codeBlock') }">CB</v-btn></template><span>Code Block</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }"><v-icon>mdi-format-quote-close</v-icon></v-btn></template><span>Block Quote</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().setHorizontalRule().run()"><v-icon>mdi-minus</v-icon></v-btn></template><span>Horizontal line</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().setHardBreak().run()">HB</v-btn></template><span>Hard Break</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().undo().run()"><v-icon>mdi-undo</v-icon></v-btn></template><span>Undo</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().redo().run()"><v-icon>mdi-redo</v-icon></v-btn></template><span>Redo</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHighlight().run()" :class="{ 'is-active': editor.isActive('highlight') }"><v-icon>mdi-marker</v-icon></v-btn></template><span>Highlight</span></v-tooltip>
       <v-menu offset-y>
         <template v-slot:activator="{ on, attrs }">
           <v-btn text icon v-bind="attrs" v-on="on">Align</v-btn>
@@ -89,9 +87,9 @@ export default{
           <v-list-item><v-btn text icon @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }"><v-icon>mdi-format-align-right</v-icon></v-btn></v-list-item>
         </v-list>
       </v-menu>
-      <v-btn text icon id="addImage" @click="addImage()"><v-icon>mdi-camera-iris</v-icon></v-btn>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="addImage()"><v-icon>mdi-camera-iris</v-icon></v-btn></template><span>Screenshot</span></v-tooltip>
     </div>
-    <editor-content @click="test()" :editor="editor" class="editDoc" style="border: 2px solid lightslategrey"/>
+    <editor-content :editor="editor" class="editDoc" style="border: 2px solid lightslategrey"/>
     <canvas id="screenshot" style="border: 1px solid black; width: 100%;" hidden></canvas>
     <v-btn style="align-self: center" @click="saveComment">save</v-btn>
   </div>
@@ -110,17 +108,25 @@ import TextAlign from '@tiptap/extension-text-align'
 import Highlight from '@tiptap/extension-highlight'
 import Underline from '@tiptap/extension-underline'
 import VTooltip from 'v-tooltip'
+import Typography from '@tiptap/extension-typography'
 
+// import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+// // load all highlight.js languages
+// import lowlight from 'lowlight'
+
+import VueHighlightJS from 'vue-highlightjs'
 export default {
   components: {
     EditorContent,
   },
+
   data() {
     return {
       editor: null,
       temps: [],
     }
   },
+
   mounted() {
     this.editor = new Editor({
       extensions: [
@@ -134,18 +140,24 @@ export default {
         TextAlign,
         Highlight,
         Underline,
+        Typography,
+        VueHighlightJS,
         VTooltip,
         TextAlign.configure({
           types: ['heading', 'paragraph'],
         }),
+
       ],
-      content: `<p style="line-height: 500px;"></p>`,
+      content: ``,
     })
   },
+
   beforeDestroy() {
     this.editor.destroy()
   },
+
   methods: {
+    // screenshot upload text editor
     async addImage(){
       const video = document.getElementById("currentVideo")
       let canvas = document.querySelector("#screenshot");
@@ -160,16 +172,17 @@ export default {
       this.editor.chain().focus('end').setImage({src: dataURL}).run()
 
     },
+
+    // comment save in firestore
     saveComment(){
       //this.editor.getJSON()
-      //this.editor.getHTML()
     },
 
   }
 }
 </script>
 
-<style>
+<style lang="scss">
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans&family=Noto+Sans+JP&family=Noto+Sans+KR&display=swap');
 
 .editDoc{
@@ -177,4 +190,80 @@ export default {
   font-family: 'Noto Sans JP', sans-serif;
   font-family: 'Noto Sans KR', sans-serif;
 }
+.ProseMirror{
+  min-height: 30em;
+  border: 1px solid lightslategrey;
+}
+img {
+  max-width: 100%;
+  height: auto;
+}
+pre {
+  background: #0D0D0D;
+  color: #FFF;
+  font-family: 'JetBrainsMono', monospace;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+
+  code {
+    color: inherit;
+    padding: 0;
+    background: none;
+    font-size: 0.8rem;
+  },
+  /*
+  .highlight-comment,
+  .highlight-quote {
+    color: #616161;
+  }
+
+  .highlight-variable,
+  .highlight-template-variable,
+  .highlight-attribute,
+  .highlight-tag,
+  .highlight-name,
+  .highlight-regexp,
+  .highlight-link,
+  .highlight-name,
+  .highlight-selector-id,
+  .highlight-selector-class {
+    color: #F98181;
+  }
+
+  .highlightjs-number,
+  .highlight-meta,
+  .highlight-built_in,
+  .highlight-builtin-name,
+  .highlight-literal,
+  .highlight-type,
+  .highlight-params {
+    color: #FBBC88;
+  }
+
+  .hljs-string,
+  .hljs-symbol,
+  .hljs-bullet {
+    color: #B9F18D;
+  }
+
+  .hljs-title,
+  .hljs-section {
+    color: #FAF594;
+  }
+
+  .hljs-keyword,
+  .hljs-selector-tag {
+    color: #70CFF8;
+  }
+
+  .hljs-emphasis {
+    font-style: italic;
+  }
+
+  .hljs-strong {
+    font-weight: 700;
+  }
+  */
+}
+
 </style>
