@@ -1,9 +1,11 @@
 <template>
   <v-col>
+    <v-row>
     <span v-for="path of pathIds">
       <span id="angle"> > </span>
-      <v-btn color="primary" outlined @click="goPath(path)"> {{ path.name }} </v-btn>
+      <v-btn class="button" color="primary" outlined @click="goPath(path)"> <span>{{ path.name }}</span> </v-btn>
     </span>
+    </v-row>
   </v-col>
 </template>
 
@@ -83,5 +85,14 @@ export default {
 <style scoped>
 #angle{
   color: cornflowerblue;
+  margin-left: 5px;
+}
+
+.button span{
+  width:80px;
+  overflow: hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+  text-transform: none !important;
 }
 </style>

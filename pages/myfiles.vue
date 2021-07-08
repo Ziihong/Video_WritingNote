@@ -1,20 +1,31 @@
 <template>
-  <v-container>
+  <div id="app">
+    <div v-if="isLoggedIn">
     <v-col>
-      <v-col>
+      <v-container>
         <v-row>
           <create-dir-btn :parentId="this.directoryId"></create-dir-btn>
           <up-dir-btn :parentId="this.directoryId"></up-dir-btn>
           <up-file-btn :parentId="this.directoryId"></up-file-btn>
         </v-row>
-      </v-col>
-      <hr>
-      <dir-path :currentId="this.directoryId"></dir-path>
-      <hr>
-      <sub-directories :parentId="this.directoryId"></sub-directories>
-      <sub-files :parentId="this.directoryId"></sub-files>
+      </v-container>
+      <v-container>
+        <hr>
+        <dir-path :currentId="this.directoryId"></dir-path>
+        <hr>
+      </v-container>
+      <v-container>
+        <sub-directories :parentId="this.directoryId"></sub-directories>
+      </v-container>
+      <v-container>
+        <sub-files :parentId="this.directoryId"></sub-files>
+      </v-container>
     </v-col>
-  </v-container>
+    </div>
+    <div v-else>
+      <login></login>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -24,15 +35,26 @@ import CreateDirBtn from "/components/CreateDirBtn";
 import UpFileBtn from "/components/UpFileBtn";
 import UpDirBtn from "/components/UpDirBtn";
 import DirPath from "/components/DirPath";
+import login from "/pages/login";
+import {mapGetters, mapState} from 'vuex';
 
 export default {
   components: {
+    login,
     DirPath,
     UpDirBtn,
     UpFileBtn,
     CreateDirBtn,
     SubDirectories,
     SubFiles,
+  },
+  computed:{
+    ...mapState({
+      authUser: state => state.authUser,
+    }),
+    ...mapGetters({
+      isLoggedIn: 'isLoggedIn',
+    }),
   },
   data() {
     return {
