@@ -56,6 +56,7 @@ import firebase from "firebase";
 
 export default {
   layout: 'empty',
+
   data() {
     return {
       form: {
@@ -106,8 +107,15 @@ export default {
             console.log(this.$fire.auth.currentUser.uid)
           }
           else {
-            const ref = this.$fire.firestore.collection('users').doc(this.$fire.auth.currentUser.uid)
+            let ref = this.$fire.firestore.collection('users').doc(this.$fire.auth.currentUser.uid)
             ref.set({ name: this.$fire.auth.currentUser.displayName })
+
+            // Add user's file in firebase storage
+            ref = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}`)
+            let file = new File(['tempFile'], 'temp.tmp')
+            ref.put(file).then(snapshot => {
+              console.log('Upload temp file')
+            })
 
             // Add user's file in firestore
             this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`)

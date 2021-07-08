@@ -73,6 +73,7 @@
 
 <script>
 export default {
+
   data(){
     return{
       dialog: false,
@@ -85,18 +86,23 @@ export default {
       fileUrls: [],
     };
   },
+
   //check below code for file handling
   mounted() {
     if(!this.$fire.auth.currentUser)
       return;
+
     this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).get().then(docSnap => {
       if (docSnap.exists) {
         this.name = docSnap.data().name;
         this.description = docSnap.data().description;
-      } else {
+      }
+
+      else {
         console.log('');
       }
     });
+
     this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
     collection('files').orderBy('name').onSnapshot((async querySnapshot => {
       console.log(querySnapshot.docs.length);
@@ -106,12 +112,15 @@ export default {
       console.log('fileUrls', this.fileUrls);
     }));
   },
+
   methods: {
+
     addVideo(){
       this.src= document.getElementById('inputVideo').files[0];
       console.log(this.src);
       this.dialog=false;
     },
+
     async onSave() {
       // this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).update({name: this.name}).then(() => {
       //   console.log('saved!');
@@ -125,25 +134,31 @@ export default {
       await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/files`).
       add({name: `test${this.files.length}`});
     },
+
     async removeFile(file) {
       console.log('file: ', file.id);
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${file.id}`).delete();
     },
+
     onSelect(file) {
       console.log('onSelect:', file);
       this.fileObj = file;
     },
+
     startUpload(){
       if(!this.$fire.auth.currentUser) {
         return alert('로그인해주세요.');
       }
+
       if(!this.fileObj) {
         return alert('파일을 선택해주세요.');
       }
+
       const storageRef = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${this.fileObj.name}`);
       const uploadTask = storageRef.put(this.fileObj);
       this.isUploading = true;
       const self = this;
+
       uploadTask.on('state_changed', async function(snapshot){
         // Observe state change events such as progress, pause, and resume
         // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
