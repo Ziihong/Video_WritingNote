@@ -55,16 +55,21 @@ export default{
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().clearNodes().run()">cn</v-btn></template><span>Clear nodes</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().setParagraph().run()" :class="{ 'is-active': editor.isActive('paragraph') }"><v-icon>mdi-format-pilcrow</v-icon></v-btn></template><span>Paragraph</span></v-tooltip>
       <v-menu offset-x>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn text icon v-bind="attrs" v-on="on">Head</v-btn>
+        <template #activator="{ on: onMenu }">
+          <v-tooltip top>
+            <template #activator="{ on: onTooltip }">
+              <v-btn text icon v-on="{ ...onMenu, ...onTooltip }">Head</v-btn>
+            </template>
+             <span>Heading</span>
+          </v-tooltip>
         </template>
         <v-list>
-          <v-btn text icon @click="editor.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }"><v-icon>mdi-format-header-1</v-icon></v-btn>
-          <v-btn text icon @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"><v-icon>mdi-format-header-2</v-icon></v-btn>
-          <v-btn text icon @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"><v-icon>mdi-format-header-3</v-icon></v-btn>
-          <v-btn text icon @click="editor.chain().focus().toggleHeading({ level: 4 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 4 }) }"><v-icon>mdi-format-header-4</v-icon></v-btn>
-          <v-btn text icon @click="editor.chain().focus().toggleHeading({ level: 5 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 5 }) }"><v-icon>mdi-format-header-5</v-icon></v-btn>
-          <v-btn text icon @click="editor.chain().focus().toggleHeading({ level: 6 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 6 }) }"><v-icon>mdi-format-header-6</v-icon></v-btn>
+          <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }"><v-icon>mdi-format-header-1</v-icon></v-btn></template><span>Heading1</span></v-tooltip>
+          <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"><v-icon>mdi-format-header-2</v-icon></v-btn></template><span>Heading2</span></v-tooltip>
+          <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"><v-icon>mdi-format-header-3</v-icon></v-btn></template><span>Heading3</span></v-tooltip>
+          <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHeading({ level: 4 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 4 }) }"><v-icon>mdi-format-header-4</v-icon></v-btn></template><span>Heading4</span></v-tooltip>
+          <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHeading({ level: 5 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 5 }) }"><v-icon>mdi-format-header-5</v-icon></v-btn></template><span>Heading5</span></v-tooltip>
+          <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHeading({ level: 6 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 6 }) }"><v-icon>mdi-format-header-6</v-icon></v-btn></template><span>Heading6</span></v-tooltip>
         </v-list>
       </v-menu>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }"><v-icon>mdi-format-list-bulleted</v-icon></v-btn></template><span>Bullet List</span></v-tooltip>
@@ -77,31 +82,36 @@ export default{
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().redo().run()"><v-icon>mdi-redo</v-icon></v-btn></template><span>Redo</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHighlight().run()" :class="{ 'is-active': editor.isActive('highlight') }"><v-icon>mdi-marker</v-icon></v-btn></template><span>Highlight</span></v-tooltip>
       <v-menu offset-y>
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn text icon v-bind="attrs" v-on="on">Align</v-btn>
+        <template #activator="{ on: onMenu }">
+          <v-tooltip top>
+            <template #activator="{ on: onTooltip }">
+              <v-btn text icon v-on="{ ...onMenu, ...onTooltip }">Align</v-btn>
+            </template>
+            <span>Align</span>
+          </v-tooltip>
         </template>
         <v-list>
-          <v-list-item><v-btn text icon @click="editor.chain().focus().setTextAlign('justify').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'justify' }) }"><v-icon>mdi-format-align-justify</v-icon></v-btn></v-list-item>
-          <v-list-item><v-btn text icon @click="editor.chain().focus().setTextAlign('left').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }"><v-icon>mdi-format-align-left</v-icon></v-btn></v-list-item>
-          <v-list-item><v-btn text icon @click="editor.chain().focus().setTextAlign('center').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }"><v-icon>mdi-format-align-center</v-icon></v-btn></v-list-item>
-          <v-list-item><v-btn text icon @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }"><v-icon>mdi-format-align-right</v-icon></v-btn></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().setTextAlign('justify').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'justify' }) }"><v-icon>mdi-format-align-justify</v-icon></v-btn></template><span>Justify</span></v-tooltip></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().setTextAlign('left').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }"><v-icon>mdi-format-align-left</v-icon></v-btn></template><span>Left</span></v-tooltip></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().setTextAlign('center').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }"><v-icon>mdi-format-align-center</v-icon></v-btn></template><span>Center</span></v-tooltip></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }"><v-icon>mdi-format-align-right</v-icon></v-btn></template><span>Right</span></v-tooltip></v-list-item>
         </v-list>
       </v-menu>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="addImage()"><v-icon>mdi-camera-iris</v-icon></v-btn></template><span>Screenshot</span></v-tooltip>
     </div>
     <editor-content :editor="editor" class="editDoc" style="border: 2px solid lightslategrey"/>
     <canvas id="screenshot" style="border: 1px solid black; width: 100%;" hidden></canvas>
-    <v-btn style="align-self: center" @click="saveComment">save</v-btn>
+    <v-btn style="align-self: center" @click="saveDocument">save</v-btn>
   </div>
 </template>
 
 <script>
-import { Editor ,EditorContent } from '@tiptap/vue-2'
+import { Editor ,EditorContent, VueNodeViewRenderer } from '@tiptap/vue-2'
 import StarterKit from '@tiptap/starter-kit'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-import CodeBlock from '@tiptap/extension-code-block'
+// import CodeBlock from '@tiptap/extension-code-block'
 import Image from '@tiptap/extension-image'
 import Dropcursor from '@tiptap/extension-dropcursor'
 import TextAlign from '@tiptap/extension-text-align'
@@ -110,11 +120,12 @@ import Underline from '@tiptap/extension-underline'
 import VTooltip from 'v-tooltip'
 import Typography from '@tiptap/extension-typography'
 
-// import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
-// // load all highlight.js languages
-// import lowlight from 'lowlight'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+// load all highlight.js languages
+import lowlight from 'lowlight'
 
-import VueHighlightJS from 'vue-highlightjs'
+import CodeBlockComponent from './CodeBlockComponent'
+
 export default {
   components: {
     EditorContent,
@@ -134,19 +145,21 @@ export default {
         Document,
         Paragraph,
         Text,
-        CodeBlock,
+        // CodeBlock,
         Image,
         Dropcursor,
         TextAlign,
         Highlight,
         Underline,
         Typography,
-        VueHighlightJS,
+        CodeBlockComponent,
         VTooltip,
         TextAlign.configure({
           types: ['heading', 'paragraph'],
         }),
+        CodeBlockLowlight.configure({
 
+        }),
       ],
       content: ``,
     })
@@ -163,8 +176,8 @@ export default {
       let canvas = document.querySelector("#screenshot");
       const context = canvas.getContext("2d");
 
-      canvas.width = 300
-      canvas.height = 150
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
 
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
@@ -173,11 +186,13 @@ export default {
 
     },
 
-    // comment save in firestore
-    saveComment(){
-      //this.editor.getJSON()
+    // save comment in firestore
+    saveDocument(){
+      const document = this.editor.getJSON()
+      console.log(document)
+      const docToJson = JSON.stringify(document)
+      console.log(docToJson)
     },
-
   }
 }
 </script>
@@ -187,8 +202,9 @@ export default {
 
 .editDoc{
   font-family: 'Noto Sans', sans-serif;
-  font-family: 'Noto Sans JP', sans-serif;
   font-family: 'Noto Sans KR', sans-serif;
+  font-family: 'Noto Sans JP', sans-serif;
+
 }
 .ProseMirror{
   min-height: 30em;
@@ -212,32 +228,31 @@ pre {
     font-size: 0.8rem;
   }
 
-  /*
-  .highlight-comment,
-  .highlight-quote {
+  .hljs-comment,
+  .hljs-quote {
     color: #616161;
   }
 
-  .highlight-variable,
-  .highlight-template-variable,
-  .highlight-attribute,
-  .highlight-tag,
-  .highlight-name,
-  .highlight-regexp,
-  .highlight-link,
-  .highlight-name,
-  .highlight-selector-id,
-  .highlight-selector-class {
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-attribute,
+  .hljs-tag,
+  .hljs-name,
+  .hljs-regexp,
+  .hljs-link,
+  .hljs-name,
+  .hljs-selector-id,
+  .hljs-selector-class {
     color: #F98181;
   }
 
-  .highlightjs-number,
-  .highlight-meta,
-  .highlight-built_in,
-  .highlight-builtin-name,
-  .highlight-literal,
-  .highlight-type,
-  .highlight-params {
+  .hljs-number,
+  .hljs-meta,
+  .hljs-built_in,
+  .hljs-builtin-name,
+  .hljs-literal,
+  .hljs-type,
+  .hljs-params {
     color: #FBBC88;
   }
 
@@ -264,7 +279,7 @@ pre {
   .hljs-strong {
     font-weight: 700;
   }
-  */
+
 }
 
 </style>

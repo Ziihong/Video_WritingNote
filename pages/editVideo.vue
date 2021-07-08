@@ -311,6 +311,7 @@ export default {
 
       this.isBookmarking= false;
     },
+
     // loading notes on screen based on items
     showBookmark(item){
       this.currentVideo = document.getElementById('currentVideo');
