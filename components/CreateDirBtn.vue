@@ -47,6 +47,7 @@ export default {
           .add({
             name: createName,
             parentId: this.parentId,
+            timestamp: this.$fireModule.firestore.FieldValue.serverTimestamp()
           });
       }
     },

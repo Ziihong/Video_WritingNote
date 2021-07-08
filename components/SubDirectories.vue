@@ -3,29 +3,34 @@
     <v-row>폴더</v-row>
     <v-row>
       <template v-for="dir of directories" class="file">
-        <div class="directory">
-          <v-icon left @click="goDirectory(dir)">mdi-folder</v-icon>
-          <span @click="goDirectory(dir)"> {{ dir.data().name }}</span>
-          <button>
-            <v-icon @click="renameModalOpen(dir)">mdi-pen</v-icon>
-          </button>
-          <button>
-            <v-icon @click="moveModalOpen(dir)">mdi-swap-horizontal</v-icon>
-          </button>
-          <button>
-            <v-icon @click="removeDirectory(dir)">mdi-close-box</v-icon>
-          </button>
+        <div class="directory-wrap">
+          <div class="title-wrap">
+            <v-icon left @click="goDirectory(dir)">mdi-folder</v-icon>
+            <span @click="goDirectory(dir)"> {{ dir.data().name }}</span>
+          </div>
+          <div class="button-wrap">
+            <button>
+              <v-icon @click="renameModalOpen(dir)">mdi-pen</v-icon>
+            </button>
+            <button>
+              <v-icon @click="moveModalOpen(dir)">mdi-swap-horizontal</v-icon>
+            </button>
+            <button>
+              <v-icon @click="removeDirectory(dir)">mdi-close-box</v-icon>
+            </button>
+          </div>
         </div>
       </template>
     </v-row>
-    <ModalRename
+    <ModalRename v-if="this.isRename"
       :isShowed="this.isRename"
       :title="'이름 바꾸기'"
       @rename-close="renameModalClose"
       @rename-ok="renameModalOk">
     </ModalRename>
-    <ModalMove
+    <ModalMove v-if="this.isMove"
       :isShowed="this.isMove"
+      :moveObj = "this.moveDirectory.id"
       @move-close="moveModalClose"
       @move-ok="moveModalOk">
     </ModalMove>
@@ -124,7 +129,6 @@ export default {
     async moveModalOk(dir){
       this.isMove = false;
       const selectDirectory = dir;
-      if (selectDirectory.id == this.moveDirectory.id) return alert('선택한 폴더로는 이동할 수 없습니다.');
       await this.$fire.firestore
         .doc(`users/${this.$fire.auth.currentUser.uid}/directories/${this.moveDirectory.id}`)
         .update({
@@ -140,27 +144,38 @@ export default {
     },
     async renameModalOk(rename) {
       this.isRename = false;
-      if (rename == undefined) {
-        return alert("이름을 입력해주세요");
-      } else {
-        await this.$fire.firestore
-          .doc(`users/${this.$fire.auth.currentUser.uid}/directories/${this.renameDirectory.id}`)
-          .update({
-            name: rename,
-          });
-      }
+      await this.$fire.firestore
+        .doc(`users/${this.$fire.auth.currentUser.uid}/directories/${this.renameDirectory.id}`)
+        .update({
+          name: rename,
+        });
     },
   },
 }
 </script>
 
 <style scoped>
-.directory {
+.directory-wrap {
   display: inline-block;
+  width:200px;
+  height: 40px;
   padding: 10px;
   margin: 10px;
   border-radius: 10px;
   border: solid 1px cornflowerblue;
+}
+
+.title-wrap{
+  display:inline-block;
+  overflow: hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+  width:90px;
+}
+
+.button-wrap{
+  display: inline-block;
+  float:right;
 }
 
 </style>

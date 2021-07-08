@@ -3,9 +3,10 @@
     <v-row> 파일 </v-row>
     <v-row>
       <template v-for="(file,index) of files">
-          <div class="file">
+          <div class="file-wrap">
             <video :src="`${fileUrls[index]}#t=0.5`" muted width="100%" @click="goFile(file)">{{ fileUrls[index] }}</video>
-            <span @click="goFile(file)"> {{ file.data().name }}</span>
+            <div class="title-wrap"><span @click="goFile(file)"> {{ file.data().name }}</span></div>
+            <div class="button-wrap">
             <button>
               <v-icon @click="renameModalOpen(file)">mdi-pen</v-icon>
             </button>
@@ -15,16 +16,17 @@
             <button>
               <v-icon @click="removeFile(file)">mdi-close-box</v-icon>
             </button>
+            </div>
           </div>
       </template>
     </v-row>
-    <ModalRename
+    <ModalRename v-if="this.isRename"
       :isShowed="this.isRename"
       :title="'이름 바꾸기'"
       @rename-close="renameModalClose"
       @rename-ok="renameModalOk">
     </ModalRename>
-    <ModalMove
+    <ModalMove v-if="this.isMove"
       :isShowed="this.isMove"
       @move-close="moveModalClose"
       @move-ok="moveModalOk">
@@ -90,7 +92,6 @@ export default {
     async moveModalOk(dir){
       this.isMove = false;
       const selectDirectory = dir;
-      // console.log('select:', selectDirectory.name, selectDirectory.id);
       await this.$fire.firestore
         .doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.moveFile.id}`)
         .update({
@@ -105,29 +106,35 @@ export default {
       this.isRename = false;
     },
     async renameModalOk(rename){
-      if (rename == undefined) {
-        return alert("이름을 입력해주세요");
-      }
-      else {
-        await this.$fire.firestore
-          .doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.renameFile.id}`)
-          .update({
-            name: rename,
-          });
-        this.isRename = false;
-      }
+      await this.$fire.firestore
+        .doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.renameFile.id}`)
+        .update({
+          name: rename,
+        });
+      this.isRename = false;
     },
   }
 }
 </script>
 
 <style scoped>
-.file{
+.file-wrap{
   display: inline;
   padding: 10px;
   margin: 10px;
-  width: 350px;
+  width: 280px;
   border-radius: 10px;
   border: solid 1px cornflowerblue;
+}
+.title-wrap{
+  display:inline-block;
+  overflow: hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+  width:160px;
+}
+.button-wrap{
+  display: inline-block;
+  float:right;
 }
 </style>

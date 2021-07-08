@@ -11,8 +11,8 @@
           </v-container>
         </v-card-text>
         <v-card-actions>
-        <v-btn color="blue darken-1" text @click="$emit('rename-close')">취소</v-btn>
-        <v-btn color="blue darken-1" text @click="$emit('rename-ok', rename)">확인</v-btn>
+        <v-btn color="blue darken-1" text @click="renameClose">취소</v-btn>
+        <v-btn color="blue darken-1" text @click="renameOk">확인</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -32,6 +32,19 @@ export default {
       rename:'',
     }
   },
+  methods:{
+    renameClose(){
+      this.$emit('rename-close')
+      this.rename = '';
+    },
+    renameOk(){
+      if (this.rename == ''){
+        return alert('이름을 입력하지않았습니다.');
+      }
+      this.$emit('rename-ok', this.rename);
+      this.rename = '';
+    }
+  }
 }
 </script>
 

@@ -135,7 +135,7 @@ export default {
         {
           icon: 'mdi-folder-multiple',
           title: 'Mypage',
-          to: '/mypage2'
+          to: '/mypage'
         },
       ],
       miniVariant: false,
