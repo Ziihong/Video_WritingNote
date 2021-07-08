@@ -106,12 +106,12 @@ export default{
 </template>
 
 <script>
-import { Editor ,EditorContent, VueNodeViewRenderer } from '@tiptap/vue-2'
+import { Editor ,EditorContent, VueNodeViewRenderer  } from '@tiptap/vue-2'
 import StarterKit from '@tiptap/starter-kit'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
-// import CodeBlock from '@tiptap/extension-code-block'
+import CodeBlock from '@tiptap/extension-code-block'
 import Image from '@tiptap/extension-image'
 import Dropcursor from '@tiptap/extension-dropcursor'
 import TextAlign from '@tiptap/extension-text-align'
@@ -120,11 +120,10 @@ import Underline from '@tiptap/extension-underline'
 import VTooltip from 'v-tooltip'
 import Typography from '@tiptap/extension-typography'
 
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
-// load all highlight.js languages
-import lowlight from 'lowlight'
+// import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+// // load all highlight.js languages
+// import lowlight from 'lowlight'
 
-import CodeBlockComponent from './CodeBlockComponent'
 
 export default {
   components: {
@@ -145,21 +144,25 @@ export default {
         Document,
         Paragraph,
         Text,
-        // CodeBlock,
+        CodeBlock,
         Image,
         Dropcursor,
         TextAlign,
         Highlight,
         Underline,
         Typography,
-        CodeBlockComponent,
         VTooltip,
         TextAlign.configure({
           types: ['heading', 'paragraph'],
         }),
-        CodeBlockLowlight.configure({
 
-        }),
+        // CodeBlockLowlight
+        //   .extend({
+        //     addNodeView() {
+        //       return VueNodeViewRenderer(CodeBlockComponent)
+        //     },
+        //   })
+        //   .configure({  }),
       ],
       content: ``,
     })
@@ -204,7 +207,6 @@ export default {
   font-family: 'Noto Sans', sans-serif;
   font-family: 'Noto Sans KR', sans-serif;
   font-family: 'Noto Sans JP', sans-serif;
-
 }
 .ProseMirror{
   min-height: 30em;
@@ -214,6 +216,12 @@ img {
   max-width: 100%;
   height: auto;
 }
+blockquote {
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 2px solid lightgrey;
+}
+
 pre {
   background: #0D0D0D;
   color: #FFF;
@@ -226,58 +234,58 @@ pre {
     padding: 0;
     background: none;
     font-size: 0.8rem;
-  }
 
-  .hljs-comment,
-  .hljs-quote {
-    color: #616161;
-  }
+    .hljs-comment,
+    .hljs-quote {
+      color: #616161;
+    }
 
-  .hljs-variable,
-  .hljs-template-variable,
-  .hljs-attribute,
-  .hljs-tag,
-  .hljs-name,
-  .hljs-regexp,
-  .hljs-link,
-  .hljs-name,
-  .hljs-selector-id,
-  .hljs-selector-class {
-    color: #F98181;
-  }
+    .hljs-variable,
+    .hljs-template-variable,
+    .hljs-attribute,
+    .hljs-tag,
+    .hljs-name,
+    .hljs-regexp,
+    .hljs-link,
+    .hljs-name,
+    .hljs-selector-id,
+    .hljs-selector-class {
+      color: #F98181;
+    }
 
-  .hljs-number,
-  .hljs-meta,
-  .hljs-built_in,
-  .hljs-builtin-name,
-  .hljs-literal,
-  .hljs-type,
-  .hljs-params {
-    color: #FBBC88;
-  }
+    .hljs-number,
+    .hljs-meta,
+    .hljs-built_in,
+    .hljs-builtin-name,
+    .hljs-literal,
+    .hljs-type,
+    .hljs-params {
+      color: #FBBC88;
+    }
 
-  .hljs-string,
-  .hljs-symbol,
-  .hljs-bullet {
-    color: #B9F18D;
-  }
+    .hljs-string,
+    .hljs-symbol,
+    .hljs-bullet {
+      color: #B9F18D;
+    }
 
-  .hljs-title,
-  .hljs-section {
-    color: #FAF594;
-  }
+    .hljs-title,
+    .hljs-section {
+      color: #FAF594;
+    }
 
-  .hljs-keyword,
-  .hljs-selector-tag {
-    color: #70CFF8;
-  }
+    .hljs-keyword,
+    .hljs-selector-tag {
+      color: #70CFF8;
+    }
 
-  .hljs-emphasis {
-    font-style: italic;
-  }
+    .hljs-emphasis {
+      font-style: italic;
+    }
 
-  .hljs-strong {
-    font-weight: 700;
+    .hljs-strong {
+      font-weight: 700;
+    }
   }
 
 }
