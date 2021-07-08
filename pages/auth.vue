@@ -63,7 +63,7 @@ export default {
           console.error(e.message)
         })
         // Add user uid in firestore
-        const ref = this.$fire.firestore.collection('users').doc(this.$fire.auth.currentUser.uid)
+        let ref = this.$fire.firestore.collection('users').doc(this.$fire.auth.currentUser.uid)
         await ref.set({ name: this.form.name })
 
         // Add user's file in firestore
@@ -79,6 +79,13 @@ export default {
             path: ''
         })
 
+        // Add user's file in firebase storage
+        ref = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/temp.tmp`)
+        let file = new File(['tempFile'], 'temp.tmp')
+        ref.put(file).then(snapshot => {
+          console.log('Upload temp file')
+        })
+
         await this.$fire.auth.signOut()
         await this.$router.push('login')
         //console.log(r)
@@ -88,6 +95,7 @@ export default {
       }
     },
 
+    // Do not use googleLogin in auth page (on Process)
     async googleLogin() {
       try {
         const provider = new firebase.auth.GoogleAuthProvider()

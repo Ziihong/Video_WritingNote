@@ -106,7 +106,7 @@ export default {
           .doc(this.createDir.path.replace('\/','').replace(/\//g,'.') + this.createDir.name)
           .set({ name: this.createDir.name , path: this.createDir.path })
 
-        await this.$router.replace({ params: { dir: this.currentDir }})
+        await this.$router.push({ params: { dir: this.currentDir }})
 
       } catch (e) {
         console.log(e.message)
@@ -121,11 +121,11 @@ export default {
       if (this.currentDir == '/') { // if not, caused error
         return
       }
-      await this.$router.replace({ params: {dir: '/' }})
+      await this.$router.push({ params: {dir: '/' }})
     },
 
     async clickDir(name, path) {
-      await this.$router.replace({ params: {dir: path + name + '/' }})
+      await this.$router.push({ params: {dir: path + name + '/' }})
       //await this.$router.push({path: this.$route.path, query: {dir: path + name + '/'}})
 
     }
