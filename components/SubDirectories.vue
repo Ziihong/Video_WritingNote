@@ -115,13 +115,14 @@ export default {
       }
     },
     moveModalOpen(dir){
-      this.moveDirectory = dir;
       this.isMove = true;
+      this.moveDirectory = dir;
     },
     moveModalClose(){
       this.isMove = false;
     },
     async moveModalOk(dir){
+      this.isMove = false;
       const selectDirectory = dir;
       if (selectDirectory.id == this.moveDirectory.id) return alert('선택한 폴더로는 이동할 수 없습니다.');
       await this.$fire.firestore
@@ -129,7 +130,6 @@ export default {
         .update({
           parentId: selectDirectory.id,
         });
-      this.isMove = false;
     },
     renameModalOpen(dir) {
       this.isRename = true;
@@ -139,6 +139,7 @@ export default {
       this.isRename = false;
     },
     async renameModalOk(rename) {
+      this.isRename = false;
       if (rename == undefined) {
         return alert("이름을 입력해주세요");
       } else {
@@ -147,8 +148,6 @@ export default {
           .update({
             name: rename,
           });
-        this.isRename = false;
-        this.viewDirectories();
       }
     },
   },

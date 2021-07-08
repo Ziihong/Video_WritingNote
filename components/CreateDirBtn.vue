@@ -1,21 +1,22 @@
 <template>
+  <div>
 <span class="btn">
     <v-btn color="primary" class="filebox" @click="modalOpen">
       <v-icon left>mdi-folder-plus-outline</v-icon>
       <span>새 폴더</span>
     </v-btn>
+</span>
     <ModalRename
       :isShowed="this.isRename"
       :title="'새 폴더'"
-      @modal-close="modalClose"
-      @modal-ok="modalCreate">
+      @rename-close="modalClose"
+      @rename-ok="modalCreate">
     </ModalRename>
-</span>
+  </div>
 </template>
 
 <script>
 import ModalRename from "/components/ModalRename";
-import ModalMove from "./ModalMove";
 
 export default {
   name: "CreateDir",
@@ -36,6 +37,7 @@ export default {
       this.isRename = true;
     },
     async modalCreate(createName){
+      this.isRename = false;
       if (createName == undefined) {
         return alert("이름을 입력해주세요");
       }
@@ -46,8 +48,6 @@ export default {
             name: createName,
             parentId: this.parentId,
           });
-        this.isRename = false;
-        this.$emit('reload');
       }
     },
     modalClose(){

@@ -1,19 +1,22 @@
 <template>
-  <div>
-    <!-- modal box -->
-    <div id="modal-wrap">
-      <template v-if="isShowed">
-      <!-- inner modal -->
-      <div id="modal-box">
-        <h2> {{ title }}</h2>
-        <v-text-field clearable placeholder="이름을 입력하세요" v-model="rename"></v-text-field>
-        <v-btn color="primary" @click="$emit('rename-ok', rename)">확인</v-btn>
-        <v-btn color="white" @click="$emit('rename-close')">취소</v-btn>
-      </div>
-      <label id="modal-bg"></label>
-      </template>
-    </div>
-
+  <div id="app">
+    <v-row justify="center">
+    <v-dialog persistent max-width="400px" v-model="isShowed">
+      <v-card>
+        <v-card-title> {{ title }}</v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-text-field required label="이름을 입력하세요." v-model="rename">
+            </v-text-field>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+        <v-btn color="blue darken-1" text @click="$emit('rename-close')">취소</v-btn>
+        <v-btn color="blue darken-1" text @click="$emit('rename-ok', rename)">확인</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    </v-row>
   </div>
 </template>
 
@@ -26,10 +29,9 @@ export default {
   },
   data(){
     return{
-      rename:this.name,
+      rename:'',
     }
   },
-  computed:{}
 }
 </script>
 

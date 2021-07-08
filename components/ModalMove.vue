@@ -1,26 +1,26 @@
 <template>
-  <div>
-    <!-- modal box -->
-    <div id="modal-wrap">
-      <template v-if="isShowed">
-        <!-- inner modal -->
-        <div id="modal-box">
-          <h2> 폴더 선택</h2>
-          <div class="select-wrap">
-          <v-select v-model="selectDirectory"
-                    return-object
-                    :items="directories"
-                    item-text = "name"
-                    label="이동 할 폴더 선택">
-          </v-select>
-          </div>
-          <v-btn color="primary" @click="$emit('move-ok', selectDirectory)">확인</v-btn>
-          <v-btn color="white" @click="$emit('move-close')">취소</v-btn>
-        </div>
-        <label id="modal-bg"></label>
-      </template>
-    </div>
-
+  <div id="app">
+    <v-row justify="center">
+      <v-dialog persistent max-width="400px" v-model="isShowed">
+        <v-card>
+          <v-card-title> 폴더 이동 </v-card-title>
+          <v-card-text>
+            <v-container>
+              <v-select v-model="selectDirectory"
+                        return-object
+                        :items="directories"
+                        item-text = "name"
+                        label="이동 할 폴더 선택">
+              </v-select>
+            </v-container>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="blue darken-1" text @click="$emit('move-close')">취소</v-btn>
+            <v-btn color="blue darken-1" text @click="$emit('move-ok', selectDirectory)">확인</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-row>
   </div>
 </template>
 

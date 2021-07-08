@@ -88,6 +88,7 @@ export default {
       this.isMove = false;
     },
     async moveModalOk(dir){
+      this.isMove = false;
       const selectDirectory = dir;
       // console.log('select:', selectDirectory.name, selectDirectory.id);
       await this.$fire.firestore
@@ -95,7 +96,6 @@ export default {
         .update({
           parentId: selectDirectory.id,
         });
-      this.isMove = false;
     },
     renameModalOpen(file){
       this.isRename = true;
