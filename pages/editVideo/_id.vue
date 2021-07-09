@@ -39,7 +39,7 @@
                   width="100%"
                   controls
                   muted
-                  src="/video/Cat-66004.mp4"></video>
+                  :src="fileUrl"></video>
               </v-col>
             </v-row>
 
@@ -77,10 +77,10 @@
                                     hide-details=true
                                     ></v-text-field>
                     </v-list-item-content>
-                    <v-btn icon id="editbookmarkTitle" style="z-index: 1"
+                    <v-btn icon id="editBookmarkTitle" style="z-index: 1"
                            @click.stop= "isNamechange? null : editbookmarkTitle($event,i)">
                       <v-icon>mdi-square-edit-outline</v-icon></v-btn>
-                    <v-btn icon id="deletebookmarkTitle" style="color: red; z-index: 1"
+                    <v-btn icon id="deleteBookmarkTitle" style="color: red; z-index: 1"
                            @click.stop="deleteBookmark($event,i)">
                       <v-icon>mdi-minus</v-icon></v-btn>
                   </v-list-item>
@@ -136,13 +136,11 @@ import Highlight from '@tiptap/extension-highlight'
 import Underline from '@tiptap/extension-underline'
 import VTooltip from 'v-tooltip'
 import Typography from '@tiptap/extension-typography'
-
-
 // import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 // // load all highlight.js languages
 // import lowlight from 'lowlight'
 
-import TextEditor from "@/components/TextEditor";
+import TextEditor from "~/components/TextEditor";
 
 class Bookmark{
   constructor( inputTitle, inputTime, noteComments){
@@ -168,6 +166,7 @@ export default {
   },
   data () {
     return {
+      id: this.$route.params.id,
       title: 'Video Comment',
       dialog: false,
       isBookmarking: false,
@@ -202,6 +201,8 @@ export default {
           notecomments: [{xcomponent: 60 , ycomponent: 300, comment: 'This is the end of video.'}]
         }
       ],
+      fileUrl: '',
+      fileUrls: [],
     }
   },
 
@@ -223,9 +224,15 @@ export default {
         TextAlign.configure({
           types: ['heading', 'paragraph'],
         }),
-
       ],
     })
+    console.log(`users/${this.$fire.auth.currentUser.uid}/${this.id}`);
+    const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.id}`);
+    file.get().then((doc)=>{
+      const self = this;
+      console.log(self.$fire.storage.ref(doc.data().path).getDownloadURL());
+      Promise.resolve(self.$fire.storage.ref(doc.data().path).getDownloadURL().then(result=>(this.fileUrl = result)));
+    });
   },
 
   beforeDestroy() {
@@ -463,6 +470,7 @@ export default {
   text-align: center;
   z-index: 2;
 }
+
 .noteWrap{
   background-color: transparent;
   opacity: 80%;
@@ -470,6 +478,7 @@ export default {
   text-align: center;
   z-index: 1;
 }
+
 .note{
   background-color: khaki;
   opacity: 100%;
@@ -477,6 +486,7 @@ export default {
   text-align: center;
   z-index: 1;
 }
+
 .clickPlane{
   background-color: aquamarine;
   opacity: 20%;
@@ -485,6 +495,7 @@ export default {
   width: 66.7%;
   height: 59%;
 }
+
 #docArea{
   padding-left: 1px;
 }

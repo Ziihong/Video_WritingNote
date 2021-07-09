@@ -125,7 +125,9 @@ export default {
     },
 
     async clickDir(name, path) {
+
       await this.$router.push({ params: {dir: path + name + '/' }})
+      await console.log(this.$route.params)
       //await this.$router.push({path: this.$route.path, query: {dir: path + name + '/'}})
 
     }

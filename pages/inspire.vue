@@ -1,22 +1,22 @@
 <template>
   <v-row>
     <v-col class="text-center">
+      <v-spacer></v-spacer>
+      <v-btn>Create directory</v-btn>
       <div class="text-left">
-        <div id="addVideobtn">
         <v-btn class="addFilebtn" @click="dialog = !dialog">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
-        </div>
-        <div id="fileField">
-          <v-list-item v-for="(file,index) of files" style="display: inline" to="/editVideo">
-            <v-list-item-action v-if="file.data().path">
-              <video :src="fileUrls[index]" width="100px"/>
-              {{ file.data().title }}
-            </v-list-item-action>
-            <v-list-item-action v-else>{{ file.data().title }}</v-list-item-action>
-          </v-list-item>
-          <hr>
-        </div>
+        <v-list-item v-for="(file,index) of files"
+                     style="display: inline"
+                     @click="gotoEditVideo(file)">
+          <v-list-item-action v-if="file.data().path" class="fileShape">
+            <video :src="fileUrls[index]" width="200px"/>
+            {{ file.data().title }}
+          </v-list-item-action>
+          <v-list-item-action v-else>{{ file.data().title }}</v-list-item-action>
+        </v-list-item>
+        <hr>
       </div>
 
       <!--check below code for add/remove file collection & file upload-->
@@ -92,7 +92,11 @@ export default {
       console.log(querySnapshot.docs.length);
       this.files = querySnapshot.docs;
       const self = this;
+
+      console.log('this',this);
+
       this.fileUrls = await Promise.all(this.files.map(file => file.data().path ? self.$fire.storage.ref(file.data().path).getDownloadURL() : ''));
+
       console.log('fileUrls', this.fileUrls);
     }));
   },
@@ -103,8 +107,6 @@ export default {
       const src= document.getElementById('inputVideo').files[0];
       let title = document.getElementById('inputVideoTitle').value;
       if(src){
-        console.log(src.name);
-        console.log(title)
         if(!title){
           title = src.name;
         }
@@ -114,6 +116,10 @@ export default {
       else{
         return alert('No video file!');
       }
+    },
+
+    async gotoEditVideo(file){ // routing with file id value
+      await this.$router.push('/editVideo/' + file.id);
     },
 
     // Fire store example methods
@@ -150,7 +156,8 @@ export default {
         return alert('파일을 선택해주세요.');
       }
 
-      const storageRef = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${this.fileObj.name}`);
+      const storageRef =
+        this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${this.fileObj.name}`);
       const uploadTask = storageRef.put(this.fileObj);
       this.isUploading = true;
       const self = this;
@@ -202,5 +209,10 @@ export default {
   min-height: 160px;
   width: 140px;
   border-style: dashed;
+}
+
+.fileShape{
+  max-height: 200px;
+  margin: 0px;
 }
 </style>
