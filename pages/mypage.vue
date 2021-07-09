@@ -2,21 +2,10 @@
   <v-row>
     <v-col cols="8">
       <v-row>
-        <div id="dimmed" class="hidden" @click="closePopup"></div>
-        <div id="canvas-container" class="hidden">
-          <Drawing @colorCall="colorChange"
-                   @modeCall="selectMode"
-                   @clearCall="canvasClear"
-                   @rangeCall="rangeChange"
-                   @undoCall="undoExec"
-                   @redoCall="redoExec"
-          ></Drawing>
-          <canvas id="drawing-canvas"
-          @mousemove="canvasMousemove"
-          @mousedown="canvasMousedown"
-          @mouseleave="stopPainting"
-          @mouseup="stopPainting"></canvas>
-        </div>
+        <Drawing :isCanvasViewed="this.isCanvasOn"
+                   :imageSrc="this.canvasImgsrc"
+                 ref="drawingPopup"
+        ></Drawing>
         <v-btn color="primary">
           <v-icon left>
             mdi-arrow-left-circle
@@ -34,10 +23,6 @@
       </v-row>
       <v-row id="draw">
         <canvas id="videoCanvas" ref="textarea" class="hidden"
-                @mousemove="canvasMousemove"
-                @mousedown="canvasMousedown"
-                @mouseleave="stopPainting"
-                @mouseup="stopPainting"
         ></canvas>
         <v-stepper v-model="el">
           <v-stepper-header>
@@ -208,13 +193,10 @@ export default {
       noteUrls: [],
       isUploading: false,
       commentUrls: [],
-      isPainting : false,
-      paintMode : 'draw',
+      imageClicked: false,
+      isCanvasOn: false,
+      clickedImage : '',
       canvasImgsrc : '',
-      brushSize : 3.5,
-      curColor : '#001dff',
-      undoStack : [],
-      redoStack : [],
       swMenubar: this.menubar,
       linkUrl: null,
       linkMenuIsActive: false,
@@ -266,12 +248,9 @@ export default {
       selectedFont: null,
     };
   },
+  computed:{
+  },
   mounted() {
-    this.canvas = document.querySelector("#videoCanvas");
-    this.context = this.canvas.getContext('2d');
-    this.context.strokeStyle = '#001dff';
-    this.context.fillStyle = '#001dff';
-    this.context.lineWidth = 3.5;
     if(!this.$fire.auth.currentUser)
       return;
     this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).get().then(docSnap => {
@@ -367,13 +346,8 @@ export default {
       this.video = document.querySelector("#videoOrigin");
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
-      this.drawcanvas = document.querySelector("#drawing-canvas");
-      this.drawcontext = this.canvas.getContext('2d');
-
       this.canvas.width = this.video.clientWidth;
       this.canvas.height = this.video.clientHeight;
-      this.drawcanvas.width = this.video.clientWidth;
-      this.drawcanvas.height = this.video.clientHeight;
 
       this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       const imgNode = document.createElement("img");
@@ -386,6 +360,7 @@ export default {
       imgNode.addEventListener("click",this.popupCanvas);
 
       document.getElementById('content-editor').appendChild(imgNode);
+      this.isCanvasOn = false;
       //document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
     },
     textEdit: function (command) {
@@ -468,118 +443,13 @@ export default {
         doc.save('sample.pdf');
       });
     },
-    colorChange: function (color){
-      const self = this;
-      self.canvas = document.querySelector("#drawing-canvas");
-      self.context = this.canvas.getContext('2d');
-      self.curColor = color;
-
-      self.context.strokeStyle = color;
-    },
-    rangeChange: function (range){
-      this.vidcanvas = document.querySelector("#videoCanvas");
-      this.vidcontext = this.canvas.getContext('2d');
-      this.canvas = document.querySelector("#drawing-canvas");
-      this.context = this.canvas.getContext('2d');
-      this.context.lineWidth = range;
-      this.vidcontext.lineWidth = range;
-      this.brushSize = range;
-    },
-    selectMode: function (mode){
-      if(mode==='select'||mode==='text') this.isPainting = false;
-      this.paintMode = mode;
-    },
-    canvasMousedown: function (){
-      if(!this.isPainting && (this.paintMode==='draw'||this.paintMode==='light') ) this.isPainting = true;
-    },
-    canvasMousemove: function (event){
-      const x = event.offsetX;
-      const y = event.offsetY;
-
-      const self = this;
-      self.canvas = document.querySelector("#drawing-canvas");
-      self.context = self.canvas.getContext('2d');
-      this.consize = document.querySelector('#canvas-container');
-      self.context.globalAlpha = 1;
-      self.context.lineWidth = this.brushSize;
-
-      if(!this.isPainting){
-        self.context.beginPath();
-        self.context.moveTo(x,y);
-      }
-      else{
-        if(this.paintMode==='light'){
-          self.context.globalAlpha = 0.03;
-          self.context.lineWidth = self.brushSize*2;
-        }
-        // else if(this.paintMode==='erase'){
-        //   this.context.globalCompositeOperation = "destination-out";
-        //   this.context.strokeStyle = "rgba(0,0,0,1)";
-        //   console.log('erase');
-        // }
-        self.context.lineTo(x,y);
-        self.context.stroke();
-      }
-    },
-    stopPainting: function (){
-      this.canvas = document.querySelector("#drawing-canvas");
-      this.context = this.canvas.getContext('2d');
-      if(this.isPainting===true){
-        this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
-        this.redoStack.length=0;
-      }
-      this.isPainting = false;
-    },
-    undoExec: function (){
-      if (this.undoStack.length <= 1){
-        return;
-      }
-      this.canvas = document.querySelector("#drawing-canvas");
-      this.context = this.canvas.getContext('2d');
-      this.redoStack.push(this.undoStack[this.undoStack.length - 1]);
-      this.undoStack.pop();
-      this.context.putImageData(this.undoStack[this.undoStack.length - 1],0,0);
-    },
-    redoExec: function (){
-      if (this.redoStack.length < 1){
-        return;
-      }
-      this.canvas = document.querySelector("#drawing-canvas");
-      this.context = this.canvas.getContext('2d');
-      this.undoStack.push(this.redoStack[this.redoStack.length - 1]);
-      this.context.putImageData(this.redoStack[this.redoStack.length - 1],0,0);
-      this.redoStack.pop();
-    },
-    canvasClear: function (){
-      const originImg = document.createElement('img');
-      originImg.src = this.canvasImgsrc;
-      this.canvas = document.querySelector("#drawing-canvas");
-      this.context = this.canvas.getContext('2d');
-
-      this.context.drawImage(originImg, 0, 0, this.canvas.width, this.canvas.height);
-      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
-    },
     popupCanvas: function (event){
-      document.getElementById('dimmed').classList.remove('hidden');
-      document.getElementById('canvas-container').classList.remove('hidden');
-      this.canvas = document.getElementById('drawing-canvas');
-      this.context = this.canvas.getContext('2d');
-      const printImg = document.createElement('img');
+      this.video = document.querySelector("#videoOrigin");
 
       this.canvasImgsrc = event.target.src;
-      printImg.src = event.target.src;
-      this.context.drawImage(printImg, 0, 0, this.canvas.width, this.canvas.height);
-      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
-
-      this.context.strokeStyle = this.curColor;
-      this.context.lineWidth = this.brushSize;
+      this.isCanvasOn = true;
+      this.$refs.drawingPopup.drawingImage(this.video.clientWidth,this.video.clientHeight);
     },
-    closePopup: function (){
-      document.getElementById('dimmed').classList.add('hidden');
-      document.getElementById('canvas-container').classList.add('hidden');
-      this.undoStack.length = 0;
-      this.redoStack.length = 0;
-    }
   }
 }
 </script>
@@ -677,32 +547,6 @@ export default {
   -moz-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
   box-shadow: inset 0 0 6px rgba(0,0,0,.3);
   background-color: #555;
-}
-#dimmed{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  opacity: .8;
-  z-index: 10;
-}
-#canvas-container{
-  position: absolute;
-  top : auto;
-  left: auto;
-  width: 80%;
-  height: auto;
-  padding: 1%;
-  background-color: white;
-  z-index: 100;
-}
-#drawing-canvas{
-  /*width: 80%;*/
-  /*height: auto;*/
-  background-color: dimgrey;
-  object-fit: cover;
 }
 .hidden{
   display: none;
