@@ -11,7 +11,7 @@
               <div class="owner">
                 <span>{{ comments.length }}개의 comment</span>
                 <div class="ownerAvatar">
-                  <a class="username" href="#"><img :src="creator.avatar" alt=""></a>
+                  <a href="#"><img :src="creator.avatar" alt=""></a>
                 </div>
                 <div class="ownerName">
                   <span>{{ creator.user }}</span>
@@ -97,13 +97,15 @@ export default {
   methods: {
     async submitComment() {
       const self = this;
+      this.comments = [];
+
       await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/comments`).add({
         avatar: self.current_user.avatar,
+        user: this.authUser.nickname,
         texts: this.reply,
         timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
       });
 
-      this.comments = [];
       const fileStorageRef = this.$fire.firestore
         .collection(`users/${this.$fire.auth.currentUser.uid}/comments`);
       fileStorageRef.orderBy('timestamp')
@@ -112,6 +114,9 @@ export default {
           const self = this;
           this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
         }));
+      if(this.reply != '') {
+        this.reply = '';
+      }
     },
     async removeComment(comment) {
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/comments/${comment.id}`).delete();
@@ -122,6 +127,9 @@ export default {
         .update({
           texts: this.modifyReply,
         });
+      if(this.modifyReply != '') {
+        this.modifyReply = '';
+      }
     },
     timestampToDate: function(timestamp) {
       try {
@@ -173,7 +181,7 @@ export default {
   border-radius: 30px;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
 }
-.comment .username {
+.username {
   align-self: flex-start;
   margin-top: 5px;
 }
@@ -241,6 +249,7 @@ export default {
   width: 40px;
   height: 40px;
   border-radius: 100%;
+  margin-top: 5px;
 }
 .reply .replyText {
   min-height: 40px;

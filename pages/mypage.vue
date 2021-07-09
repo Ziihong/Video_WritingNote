@@ -69,7 +69,7 @@
         <Toolbar></Toolbar>
       </div>
       <v-row>
-        <div id="content-editor" contenteditable="true" ref="hi">
+        <div id="content-editor" contenteditable="true">
           <template v-for="note of notes">
             <div>
               {{note.data().text}}
@@ -90,13 +90,13 @@
 import jsPDF from 'jspdf'
 import html2canvas from "html2canvas";
 import Drawing from "../components/Drawing";
-import Comments from '../components/Comment';
+import Comment from '../components/Comment';
 import Toolbar from "../components/Toolbar";
 
 export default {
   components: {
     Drawing,
-    Comments,
+    Comment,
     Toolbar,
   },
   data() {

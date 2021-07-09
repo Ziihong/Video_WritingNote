@@ -20,34 +20,51 @@
         mdi-format-strikethrough
       </v-icon>
     </v-btn>
-    <v-select :items="items" item-value="items.item" item-text="item" outlined @change="editFontSize"
-    ></v-select>
+    <select id="fontSelect" @change="editFontSize">
+      <option selected>3</option>
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+      <option value="6">6</option>
+      <option value="8">8</option>
+      <option value="8">10</option>
+      <option value="18">18</option>
+      <option value="20">20</option>
+    </select>
   </v-row>
 </template>
 
 <script>
 export default {
   name: "toolbar",
-  data() {
-    return{
-      items: [{item: '8'}, {item: '14'}]
-    }
-  },
   methods: {
     textEdit: function (command) {
       document.execCommand(command);
     },
-    editFontSize: function(value) {
-      console.log(this.items)
-      document.execCommand("fontsize", false, value.item);
+    async editFontSize() {
+      let size = document.getElementById("fontSelect");
+      console.log(size.value);
+      await document.execCommand("fontsize", false, size.value);
     }
   }
 }
 </script>
 
 <style scoped>
+
 .edit-toolbar{
   margin-bottom: 30px;
   margin-top : 10px;
+}
+#fontSelect {
+  width:50px;
+  padding:5px;
+  border:1px solid #999;
+  border-radius:3px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance : none;
 }
 </style>
