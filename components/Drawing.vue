@@ -5,6 +5,7 @@
     @click:outside="closeCanvas"
     @close="closeCanvas"
     id="drawing-wrap"
+    :eager="true"
   >
     <v-card>
       <v-row class="canvas-drawbar">
@@ -50,6 +51,11 @@
           clear
         </v-btn>
         <input type="range" @input="rangeChange" min="0.2" max="10.0" value="3.5" step="0.1"/>
+        <v-btn color="primary" @click="closeCanvas">
+          <v-icon>
+            mdi-close
+          </v-icon>
+        </v-btn>
       </v-row>
       <canvas id="drawing-canvas"
               @mousemove="canvasMousemove"
@@ -83,13 +89,13 @@ export default {
     this.activeBtn = 'drawbtn';
   },
   methods: {
-    drawingImage: async function(vwidth, vheight) {
+    drawingImage: async function(canvasSrc,vwidth, vheight) {
       this.canvas = document.getElementById('drawing-canvas');
       if(this.canvas){
-        console.log('Canvas is not empty'+this.$props.isCanvasViewed);
+        console.log('Canvas is not empty');
       }
       else{
-        console.log('!!!!!Canvas empty!!!!! '+this.$props.isCanvasViewed);
+        console.log('!!!!!Canvas empty!!!!!');
       }
       this.canvas.width = vwidth;
       this.canvas.height = vheight;
@@ -97,7 +103,7 @@ export default {
 
       this.context = this.canvas.getContext('2d');
       const printImg = document.createElement('img');
-      printImg.src = this.$props.imageSrc;
+      printImg.src = canvasSrc;
 
       await this.context.drawImage(printImg, 0, 0, this.canvas.width, this.canvas.height);
       this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
@@ -252,9 +258,8 @@ export default {
 .canvas-drawbar{
   display: block;
   background-color: white;
-  margin-bottom: 1%;
-  margin-left: 1%;
-  width: 80%;
+  margin: 1%;
+  width: 90%;
 }
 #drawing-wrap{
   background-color: white;

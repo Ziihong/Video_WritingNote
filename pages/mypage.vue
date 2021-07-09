@@ -37,7 +37,7 @@
         </v-stepper>
       </v-row>
     </v-col>
-    <v-col cols="4" class="comment-box">
+    <v-col cols="4" class="note-box">
       <v-row>
         <v-btn color="primary">공유하기</v-btn>
         <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>
@@ -448,14 +448,14 @@ export default {
 
       this.canvasImgsrc = event.target.src;
       this.isCanvasOn = true;
-      this.$refs.drawingPopup.drawingImage(this.video.clientWidth,this.video.clientHeight);
+      this.$refs.drawingPopup.drawingImage(event.target.src,this.video.clientWidth,this.video.clientHeight);
     },
   }
 }
 </script>
 
 <style scoped>
-.comment-box{
+.note-box{
   height: 600px;
 }
 .video-frame{
