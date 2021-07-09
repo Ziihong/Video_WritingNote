@@ -26,8 +26,9 @@
                style="width: 40%; background-color:white;"/>
       </v-row>
       <v-row>
-        <video class="video-frame" controls autoplay muted
-               :src="`${videoUrl}#t=0.5`" id="videoOrigin" width="100%" height="500"
+        <video class="video-frame" controls autoplay muted crossorigin="anonymous"
+               :src="`${videoUrl}#t=0.5`"
+               id="videoOrigin" width="100%" height="500"
         >
           브라우저가 비디오 플레이를 지원하지 않습니다
         </video>
@@ -235,9 +236,6 @@ export default {
 
       this.canvas.width = this.video.clientWidth;
       this.canvas.height = this.video.clientHeight;
-      this.drawcanvas.width = this.video.clientWidth;
-      this.drawcanvas.height = this.video.clientHeight;
-
       this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
       const imgNode = document.createElement("img");
       imgNode.src = this.canvas.toDataURL();
@@ -245,6 +243,10 @@ export default {
       this.canvasImgsrc = this.canvas.toDataURL();
       imgNode.width = this.canvas.width/4;
       imgNode.height = this.canvas.height/4;
+      this.context.strokeStyle = this.curColor;
+      this.context.fillStyle = this.curColor;
+      this.context.lineWidth = this.brushSize;
+      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
 
       imgNode.addEventListener("click",this.popupCanvas);
 
