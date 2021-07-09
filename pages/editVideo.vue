@@ -450,6 +450,15 @@ export default {
       }
 
     },
+
+    // upload comments on firebase storage to json format
+    uploadComments(comments) {
+      const ref = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/currentVideo_comments.json`)
+      const file = new File(comments, 'currentVideo_comments.json')
+      ref.put(file).then( snapshot => {
+        console.log('Upload comments done')
+      })
+    }
   },
 }
 </script>
