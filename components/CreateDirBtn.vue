@@ -1,45 +1,43 @@
 <template>
+  <div>
 <span class="btn">
     <v-btn color="primary" class="filebox" @click="modalOpen">
       <v-icon left>mdi-folder-plus-outline</v-icon>
       <span>새 폴더</span>
     </v-btn>
-    <modal
-      :isModalViewed="this.isModalViewed"
-      :title="'새 폴더'"
-      @modal-close="modalClose"
-      @modal-ok="modalCreate">
-  </modal>
 </span>
+    <ModalRename
+      :isShowed="this.isRename"
+      :title="'새 폴더'"
+      @rename-close="modalClose"
+      @rename-ok="modalCreate">
+    </ModalRename>
+  </div>
 </template>
 
 <script>
+import ModalRename from "/components/ModalRename";
+
 export default {
   name: "CreateDir",
+  components: {
+    ModalRename,
+  },
   props: {
     parentId: String,
   },
   data() {
     return {
-      isModalViewed : false,
+      isRename : false,
       createName:'',
-      directories: [],
     }
   },
   methods:{
-    viewDirectories(){
-      this.directories = [];
-      const dirStorageRef = this.$fire.firestore
-        .collection(`users/${this.$fire.auth.currentUser.uid}/directories`);
-      dirStorageRef.orderBy('name').where('parentId', '==', this.parentId)
-        .onSnapshot((async querySnapshot => {
-          this.directories = querySnapshot.docs;
-        }));
-    },
     modalOpen(){
-      this.isModalViewed = true;
+      this.isRename = true;
     },
     async modalCreate(createName){
+      this.isRename = false;
       if (createName == undefined) {
         return alert("이름을 입력해주세요");
       }
@@ -49,13 +47,12 @@ export default {
           .add({
             name: createName,
             parentId: this.parentId,
+            timestamp: this.$fireModule.firestore.FieldValue.serverTimestamp()
           });
-        this.isModalViewed = false;
-        this.$emit('reload');
       }
     },
     modalClose(){
-      this.isModalViewed = false;
+      this.isRename = false;
     },
   }
 }

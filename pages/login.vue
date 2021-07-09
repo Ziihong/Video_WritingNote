@@ -17,7 +17,6 @@
           <v-btn
             @click="signInUser"
             color="primary"
-            to="/login"
             class="btn-login"
           >
             로그인
@@ -93,6 +92,8 @@ export default {
           this.formData.password
         )
       } catch (e) {
+        this.formData.email = '';
+        this.formData.password = '';
         alert(e)
       }
     },

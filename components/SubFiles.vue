@@ -2,40 +2,58 @@
   <v-col>
     <v-row> 파일 </v-row>
     <v-row>
-      <template v-for="(file,index) of files" class="file">
-          <div class="file">
+      <template v-for="(file,index) of files">
+          <div class="file-wrap">
             <video :src="`${fileUrls[index]}#t=0.5`" muted width="100%" @click="goFile(file)">{{ fileUrls[index] }}</video>
-            <span @click="goFile(file)"> {{ file.data().name }}</span>
+            <div class="title-wrap"><span @click="goFile(file)"> {{ file.data().name }}</span></div>
+            <div class="button-wrap">
             <button>
-              <v-icon right @click="modalOpen(file)">mdi-pen</v-icon>
+              <v-icon @click="renameModalOpen(file)">mdi-pen</v-icon>
             </button>
             <button>
-              <v-icon right @click="removeFile(file)">mdi-close-box</v-icon>
+              <v-icon @click="moveModalOpen(file)">mdi-swap-horizontal</v-icon>
             </button>
+            <button>
+              <v-icon @click="removeFile(file)">mdi-close-box</v-icon>
+            </button>
+            </div>
           </div>
       </template>
     </v-row>
-    <modal
-      :isModalViewed="this.isModalViewed"
+    <ModalRename v-if="this.isRename"
+      :isShowed="this.isRename"
       :title="'이름 바꾸기'"
-      @modal-close="modalClose"
-      @modal-ok="modalRename">
-    </modal>
+      @rename-close="renameModalClose"
+      @rename-ok="renameModalOk">
+    </ModalRename>
+    <ModalMove v-if="this.isMove"
+      :isShowed="this.isMove"
+      @move-close="moveModalClose"
+      @move-ok="moveModalOk">
+    </ModalMove>
   </v-col>
 </template>
 
 <script>
-import Modal from '~/components/Modal'
+import ModalRename from "/components/ModalRename";
+import ModalMove from "/components/ModalMove";
+
 export default {
+  components: {
+    ModalRename,
+    ModalMove,
+  },
   props: {
     parentId: String,
   },
   data() {
     return {
-      isModalViewed : false,
+      isRename: false,
+      isMove: false,
       files: [],
       fileUrls: [],
-      renameFile:'', //obj
+      renameFile: '', //obj
+      moveFile: '',
     }
   },
   mounted() {
@@ -64,37 +82,59 @@ export default {
         await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${file.id}`).delete();
       }
     },
-    modalOpen(file){
-      this.isModalViewed = true;
+    moveModalOpen(file){
+      this.isMove = true;
+      this.moveFile = file;
+    },
+    moveModalClose(){
+      this.isMove = false;
+    },
+    async moveModalOk(dir){
+      this.isMove = false;
+      const selectDirectory = dir;
+      await this.$fire.firestore
+        .doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.moveFile.id}`)
+        .update({
+          parentId: selectDirectory.id,
+        });
+    },
+    renameModalOpen(file){
+      this.isRename = true;
       this.renameFile = file;
     },
-    async modalRename(rename){
-      if (rename == undefined) {
-        return alert("이름을 입력해주세요");
-      }
-      else {
-        await this.$fire.firestore
-          .doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.renameFile.id}`)
-          .update({
-            name: rename,
-          });
-        this.isModalViewed = false;
-      }
+    renameModalClose(){
+      this.isRename = false;
     },
-    modalClose(){
-      this.isModalViewed = false;
+    async renameModalOk(rename){
+      await this.$fire.firestore
+        .doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.renameFile.id}`)
+        .update({
+          name: rename,
+        });
+      this.isRename = false;
     },
   }
 }
 </script>
 
 <style scoped>
-.file{
+.file-wrap{
   display: inline;
   padding: 10px;
   margin: 10px;
-  width: 350px;
+  width: 280px;
   border-radius: 10px;
   border: solid 1px cornflowerblue;
+}
+.title-wrap{
+  display:inline-block;
+  overflow: hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+  width:160px;
+}
+.button-wrap{
+  display: inline-block;
+  float:right;
 }
 </style>

@@ -1,20 +1,27 @@
 <template>
-  <v-container>
-  <v-col>
+  <div id="app">
     <v-col>
-    <v-row>
-      <create-dir-btn :parentId="this.directoryId"></create-dir-btn>
-      <up-dir-btn :parentId="this.directoryId"></up-dir-btn>
-      <up-file-btn :parentId="this.directoryId"></up-file-btn>
-    </v-row>
+      <v-container>
+        <v-row>
+          <create-dir-btn :parentId="this.directoryId"></create-dir-btn>
+          <up-dir-btn :parentId="this.directoryId"></up-dir-btn>
+          <up-file-btn :parentId="this.directoryId"></up-file-btn>
+        </v-row>
+      </v-container>
+      <v-container>
+        <hr>
+        <dir-path :currentId="this.directoryId"></dir-path>
+        <hr>
+      </v-container>
+      <v-container>
+        <sub-directories :parentId="this.directoryId"></sub-directories>
+      </v-container>
+
+      <v-container>
+        <sub-files :parentId="this.directoryId"></sub-files>
+      </v-container>
     </v-col>
-    <hr>
-    <dir-path :currentId="this.directoryId"></dir-path>
-    <hr>
-    <sub-directories :parentId="this.directoryId"></sub-directories>
-    <sub-files :parentId="this.directoryId"></sub-files>
-  </v-col>
-  </v-container>
+  </div>
 </template>
 
 <script>
