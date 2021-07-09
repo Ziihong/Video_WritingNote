@@ -42,92 +42,17 @@
       <v-row>
         <v-btn color="primary">공유하기</v-btn>
         <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>
-        <v-btn color="primary">test3</v-btn>
       </v-row>
       <v-row>
         <v-btn>노트</v-btn>
-        <v-dialog
-          transition="dialog-bottom-transition"
-          max-width="600"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              color="primary"
-              v-bind="attrs"
-              v-on="on"
-            >코멘트</v-btn>
-          </template>
-          <template v-slot:default="dialog">
-            <v-card>
-              <v-toolbar
-                color="primary"
-                dark
-              >코멘트</v-toolbar>
-              <div id="commentArea">
-                <div class="owner">
-                  <span>{{ comments.length }}개의 comment</span>
-                  <div class="ownerAvatar">
-                    <a class="username" href="#"><img :src="creator.avatar" alt=""></a>
-                  </div>
-                  <div class="ownerName">
-                    <span>{{ creator.user }}</span>
-                  </div>
-                </div>
-                <div class="custom-scrollbar">
-                  <div class="comment" v-for="comment of comments">
-                    <div class="avatar">
-                      <a class="username" href="#"><img :src="comment.data().avatar" alt=""></a>
-                    </div>
-                    <div class="user">
-                      {{ comment.data().user }}
-                    </div>
-                    <div class="texts">
-                      {{ comment.data().texts }}
-                    </div>
-                    <div class="time">
-                      {{timestampToDate(comment.data().timestamp)}}
-                    </div>
-                    <button class="inlineBtn">
-                      <v-icon right @click="removeComment(comment)">mdi-close-box</v-icon>
-                    </button>
-                  </div>
-                </div>
-                <comments
-                  :current_user="current_user"
-                  @submit-comment="submitComment">
-                </comments>
-              </div>
-              <v-card-actions class="justify-end">
-                <v-btn
-                  text
-                  @click="dialog.value = false"
-                >Close</v-btn>
-              </v-card-actions>
-            </v-card>
-          </template>
-        </v-dialog>
+        <Comment
+          :creator="creator"
+          :comments="comments"
+          :current_user="current_user">
+        </Comment>
       </v-row>
       <v-row class="edit-toolbar">
-        <v-btn @click = "textEdit('bold')" >
-          <v-icon>
-            mdi-format-bold
-          </v-icon>
-        </v-btn>
-        <v-btn @click = "textEdit('italic')" >
-          <v-icon>
-            mdi-format-italic
-          </v-icon>
-        </v-btn>
-        <v-btn @click = "textEdit('underline')" >
-          <v-icon>
-            mdi-format-underline
-          </v-icon>
-        </v-btn>
-        <v-btn @click = "textEdit('strikeThrough')" >
-          <v-icon>
-            mdi-format-strikethrough
-          </v-icon>
-        </v-btn>
+        <Toolbar></Toolbar>
       </v-row>
       <v-row>
         <div id="content-editor" contenteditable="true">
@@ -151,12 +76,14 @@
 import jsPDF from 'jspdf'
 import html2canvas from "html2canvas";
 import Drawing from "/components/Drawing";
-import Comments from '/pages/comments';
+import Comments from '/components/Comment';
+import Toolbar from "/components/Toolbar";
 
 export default {
   components: {
     Drawing,
     Comments,
+    Toolbar
   },
   data() {
     return {
@@ -186,17 +113,11 @@ export default {
         user: 'user',
       },
       commentsArr: [],
-      // avatarArr: [
-      //   'http://via.placeholder.com/100x100/a74848',
-      //   'http://via.placeholder.com/100x100/2d58a7',
-      //   'http://via.placeholder.com/100x100/36846e'
-      // ]
-      items: ["8", "20"],
-      selectedFont: null,
       fileId:this.$route.params.id,
       fileName:'',
       video:'',
       videoUrl:'',
+      el: '1',
     };
   },
   mounted() {
@@ -278,38 +199,8 @@ export default {
         }));
       this.noteTexts.innerHTML = "";
     },
-    async removeComment(comment) {
-      console.log('comment: ', comment.id);
-      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/comments/${comment.id}`).delete();
-    },
     async removeMark(mark) {
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/marks/${mark.id}`).delete();
-    },
-    async submitComment(reply) {
-      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-      set({name: this.name}, {merge: true}).
-      then(para => {
-        console.log('Save test : '+para);
-      });
-
-      const self = this;
-      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/comments`).add({
-        user: self.current_user.user,
-        avatar: self.current_user.avatar,
-        texts: reply,
-        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
-      });
-
-      this.comments = [];
-      const fileStorageRef = this.$fire.firestore
-        .collection(`users/${this.$fire.auth.currentUser.uid}/comments`);
-      fileStorageRef.orderBy('timestamp')
-        .onSnapshot((async querySnapshot => {
-          //console.log(querySnapshot.docs.length);
-          this.comments = querySnapshot.docs;
-          const self = this;
-          this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
-        }));
     },
     drawVideo: function () {
       this.video = document.querySelector("#videoOrigin");
@@ -336,22 +227,6 @@ export default {
     },
     choiceFile: function () {
       document.getElementById("fileupload").click();
-    },
-    timestampToDate: function(timestamp) {
-      try {
-        let date = timestamp.toDate();
-        let now = new Date();
-        this.currentDate = new Date(now.getFullYear(), now.getMonth()+1, now.getDate(), now.getHours(), now.getMinutes());
-        this.stampDate = new Date(date.getFullYear(), date.getMonth()+1, date.getDate(), date.getHours(), date.getMinutes());
-        this.calMsec = this.currentDate.getTime() - this.stampDate.getTime();
-        this.calMin = parseInt(this.calMsec / 1000 / 60);
-        this.calHour = parseInt(this.calMsec / 1000 / 60 / 60);
-        if(this.calHour >= 1) return (this.calHour + '시간 전');
-        else return (this.calMin + '분 전');
-      }
-      catch (e) {
-        console.log(e);
-      }
     },
     async makeMarker() {
       const originVideo = document.querySelector("#videoOrigin");

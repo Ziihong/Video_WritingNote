@@ -41,93 +41,18 @@
       <v-row>
         <v-btn color="primary">공유하기</v-btn>
         <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>
-        <v-btn color="primary">test3</v-btn>
       </v-row>
       <v-row>
         <v-btn>노트</v-btn>
-        <v-dialog
-          transition="dialog-bottom-transition"
-          max-width="600"
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              color="primary"
-              v-bind="attrs"
-              v-on="on"
-            >코멘트</v-btn>
-          </template>
-          <template v-slot:default="dialog">
-            <v-card>
-              <v-toolbar
-                color="primary"
-                dark
-              >코멘트</v-toolbar>
-              <div id="commentArea">
-                <div class="owner">
-                  <span>{{ comments.length }}개의 comment</span>
-                  <div class="ownerAvatar">
-                    <a class="username" href="#"><img :src="creator.avatar" alt=""></a>
-                  </div>
-                  <div class="ownerName">
-                    <span>{{ creator.user }}</span>
-                  </div>
-                </div>
-                <div class="custom-scrollbar">
-                  <div class="comment" v-for="comment of comments">
-                    <div class="avatar">
-                      <a class="username" href="#"><img :src="comment.data().avatar" alt=""></a>
-                    </div>
-                    <div class="user">
-                      {{ comment.data().user }}
-                    </div>
-                    <div class="texts">
-                      {{ comment.data().texts }}
-                    </div>
-                    <div class="time">
-                      {{timestampToDate(comment.data().timestamp)}}
-                    </div>
-                    <button class="inlineBtn">
-                      <v-icon right @click="removeComment(comment)">mdi-close-box</v-icon>
-                    </button>
-                  </div>
-                </div>
-                <comments
-                  :current_user="current_user"
-                  @submit-comment="submitComment">
-                </comments>
-              </div>
-              <v-card-actions class="justify-end">
-                <v-btn
-                  text
-                  @click="dialog.value = false"
-                >Close</v-btn>
-              </v-card-actions>
-            </v-card>
-          </template>
-        </v-dialog>
+        <Comment
+          :creator="creator"
+          :comments="comments"
+          :current_user="current_user">
+        </Comment>
       </v-row>
-      <v-row class="edit-toolbar">
-        <v-btn @click = "textEdit('bold')" >
-          <v-icon>
-            mdi-format-bold
-          </v-icon>
-        </v-btn>
-        <v-btn @click = "textEdit('italic')" >
-          <v-icon>
-            mdi-format-italic
-          </v-icon>
-        </v-btn>
-        <v-btn @click = "textEdit('underline')" >
-          <v-icon>
-            mdi-format-underline
-          </v-icon>
-        </v-btn>
-        <v-btn @click = "textEdit('strikeThrough')" >
-          <v-icon>
-            mdi-format-strikethrough
-          </v-icon>
-        </v-btn>
-      </v-row>
+      <div class="edit-toolbar">
+        <Toolbar></Toolbar>
+      </div>
       <v-row>
         <div id="content-editor" contenteditable="true">
           <template v-for="note of notes">
@@ -150,41 +75,18 @@
 import jsPDF from 'jspdf'
 import html2canvas from "html2canvas";
 import Drawing from "../components/Drawing";
-import Comments from './comments';
-import { VueHorizontalTimeline } from "vue-horizontal-timeline";
-
-import {
-  TiptapVuetify,
-  Heading,
-  Bold,
-  Italic,
-  Strike,
-  Underline,
-  Code,
-  Paragraph,
-  BulletList,
-  OrderedList,
-  ListItem,
-  Link,
-  Blockquote,
-  HardBreak,
-  HorizontalRule,
-  History,
-  Image,
-} from 'tiptap-vuetify'
-
+import Comment from '../components/Comment';
+import Toolbar from "../components/Toolbar";
 
 export default {
   components: {
     Drawing,
-    TiptapVuetify,
-    Comments,
-    VueHorizontalTimeline,
+    Comment,
+    Toolbar,
   },
-  props: ["description", "menubar", "readOnly"],
   data() {
     return {
-      el: 1,
+      el: '1',
       description: '',
       name: '',
       comments: [],
@@ -203,32 +105,6 @@ export default {
       marks: [],
       markUrls: [],
       editor: null,
-      extensions: [
-        History,
-        Blockquote,
-        Link,
-        Underline,
-        Strike,
-        Italic,
-        ListItem,
-        BulletList,
-        OrderedList,
-        Image,
-        [
-          Heading,
-          {
-            options: {
-              levels: [1, 2, 3]
-            }
-          }
-        ],
-        Bold,
-        Link,
-        Code,
-        HorizontalRule,
-        Paragraph,
-        HardBreak,
-      ],
       content: '',
       creator: {
         avatar: 'http://via.placeholder.com/100x100/a74848',
@@ -238,14 +114,6 @@ export default {
         avatar: 'http://via.placeholder.com/100x100/36846e',
         user: 'user',
       },
-      commentsArr: [],
-      // avatarArr: [
-      //   'http://via.placeholder.com/100x100/a74848',
-      //   'http://via.placeholder.com/100x100/2d58a7',
-      //   'http://via.placeholder.com/100x100/36846e'
-      // ]
-      items: ["8", "20"],
-      selectedFont: null,
     };
   },
   computed:{
@@ -261,6 +129,7 @@ export default {
         console.log('');
       }
     });
+
     this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
     collection('comments').orderBy('timestamp').onSnapshot((async querySnapshot => {
       this.comments = querySnapshot.docs;
@@ -284,63 +153,42 @@ export default {
   },
   methods: {
     async onSaveNote() {
-      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-      set({name: this.name}, {merge: true}).
-      then(para => {
-        console.log('Save test : '+para);
-      });
-
-      this.noteTexts = document.getElementById('content-editor');
+      this.noteTexts = document.getElementById('content-editor').getElementsByTagName('div');
       const self = this;
-      console.log(this.noteTexts.innerText);
-      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/notes`).add({
-        text: self.noteTexts.innerText,
-        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
-      });
+      const textArr = [];
+      //add contentEditable div text because this is not in div tag
+      let strSplit = document.getElementById('content-editor').innerHTML.split('<div>');
+      if(this.notes.length === 0){
+        textArr.push(strSplit[0]);
+      }
+      for(let i=0; i<self.noteTexts.length; i++){
+        textArr.push(self.noteTexts[i].innerText);
+      }
+      //delete all that has saved before
+      let i = this.notes.length;
+      while(i !== 0){
+        await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/notes/${this.notes[0].id}`).delete();
+        i--;
+      }
+      for(const i of textArr){
+        await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/notes`).add({
+          text: i,
+          timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
+        });
+      }
       this.notes = [];
       const fileStorageRef = this.$fire.firestore
         .collection(`users/${this.$fire.auth.currentUser.uid}/notes`);
       fileStorageRef.orderBy('timestamp')
         .onSnapshot((async querySnapshot => {
-          //console.log(querySnapshot.docs.length);
           this.notes = querySnapshot.docs;
           const self = this;
           this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
         }));
-      this.noteTexts.innerHTML = "";
-    },
-    async removeComment(comment) {
-      console.log('comment: ', comment.id);
-      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/comments/${comment.id}`).delete();
+      document.getElementById('content-editor').innerHTML = "";
     },
     async removeMark(mark) {
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/marks/${mark.id}`).delete();
-    },
-    async submitComment(reply) {
-      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-      set({name: this.name}, {merge: true}).
-      then(para => {
-        console.log('Save test : '+para);
-      });
-
-      const self = this;
-      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/comments`).add({
-        user: self.current_user.user,
-        avatar: self.current_user.avatar,
-        texts: reply,
-        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
-      });
-
-      this.comments = [];
-      const fileStorageRef = this.$fire.firestore
-        .collection(`users/${this.$fire.auth.currentUser.uid}/comments`);
-      fileStorageRef.orderBy('timestamp')
-        .onSnapshot((async querySnapshot => {
-          //console.log(querySnapshot.docs.length);
-          this.comments = querySnapshot.docs;
-          const self = this;
-          this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
-        }));
     },
     drawVideo: function () {
       this.video = document.querySelector("#videoOrigin");
@@ -363,49 +211,22 @@ export default {
       this.isCanvasOn = false;
       //document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
     },
-    textEdit: function (command) {
-      document.execCommand(command);
-    },
     choiceFile: function () {
       document.getElementById("fileupload").click();
     },
-    timestampToDate: function(timestamp) {
-      try {
-        let date = timestamp.toDate();
-        let now = new Date();
-        this.currentDate = new Date(now.getFullYear(), now.getMonth()+1, now.getDate(), now.getHours(), now.getMinutes());
-        this.stampDate = new Date(date.getFullYear(), date.getMonth()+1, date.getDate(), date.getHours(), date.getMinutes());
-        this.calMsec = this.currentDate.getTime() - this.stampDate.getTime();
-        this.calMin = parseInt(this.calMsec / 1000 / 60);
-        this.calHour = parseInt(this.calMsec / 1000 / 60 / 60);
-        if(this.calHour >= 1) return (this.calHour + '시간 전');
-        else return (this.calMin + '분 전');
-      }
-      catch (e) {
-        console.log(e);
-      }
-    },
     async makeMarker() {
       const originVideo = document.querySelector("#videoOrigin");
-
-      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-      set({name: this.name}, {merge: true}).
-      then(para => {
-        console.log('Save test : '+para);
-      });
-
       const self = this;
+
       await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/marks`).add({
         time: originVideo.currentTime,
         timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
       });
 
       this.marks = [];
-      const fileStorageRef = this.$fire.firestore
-        .collection(`users/${this.$fire.auth.currentUser.uid}/marks`);
+      const fileStorageRef = this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/marks`);
       fileStorageRef.orderBy('timestamp')
         .onSnapshot((async querySnapshot => {
-          //console.log(querySnapshot.docs.length);
           this.marks = querySnapshot.docs;
           const self = this;
           this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
@@ -425,21 +246,11 @@ export default {
       }).then(function(canvas){
         let imgData = canvas.toDataURL('image/png');
         let imgWidth = 210;
-        let pageHeight = imgWidth * 1.414;
         let imgHeight = canvas.height * imgWidth / canvas.width;
-        let heightLeft =  imgHeight;
         let doc = new jsPDF('p', 'mm');
         let position = -1;
 
         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
-
-        // heightLeft -= pageHeight;
-        // while(heightLeft >= 20){
-        //  position -= heightLeft - imgHeight;
-        //  doc.addPage();
-        //  doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
-        //  heightLeft -= pageHeight;
-        //}
         doc.save('sample.pdf');
       });
     },
@@ -469,84 +280,6 @@ export default {
   padding: 10px;
   border: 1px solid;
   overflow-y: auto;
-}
-.edit-toolbar{
-  margin-bottom: 10px;
-  margin-top : 10px;
-}
-#commentArea {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-.owner .ownerAvatar > a > img {
-  width: 40px;
-  height: 40px;
-  border-radius: 100%;
-}
-.comment {
-  display: flex;
-  padding: 5px 10px;
-  margin-bottom: 10px;
-  align-items: center;
-  color: #333;
-  background-color: #F2F2F2;
-  border-radius: 30px;
-  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
-}
-.comment .username {
-  align-self: flex-start;
-  margin-top: 5px;
-}
-.comment .avatar > a > img {
-  width: 40px;
-  height: 40px;
-  border-radius: 100%;
-  align-self: start;
-}
-.comment .user{
-  text-align: left;
-  margin-left: 5px;
-}
-.comment .texts {
-  text-align: left;
-  margin-left: 15px;
-}
-.comment .time {
-  text-align: left;
-  margin-left: 20px;
-}
-.comment .inlineBtn {
-  display: inline;
-}
-.custom-scrollbar{
-  max-height: 250px;
-  overflow-y: auto;
-  padding-right: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-track
-{
-  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-  -moz-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-  box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-  border-radius: 10px;
-  background-color: #fff;
-}
-.custom-scrollbar::-webkit-scrollbar
-{
-  width: 8px;
-  background-color: #fff;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb
-{
-  border-radius: 10px;
-  -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-  -moz-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-  box-shadow: inset 0 0 6px rgba(0,0,0,.3);
-  background-color: #555;
 }
 .hidden{
   display: none;
