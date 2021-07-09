@@ -281,32 +281,6 @@ export default {
   border: 1px solid;
   overflow-y: auto;
 }
-#dimmed{
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: #000;
-  opacity: .8;
-  z-index: 10;
-}
-#canvas-container{
-  position: absolute;
-  top : auto;
-  left: auto;
-  width: 80%;
-  height: auto;
-  padding: 1%;
-  background-color: white;
-  z-index: 100;
-}
-#drawing-canvas{
-  /*width: 80%;*/
-  /*height: auto;*/
-  background-color: dimgrey;
-  object-fit: cover;
-}
 .hidden{
   display: none;
 }

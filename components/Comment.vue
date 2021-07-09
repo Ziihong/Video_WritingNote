@@ -79,7 +79,7 @@ import {mapGetters, mapState} from "vuex";
 
 export default {
   name: 'comments',
-  props: ['creator', 'current_user', 'comments', {name: String}],
+  props: ['creator', 'current_user', 'comments'],
   computed: {
     ...mapState({
       authUser: state => state.authUser,
