@@ -51,6 +51,11 @@
           clear
         </v-btn>
         <input type="range" @input="rangeChange" min="0.2" max="10.0" value="3.5" step="0.1"/>
+        <v-btn color="primary" @click="saveCanvas">
+          <v-icon>
+            mdi-content-save
+          </v-icon>
+        </v-btn>
         <v-btn color="primary" @click="closeCanvas">
           <v-icon>
             mdi-close
@@ -79,6 +84,7 @@ export default {
       paintMode : 'draw',
       undoStack : [],
       redoStack : [],
+      targetImage : '',
     };
   },
   props: [
@@ -99,7 +105,6 @@ export default {
       }
       this.canvas.width = vwidth;
       this.canvas.height = vheight;
-      console.log(this.canvas);
 
       this.context = this.canvas.getContext('2d');
       const printImg = document.createElement('img');
@@ -234,6 +239,14 @@ export default {
 
       this.context.drawImage(originImg, 0, 0, this.canvas.width, this.canvas.height);
       this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
+    },
+    saveCanvas: function (){
+      this.canvas = document.querySelector("#drawing-canvas");
+      const canvasURL = this.canvas.toDataURL();
+      this.isCanvasViewed = false;
+      this.undoStack.length = 0;
+      this.redoStack.length = 0;
+      this.$emit('changeImage',canvasURL);
     },
     closeCanvas: function (){
       this.isCanvasViewed = false;

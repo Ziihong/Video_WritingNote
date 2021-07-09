@@ -3,8 +3,9 @@
     <v-col cols="8">
       <v-row>
         <Drawing :isCanvasViewed="this.isCanvasOn"
-                   :imageSrc="this.canvasImgsrc"
+                 :imageSrc="this.canvasImgsrc"
                  ref="drawingPopup"
+                 @changeImage="saveImage"
         ></Drawing>
         <v-btn color="primary">
           <v-icon left>
@@ -95,7 +96,6 @@ export default {
       noteUrls: [],
       isUploading: false,
       commentUrls: [],
-      imageClicked: false,
       isCanvasOn: false,
       clickedImage : '',
       canvasImgsrc : '',
@@ -259,7 +259,12 @@ export default {
 
       this.canvasImgsrc = event.target.src;
       this.isCanvasOn = true;
+      this.clickedImage = event.target;
+
       this.$refs.drawingPopup.drawingImage(event.target.src,this.video.clientWidth,this.video.clientHeight);
+    },
+    saveImage: function (changedImage){
+      this.clickedImage.src = changedImage;
     },
   }
 }
