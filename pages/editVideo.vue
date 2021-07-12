@@ -1,5 +1,5 @@
 <template>
-  <v-row>
+  <div>
     <v-app-bar
       fixed
       app
@@ -23,103 +23,100 @@
       </v-btn>
     </v-app-bar>
 
-    <v-row no-gutters>
-        <v-col cols="12" md="8">
-            <v-row id="videoArea" no-gutters>
-              <div
-                v-if="isBookmarking"
-                @click="setNote($event)"
-                class="clickPlane">
-                <canvas id="clickPlane"></canvas>
-              </div>
-              <v-col>
-                <video
-                  id="currentVideo"
-                  style="margin-left: 0px; padding-left: 0px;"
-                  width="100%"
-                  controls
-                  muted
-                  src="/video/Cat-66004.mp4"></video>
-              </v-col>
-            </v-row>
-
-            <v-divider></v-divider>
-            <v-row id="bookmarkArea" no-gutters >
-              <v-col style="background-color: lightcyan">
-                <p class="text-center"
-                   style="margin-bottom: 12px; margin-top: 12px;">
-                  <v-icon>mdi-star</v-icon>Bookmarks</p>
-                <v-divider></v-divider>
-                <v-list
-                  style="max-height: 140px; min-height: 140px; padding-top: 0px"
-                  class="overflow-y-auto">
-                  <p v-if="items.length == 0"
-                        style="text-align: center;font-size: 25px; color: lightgray">No Bookmarks! Add one.</p>
-                  <v-list-item
-                    v-for="(item, i) in items"
-                    :key="i"
-                    @click="jumpTime(item)"
-                    style="border-bottom: 1px solid lightgray"
-                    router
-                    exact
-                  >
-                    <v-list-item-action>
-                      <v-icon>{{ i+1 }}</v-icon>
-                    </v-list-item-action>
-                    <v-list-item-content>
-                      <v-list-item-title v-if="clickedIndex != i" v-text="item.title"/>
-                      <v-text-field v-else
-                                    placeholder ="Write your bookmark name."
-                                    v-model="item.title"
-                                    @click="$event.stopPropagation()"
-                                    v-click-outside="editbookmarkTitle"
-                                    style="margin: 0; padding: 0;"
-                                    hide-details=true
-                                    ></v-text-field>
-                    </v-list-item-content>
-                    <v-btn icon id="editbookmarkTitle" style="z-index: 1"
-                           @click.stop= "isNamechange? null : editbookmarkTitle($event,i)">
-                      <v-icon>mdi-square-edit-outline</v-icon></v-btn>
-                    <v-btn icon id="deletebookmarkTitle" style="color: red; z-index: 1"
-                           @click.stop="deleteBookmark($event,i)">
-                      <v-icon>mdi-minus</v-icon></v-btn>
-                  </v-list-item>
-                </v-list>
-                <v-divider></v-divider>
-              </v-col>
-            </v-row>
-        </v-col>
-        <v-col id="docArea">
+    <!--table과 th에 width 속성을 지정 => resize bar(.columns-resize-bar)정상 작동 x-->
+    <table class="pageTable" style="width: 100%">
+      <thead v-columns-resizable>
+      <tr>
+        <th id="videoArea" style="width: 70%">
+          <div
+            v-if="isBookmarking"
+            @click="setNote($event)"
+            class="clickPlane">
+            <canvas id="clickPlane"></canvas>
+          </div>
+            <video
+              id="currentVideo"
+              style="margin-left: 0px; padding-left: 0px; width: 100%"
+              controls
+              muted
+              src="/video/Cat-66004.mp4">
+            </video>
+        </th>
+        <th style="width: 30%; height: auto" rowspan="2" id="docArea">
           <TextEditor/>
-        </v-col>
-      </v-row>
+        </th>
+      </tr>
+      <tr>
+        <th id="bookmarkArea" style="background-color: lightcyan">
+            <p class="text-center"
+               style="margin-bottom: 12px; margin-top: 12px;">
+              <v-icon>mdi-star</v-icon>Bookmarks</p>
+            <v-list
+              style="max-height: 140px; min-height: 140px; padding-top: 0px"
+              class="overflow-y-auto">
+              <p v-if="items.length == 0"
+                 style="text-align: center;font-size: 25px; color: lightgray">No Bookmarks! Add one.</p>
+              <v-list-item
+                v-for="(item, i) in items"
+                :key="i"
+                @click="jumpTime(item)"
+                style="border-bottom: 1px solid lightgray"
+                router
+                exact
+              >
+                <v-list-item-action>
+                  <v-icon>{{ i+1 }}</v-icon>
+                </v-list-item-action>
+                <v-list-item-content>
+                  <v-list-item-title v-if="clickedIndex != i" v-text="item.title"/>
+                  <v-text-field v-else
+                                placeholder ="Write your bookmark name."
+                                v-model="item.title"
+                                @click="$event.stopPropagation()"
+                                v-click-outside="editbookmarkTitle"
+                                style="margin: 0; padding: 0;"
+                                hide-details=true
+                  ></v-text-field>
+                </v-list-item-content>
+                <v-btn icon id="editbookmarkTitle" style="z-index: 1"
+                       @click.stop= "isNamechange? null : editbookmarkTitle($event,i)">
+                  <v-icon>mdi-square-edit-outline</v-icon></v-btn>
+                <v-btn icon id="deletebookmarkTitle" style="color: red; z-index: 1"
+                       @click.stop="deleteBookmark($event,i)">
+                  <v-icon>mdi-minus</v-icon></v-btn>
+              </v-list-item>
+            </v-list>
+          </th>
+      </tr>
+      </thead>
+    </table>
 
     <v-dialog id="bookamarkNamedialog"
               v-model="dialog"
               v-if="dialog"
               max-width="400">
-        <v-card-text class="text-center" style="background-color: lightgray">
-          <em><small>&mdash; Bookmark Name</small></em>
-          <hr class="my-3">
-          <v-text-field id="bookmarkName" placeholder="default title is current time."></v-text-field>
-        </v-card-text>
-        <v-card-actions style="background-color: lightgray">
-          <v-spacer></v-spacer>
-          <v-btn
-            id ="cancelBtn"
-            color="primary"
-            @click="dialog=false">
-            Back
-          </v-btn>
-          <v-btn
-            id ="addBtn"
-            color="primary"
-            @click="setbookmarkTitle();addBookmark()">
-            Add
-          </v-btn>
-        </v-card-actions>
-      </v-dialog>
-  </v-row>
+      <v-card-text class="text-center" style="background-color: lightgray">
+        <em><small>&mdash; Bookmark Name</small></em>
+        <hr class="my-3">
+        <v-text-field id="bookmarkName" placeholder="default title is current time."></v-text-field>
+      </v-card-text>
+      <v-card-actions style="background-color: lightgray">
+        <v-spacer></v-spacer>
+        <v-btn
+          id ="cancelBtn"
+          color="primary"
+          @click="dialog=false">
+          Back
+        </v-btn>
+        <v-btn
+          id ="addBtn"
+          color="primary"
+          @click="setbookmarkTitle();addBookmark()">
+          Add
+        </v-btn>
+      </v-card-actions>
+    </v-dialog>
+  </div>
 </template>
 
 <script>
@@ -143,6 +140,10 @@ import Typography from '@tiptap/extension-typography'
 // import lowlight from 'lowlight'
 
 import TextEditor from "@/components/TextEditor";
+
+import Vue from 'vue'
+import VueColumnsResizable from 'vue-columns-resizable'
+Vue.use(VueColumnsResizable)
 
 class Bookmark{
   constructor( inputTitle, inputTime, noteComments){
@@ -328,8 +329,8 @@ export default {
         for(let i =0; i< length; i++){
           noteTemp = item.notecomments[i];
           this.createNote(noteTemp.xcomponent,
-                          noteTemp.ycomponent,
-                          noteTemp.comment);
+            noteTemp.ycomponent,
+            noteTemp.comment);
         }
       } // show end
     },
@@ -486,6 +487,7 @@ export default {
   height: 59%;
 }
 #docArea{
-  padding-left: 1px;
+  padding-left: 1em;
+  border-left: lightgrey;
 }
 </style>
