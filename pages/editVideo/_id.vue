@@ -1,5 +1,5 @@
 <template>
-  <v-row>
+  <div>
     <v-app-bar
       fixed
       app
