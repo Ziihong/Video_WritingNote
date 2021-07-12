@@ -98,10 +98,11 @@ export default{
         </v-list>
       </v-menu>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="addImage()"><v-icon>mdi-camera-iris</v-icon></v-btn></template><span>Screenshot</span></v-tooltip>
+      <v-btn style="align-self: center" @click="saveDocument">save</v-btn>
     </div>
     <editor-content :editor="editor" class="editDoc" style="border: 2px solid lightslategrey"/>
     <canvas id="screenshot" style="border: 1px solid black; width: 100%;" hidden></canvas>
-    <v-btn style="align-self: center" @click="saveDocument">save</v-btn>
+
   </div>
 </template>
 
@@ -207,9 +208,11 @@ export default {
   font-family: 'Noto Sans', sans-serif;
   font-family: 'Noto Sans KR', sans-serif;
   font-family: 'Noto Sans JP', sans-serif;
+  font-weight: normal;
+  text-align: justify;
 }
 .ProseMirror{
-  min-height: 30em;
+  min-height: 40em;
   border: 1px solid lightslategrey;
 }
 img {
