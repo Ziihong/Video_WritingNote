@@ -1681,6 +1681,20 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.9.2.tgz#adea7b6953cbb34651766b0548468e743c6a2353"
   integrity sha512-VZMYa7+fXHdwIq1TDhSXoVmSPEGM/aa+6Aiq3nVVJ9bXr24zScr+NlKFKC3iPljA7ho/GAZr+d2jOf5GIRC30Q==
 
+"@progress/kendo-vue-common@2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@progress/kendo-vue-common/-/kendo-vue-common-2.3.0.tgz#caf14c57f11bc4702108e59b9c1b75cebc6481ec"
+  integrity sha512-ZFuI+Fo7XsUFtm9RlkNsdaZ+oikukoYoFlKbjWXDbZjMJjnEOejZWxLWkLeCp2OapxxM8VkIPy1LCeqnyuNALA==
+  dependencies:
+    "@telerik/kendo-draggable" "2.2.0"
+
+"@progress/kendo-vue-grid@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@progress/kendo-vue-grid/-/kendo-vue-grid-2.3.0.tgz#d1949f7c22ee12ab027beb6959beee1bc75aa4b3"
+  integrity sha512-kVwOrqejw80Z9ENH2qfcC6NwwwInsokssdGWwdy0zJzR+Tvm11LEnDWbl+/Y6y5SH6X45SHlZ9v0IWZ/gknepQ==
+  dependencies:
+    "@progress/kendo-vue-common" "2.3.0"
+
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@protobufjs/aspromise/-/aspromise-1.1.2.tgz#9b8b0cc663d669a7d8f6f5d0893a14d348f30fbf"
@@ -1733,6 +1747,11 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
+
+"@telerik/kendo-draggable@2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@telerik/kendo-draggable/-/kendo-draggable-2.2.0.tgz#651ee63e8978c3c9d8548a3ece37280ce5944863"
+  integrity sha512-78ofOzRpisqPjG51LfLQ4FEWoGJXs4PkzyJSdVklyFw6gtAnj/T6dp7mHIMj8BivVkN9FjNgf4Eo/mdYs9fusQ==
 
 "@tiptap/core@^2.0.0-beta.85":
   version "2.0.0-beta.85"
@@ -4130,6 +4149,11 @@ devalue@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/devalue/-/devalue-2.0.1.tgz#5d368f9adc0928e47b77eea53ca60d2f346f9762"
   integrity sha512-I2TiqT5iWBEyB8GRfTDP0hiLZ0YeDJZ+upDxjBfOC2lebO5LezQMv7QvIUTzdb64jQyAKLf1AHADtGN+jw6v8Q==
+
+devextreme-vue@^21.1.4:
+  version "21.1.4"
+  resolved "https://registry.yarnpkg.com/devextreme-vue/-/devextreme-vue-21.1.4.tgz#48ddce07d6a20c816a580690abcd7294113eac32"
+  integrity sha512-Mndbtg/GJmwTq2lWs9/YSJnf9LcFPm7+jK3/sWblTOXN/oz/oSZgl4vOidM/y7JuFx2v0/e3WryORcSbfMhZMA==
 
 dicer@^0.3.0:
   version "0.3.0"
@@ -9505,6 +9529,20 @@ vue-client-only@^2.0.0:
   resolved "https://registry.yarnpkg.com/vue-client-only/-/vue-client-only-2.1.0.tgz#1a67a47b8ecacfa86d75830173fffee3bf8a4ee3"
   integrity sha512-vKl1skEKn8EK9f8P2ZzhRnuaRHLHrlt1sbRmazlvsx6EiC3A8oWF8YCBrMJzoN+W3OnElwIGbVjsx6/xelY1AA==
 
+vue-columns-resizable-vuetify@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/vue-columns-resizable-vuetify/-/vue-columns-resizable-vuetify-1.0.3.tgz#96b2f09c417a71d28ad1ef5ae7990673a1fea590"
+  integrity sha512-LphbZP652tYHG/CHYWtX46qel1F++GX0LrZsWbclls7v2bfOytawnbXaspdAXLo/qpktfdUiRas/yLHv+mv4pg==
+  dependencies:
+    vue "^2.6.11"
+
+vue-columns-resizable@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/vue-columns-resizable/-/vue-columns-resizable-0.0.1.tgz#3c3f11f21f483ecff14567716bac7c84a64f84c8"
+  integrity sha512-ElToITjEJQTlUx4NIrL4QFNr+jQIJ6XwHZrJ55h92P4VHplwIjy8v6KfnFAbXSphqhlo6hKbyyEXmsrhMY5cFw==
+  dependencies:
+    vue "^2.5.22"
+
 vue-froala-wysiwyg@^4.0.2:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/vue-froala-wysiwyg/-/vue-froala-wysiwyg-4.0.3.tgz#4a666075847c30e1550ecab28a94690d6da84cf4"
@@ -9602,7 +9640,7 @@ vue@2.6.6:
   resolved "https://registry.yarnpkg.com/vue/-/vue-2.6.6.tgz#dde41e483c11c46a7bf523909f4f2f816ab60d25"
   integrity sha512-Y2DdOZD8sxApS+iUlwv1v8U1qN41kq6Kw45lM6nVZKhygeWA49q7VCCXkjXqeDBXgurrKWkYQ9cJeEJwAq0b9Q==
 
-vue@^2.6.12:
+vue@^2.5.22, vue@^2.6.11, vue@^2.6.12, vue@^2.6.14:
   version "2.6.14"
   resolved "https://registry.yarnpkg.com/vue/-/vue-2.6.14.tgz#e51aa5250250d569a3fbad3a8a5a687d6036e235"
   integrity sha512-x2284lgYvjOMj3Za7kqzRcUSxBboHqtgRE2zlos1qWaOye5yUmHn42LB1250NJBLRwEcdrB0JRwyPTEPhfQjiQ==
