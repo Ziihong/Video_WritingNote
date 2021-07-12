@@ -117,8 +117,8 @@ export default {
         return alert('No video file!');
       }
     },
-
-    async gotoEditVideo(file){ // routing with file id value
+    // routing with file id value
+    async gotoEditVideo(file){
       await this.$router.push('/editVideo/' + file.id);
     },
 

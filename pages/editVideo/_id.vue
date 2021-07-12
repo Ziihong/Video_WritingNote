@@ -226,13 +226,40 @@ export default {
         }),
       ],
     })
-    console.log(`users/${this.$fire.auth.currentUser.uid}/${this.id}`);
+
+    // method for setting video source
     const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.id}`);
-    file.get().then((doc)=>{
+    file.get().then( async (doc)=>{
       const self = this;
-      console.log(self.$fire.storage.ref(doc.data().path).getDownloadURL());
-      Promise.resolve(self.$fire.storage.ref(doc.data().path).getDownloadURL().then(result=>(this.fileUrl = result)));
+      await Promise.resolve(self.$fire.storage.ref(doc.data().path).getDownloadURL().then(result=>(this.fileUrl = result)));
+
+      console.log(this.fileUrl);
+
+      this.currentVideo = document.getElementById('currentVideo');
     });
+    // end source setting
+
+    // method for setting bookmark array
+    this.$fire.firestore.doc(
+      `users/${this.$fire.auth.currentUser.uid}/files/${this.id}`).
+    collection('bookmarks').orderBy('bookmarkTime').onSnapshot((async querySnapshot => {
+      console.log(querySnapshot.docs[0].data().title);
+      this.items = this.items.concat(querySnapshot.docs);
+    }));
+    // end bookmark setting
+
+    // Click Plane Size Setting
+    const canvas = document.getElementById('clickPlane');
+    if(canvas){
+      const vid = document.getElementById('currentVideo');
+      const vidStyle = vid.getBoundingClientRect();
+      console.log(canvas);
+      if(canvas != null){
+        canvas.style.width = vidStyle.width+"px"
+        canvas.style.height = vidStyle.height+"px"
+      }
+    }
+    // End Size Setting
   },
 
   beforeDestroy() {
@@ -243,7 +270,6 @@ export default {
     //BOOKMARKS METHODS
     //method for time jump in video
     jumpTime(item){
-      this.currentVideo = document.getElementById('currentVideo');
       this.currentVideo.currentTime = item.time;
       this.currentVideo.pause();
       this.showBookmark(item);
@@ -259,8 +285,8 @@ export default {
     },
     //method for setting bookmark name
     setbookmarkTitle(){
-      this.currentVideo = document.getElementById('currentVideo');
       this.currentTime = this.currentVideo.currentTime;
+
       if(document.getElementById('bookmarkName').value){
         this.bookmarkTitle = document.getElementById('bookmarkName').value;
       }
@@ -270,7 +296,7 @@ export default {
       this.dialog = false;
     },
     // add notes to item list using constructor
-    addBookmark(){
+    async addBookmark(){
       const videoArea = document.getElementById('videoArea');
       const notes=[];
 
@@ -290,7 +316,11 @@ export default {
         } // end remove
 
         let item= new Bookmark(this.bookmarkTitle, this.currentTime, notes);
-        this.items.push(item)
+        this.items.push(item);
+        // add to firestore
+        await this.$fire.firestore.collection(
+          `users/${this.$fire.auth.currentUser.uid}/files/${this.id}/bookmarks`).
+        add({title: this.bookmarkTitle, bookmarkTime: this.currentTime, comments: JSON.stringify(notes)});
 
         //console.log(item);
       }
@@ -343,7 +373,9 @@ export default {
     // method for opening bookmark name edit
     editbookmarkTitle(event, index){
       event.stopPropagation();
+      console.log(event);
       if(this.isNamechange){
+        // change bookmark title on firestore
         this.clickedIndex= null;
         this.isNamechange = false;
       }
@@ -362,6 +394,7 @@ export default {
         }
       } // delete on screen end
       this.items.splice(index,1);
+      // delete on firestore
 
       // comments change to JSON
       const commentsJSONString = JSON.stringify(this.items);
@@ -445,18 +478,6 @@ export default {
       //console.log( `Coordinate:(${x},${y})`);
 
       this.createNote(x, y, '')
-    },
-
-    setClickplane(){ // need to look at this once more, I set canvas width and height offset, not following that of video
-      const canvas = document.getElementById('clickPlane');
-      const vid = document.getElementById('currentVideo');
-      const vidStyle = vid.getBoundingClientRect();
-      console.log(canvas);
-      if(canvas != null){
-        canvas.style.width = vidStyle.width+"px"
-        canvas.style.height = vidStyle.height+"px"
-      }
-
     },
   },
 }
