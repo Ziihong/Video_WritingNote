@@ -32,14 +32,13 @@
             v-if="isBookmarking"
             @click="setNote($event)"
             class="clickPlane">
-            <canvas id="clickPlane"></canvas>
           </div>
             <video
               id="currentVideo"
               style="margin-left: 0px; padding-left: 0px; width: 100%"
               controls
               muted
-              src="/video/Cat-66004.mp4">
+              :src=fileUrl>
             </video>
         </th>
         <th style="width: 30%; height: auto" rowspan="2" id="docArea">
@@ -147,12 +146,10 @@ import VueColumnsResizable from 'vue-columns-resizable'
 Vue.use(VueColumnsResizable)
 
 class Note{
-  constructor(x, y, comment, zIndex, buttonDisplay) {
+  constructor(x, y, comment) {
     this.xcomponent = x;
     this.ycomponent = y;
     this.comment = comment;
-    this.zIndex = zIndex;
-    this.buttonDisplay = buttonDisplay;
   }
 }
 
@@ -170,6 +167,7 @@ export default {
       isBookmarking: false,
       isPencil: false,
       isNamechange: false,
+
       clickedItem: null,
       itemNow: null,
       currentTime: null,
@@ -178,7 +176,6 @@ export default {
       prenote: null,
       items: [],
       fileUrl: '',
-      fileUrls: [],
 
       // bookmark examples
       /*
@@ -506,7 +503,6 @@ export default {
 
 .note{
   background-color: khaki;
-  opacity: 100%;
   position: absolute;
   text-align: center;
   z-index: 1;
@@ -517,8 +513,8 @@ export default {
   opacity: 20%;
   position: absolute;
   z-index: 1;
-  width: 66.7%;
-  height: 59%;
+  width: 69.7%;
+  height: 55%;
 }
 
 #docArea{
