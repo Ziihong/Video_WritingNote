@@ -250,8 +250,17 @@ export default {
         let imgHeight = canvas.height * imgWidth / canvas.width;
         let doc = new jsPDF('p', 'mm');
         let position = -1;
-
+        let pageHeight = imgWidth * 1.414;
+        let heightLeft =  imgHeight;
         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
+
+        heightLeft -= pageHeight;
+        while(heightLeft >= 20){
+         position -= heightLeft - imgHeight;
+         doc.addPage();
+         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
+         heightLeft -= pageHeight;
+        }
         doc.save('sample.pdf');
       });
     },
