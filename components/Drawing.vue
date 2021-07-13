@@ -96,14 +96,7 @@ export default {
   },
   methods: {
     drawingImage: async function(canvasSrc,vwidth, vheight) {
-      this.canvas = document.getElementById('drawing-canvas');
-      if(this.canvas){
-        console.log('Canvas is not empty');
-      }
-      else{
-        console.log('!!!!!Canvas empty!!!!!');
-      }
-      this.canvas.width = vwidth;
+      this.canvas = document.getElementById('drawing-canvas');this.canvas.width = vwidth;
       this.canvas.height = vheight;
 
       this.context = this.canvas.getContext('2d');
@@ -252,7 +245,6 @@ export default {
       this.isCanvasViewed = false;
       this.undoStack.length = 0;
       this.redoStack.length = 0;
-      console.log('Close success');
     },
   },
 }
