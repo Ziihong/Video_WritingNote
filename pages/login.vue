@@ -30,7 +30,7 @@
             회원가입
           </v-btn>
           <br>
-          <a class="align-end">아이디 | 비밀번호 찾기</a><br>
+          <a class="align-end" href="/password">비밀번호 찾기</a><br>
           <p>소셜 회원가입/로그인</p>
           <v-btn
             @click="signWithGoogle"

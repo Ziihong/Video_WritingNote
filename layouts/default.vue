@@ -137,6 +137,11 @@ export default {
           title: 'Mypage',
           to: '/mypage'
         },
+        {
+          icon: 'mdi-folder-multiple',
+          title: 'share',
+          to: '/share'
+        },
       ],
       miniVariant: false,
       right: true,
