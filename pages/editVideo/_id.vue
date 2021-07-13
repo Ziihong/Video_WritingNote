@@ -480,6 +480,27 @@ export default {
 
       this.createNote(x, y, '');
     },
+
+    setClickplane(){ // need to look at this once more, I set canvas width and height offset, not following that of video
+      const canvas = document.getElementById('clickPlane');
+      const vid = document.getElementById('currentVideo');
+      const vidStyle = vid.getBoundingClientRect();
+      console.log(canvas);
+      if(canvas != null){
+        canvas.style.width = vidStyle.width+"px"
+        canvas.style.height = vidStyle.height+"px"
+      }
+
+    },
+
+    // upload comments on firebase storage to json format
+    uploadComments(comments) {
+      const ref = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/currentVideo_comments.json`)
+      const file = new File(comments, 'currentVideo_comments.json')
+      ref.put(file).then( snapshot => {
+        console.log('Upload comments done')
+      })
+    }
   },
 }
 </script>
