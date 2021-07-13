@@ -25,7 +25,7 @@
       <v-row id="draw">
         <canvas id="videoCanvas" ref="textarea" class="hidden"
         ></canvas>
-        <v-stepper v-model="el">
+        <v-stepper v-model="el" id="markStepper">
           <v-stepper-header>
             <v-stepper-step v-for="mark of marks" v-bind:key="mark.timeline"
             :step="mark.data().time.toFixed(1)">
@@ -153,12 +153,13 @@ export default {
   },
   methods: {
     async onSaveNote() {
-      this.noteTexts = document.getElementById('content-editor').getElementsByTagName('div');
       const self = this;
       const textArr = [];
+      this.noteTexts = document.getElementById('content-editor').getElementsByTagName('div');
       //add contentEditable div text because this is not in div tag
-      let strSplit = document.getElementById('content-editor').innerHTML.split('<div>');
-      if(this.notes.length === 0){
+      let strSplit = document.getElementById('content-editor').innerHTML.split('<div');
+
+      if(strSplit[0][0] !== '<'){
         textArr.push(strSplit[0]);
       }
       for(let i=0; i<self.noteTexts.length; i++){
@@ -280,11 +281,16 @@ export default {
 }
 #content-editor{
   position: relative;
-  width: 70%;
+  width: 100%;
   height: 600px;
+  max-height: 600px;
   padding: 10px;
   border: 1px solid;
   overflow-y: auto;
+  font-family: "Nanum Square";
+}
+#markStepper {
+  /*width: 100%;*/
 }
 .hidden{
   display: none;

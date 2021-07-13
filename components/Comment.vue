@@ -17,7 +17,7 @@
                   <span>{{ creator.user }}</span>
                 </div>
               </div>
-              <div class="custom-scrollbar">
+              <div class="comments-Scrollbar">
                 <div class="comment" v-for="comment of comments">
                     <div class="avatar">
                       <a class="username" href="#"><img :src="comment.data().avatar" alt=""></a>
@@ -159,7 +159,8 @@ export default {
   padding-top: 0;
 }
 #commentArea {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  /*font-family: 'Avenir', Helvetica, Arial, sans-serif;*/
+  font-family: "Nanum Square";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
@@ -206,12 +207,12 @@ export default {
 .comment .inlineBtn {
   display: inline;
 }
-.custom-scrollbar{
+.comments-Scrollbar{
   max-height: 250px;
   overflow-y: auto;
   padding-right: 10px;
 }
-.custom-scrollbar::-webkit-scrollbar-track
+.comments-Scrollbar::-webkit-scrollbar-track
 {
   -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
   -moz-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
@@ -219,12 +220,12 @@ export default {
   border-radius: 10px;
   background-color: #fff;
 }
-.custom-scrollbar::-webkit-scrollbar
+.comments-Scrollbar::-webkit-scrollbar
 {
   width: 8px;
   background-color: #fff;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb
+.comments-Scrollbar::-webkit-scrollbar-thumb
 {
   border-radius: 10px;
   -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);

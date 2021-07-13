@@ -22,7 +22,7 @@ export default {
   },
   data(){
     return{
-      fileNames:'', // all sub files and dirs
+      fileNames:'', // all sub files and dirs obj
       fileObj:'', // obj
       uploadDirectoryId:'',
     }
@@ -35,84 +35,91 @@ export default {
       let directory = relativePath.split("/");
       const dirName = directory[0];
 
-      // can't upload using same directory name
-      const sameRef = await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`)
-        .collection('directories')
-      const sameQuerySnap = await sameRef.where("parentId", "==", this.parentId).where('name', '==', dirName).get();
-      if (sameQuerySnap.docs.length) {
-        return alert('기존 항목이 존재합니다.');
-      }
+      // 업로드 하려는 파일마다 파일명, 경로 지정(webkitRelativePath에서 제일 끝에 파일명 빼고 저장하면 될 듯)
+      // split 해서 저장한 배열의 길이가 제일 긴 idx가지고 폴더 생성 -> 폴더명과 id 딕셔너리 만들기?
+      // parentID는 length-1 로 지정
 
-      // create upload directory
-      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`).collection('directories')
-        .add({
-          name: dirName,
-          parentId: this.parentId,
-        })
-      const storageRef = await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`)
-        .collection('directories');
+      console.log("fileNames:", this.fileNames);
 
-      // set path for uploading files
-      const querySnap = await storageRef.where("parentId", "==", this.parentId).where('name', '==', dirName).get();
-      if (querySnap.docs.length) {
-        this.uploadDirectoryId = querySnap.docs[0].id;
-      }
-
-      // upload file
-      while(this.fileNames.length > 0){
-        // console.log('function: upFile!');
-        this.fileObj = this.fileNames.pop();
-        if (!this.$fire.auth.currentUser) {
-          return alert('로그인해주세요.');
-        }
-        if (!this.fileObj) {
-          return alert('파일을 선택해주세요.');
-        }
-
-        const storageRef = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${this.fileObj.name}`);
-        console.log('storageRef:', storageRef);
-        console.log('fileObj.name:', this.fileObj.name);
-        storageRef.put(this.fileObj);
-        const uploadTask = storageRef.put(this.fileObj);
-        this.isUploading = true;
-        const self = this;
-        uploadTask.on('state_changed', async function (snapshot) {        // Observe state change events such as progress, pause, and resume
-          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-
-          console.log('Upload is ' + progress + '% done');
-          switch (snapshot.state) {
-            case self.$fireModule.storage.TaskState.PAUSED: // or 'paused'
-              console.log('Upload is paused');
-              break;
-            case self.$fireModule.storage.TaskState.RUNNING: // or 'running'
-              console.log('Upload is running');
-              break;
-          }
-        }, function (error) {
-          // Handle unsuccessful uploads
-          alert('error');
-          this.isUploading = false;
-        }, async function () {
-          console.log('success!');
-          // Handle successful uploads on complete
-          // For instance, get the download URL: https://firebasestorage.googleapis.com/...
-          console.log(uploadTask.snapshot.ref.fullPath);
-
-          //const docReference
-          console.log("firebse upload");
-          await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
-            parentId: self.uploadDirectoryId,
-            name: uploadTask.snapshot.ref.name,
-            path: uploadTask.snapshot.ref.fullPath,
-            timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
-          })
-
-          uploadTask.snapshot.ref.getDownloadURL().then(function (downloadURL) {
-            console.log('File available at', downloadURL);
-          });
-        });
-      }
+      // // can't upload using same directory name
+      // const sameRef = await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`)
+      //   .collection('directories')
+      // const sameQuerySnap = await sameRef.where("parentId", "==", this.parentId).where('name', '==', dirName).get();
+      // if (sameQuerySnap.docs.length) {
+      //   return alert('기존 항목이 존재합니다.');
+      // }
+      //
+      // // create upload directory
+      // await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`).collection('directories')
+      //   .add({
+      //     name: dirName,
+      //     parentId: this.parentId,
+      //     timestamp: this.$fireModule.firestore.FieldValue.serverTimestamp()
+      //   })
+      // const storageRef = await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`)
+      //   .collection('directories');
+      //
+      // // set path for uploading files
+      // const querySnap = await storageRef.where("parentId", "==", this.parentId).where('name', '==', dirName).get();
+      // if (querySnap.docs.length) {
+      //   this.uploadDirectoryId = querySnap.docs[0].id;
+      // }
+      //
+      // // upload file
+      // while(this.fileNames.length > 0){
+      //   // console.log('function: upFile!');
+      //   this.fileObj = this.fileNames.pop();
+      //   if (!this.$fire.auth.currentUser) {
+      //     return alert('로그인해주세요.');
+      //   }
+      //   if (!this.fileObj) {
+      //     return alert('파일을 선택해주세요.');
+      //   }
+      //
+      //   const storageRef = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${this.fileObj.name}`);
+      //   console.log('storageRef:', storageRef);
+      //   console.log('fileObj.name:', this.fileObj.name);
+      //   storageRef.put(this.fileObj);
+      //   const uploadTask = storageRef.put(this.fileObj);
+      //   this.isUploading = true;
+      //   const self = this;
+      //   uploadTask.on('state_changed', async function (snapshot) {        // Observe state change events such as progress, pause, and resume
+      //     // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+      //     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      //
+      //     console.log('Upload is ' + progress + '% done');
+      //     switch (snapshot.state) {
+      //       case self.$fireModule.storage.TaskState.PAUSED: // or 'paused'
+      //         console.log('Upload is paused');
+      //         break;
+      //       case self.$fireModule.storage.TaskState.RUNNING: // or 'running'
+      //         console.log('Upload is running');
+      //         break;
+      //     }
+      //   }, function (error) {
+      //     // Handle unsuccessful uploads
+      //     alert('error');
+      //     this.isUploading = false;
+      //   }, async function () {
+      //     console.log('success!');
+      //     // Handle successful uploads on complete
+      //     // For instance, get the download URL: https://firebasestorage.googleapis.com/...
+      //     console.log(uploadTask.snapshot.ref.fullPath);
+      //
+      //     //const docReference
+      //     console.log("firebse upload");
+      //     await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
+      //       parentId: self.uploadDirectoryId,
+      //       name: uploadTask.snapshot.ref.name,
+      //       path: uploadTask.snapshot.ref.fullPath,
+      //       timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
+      //     })
+      //
+      //     uploadTask.snapshot.ref.getDownloadURL().then(function (downloadURL) {
+      //       console.log('File available at', downloadURL);
+      //     });
+      //   });
+      // }
     },
   },
 }

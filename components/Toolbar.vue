@@ -55,6 +55,7 @@ export default {
 <style scoped>
 
 .edit-toolbar{
+  /*width: 100%;*/
   margin-bottom: 30px;
   margin-top : 10px;
 }
