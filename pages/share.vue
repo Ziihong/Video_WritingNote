@@ -4,7 +4,6 @@
       <v-btn color="primary" @click="startScreenShare">Start</v-btn>
       <video id="local-video" autoplay></video>
     </div>
-    <script type="module" src="/pages/main.js"></script>
   </div>
 </template>
 
