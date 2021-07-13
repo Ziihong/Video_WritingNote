@@ -33,7 +33,7 @@
             @click="setNote($event)"
             class="clickPlane">
           </div>
-            <video
+          <video
               id="currentVideo"
               style="margin-left: 0px; padding-left: 0px; width: 100%"
               controls
@@ -225,26 +225,13 @@ export default {
       ],
     })
 
-    // method for setting video source
-    const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.id}`);
-    file.get().then( async (doc)=>{
-      const self = this;
-      await Promise.resolve(self.$fire.storage.ref(doc.data().path).getDownloadURL().then(result=>(this.fileUrl = result)));
+    // set video source
+    this.setVideoSource();
 
-      console.log(this.fileUrl);
+    this.currentVideo = document.getElementById('currentVideo');
 
-      this.currentVideo = document.getElementById('currentVideo');
-    });
-    // end source setting
-
-    // method for setting bookmark array
-    this.$fire.firestore.doc(
-      `users/${this.$fire.auth.currentUser.uid}/files/${this.id}`).
-    collection('bookmarks').orderBy('bookmarkTime').onSnapshot((async querySnapshot => {
-      //console.log(querySnapshot.docs[0].data().title);
-      this.items = querySnapshot.docs;
-    }));
-    // end bookmark setting
+    // set bookmark array
+    this.setBookmarkArray();
 
     // Click Plane Size Setting
     const canvas = document.getElementById('clickPlane');
@@ -265,15 +252,36 @@ export default {
   },
 
   methods:{
-    //BOOKMARKS METHODS
-    //method for time jump in video
+    // FETCH DATA FROM FIRESTORE
+    // method for setting Video source
+    setVideoSource(){
+      const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.id}`);
+      file.get().then( async (doc)=>{
+        const self = this;
+        await Promise.resolve(self.$fire.storage.ref(doc.data().source).getDownloadURL().then(result=>(this.fileUrl = result)));
+
+        console.log(this.fileUrl);
+      });
+    },
+    // method for setting bookmark array
+    setBookmarkArray(){
+      this.$fire.firestore.doc(
+        `users/${this.$fire.auth.currentUser.uid}/files/${this.id}`).
+      collection('bookmarks').orderBy('bookmarkTime').onSnapshot((async querySnapshot => {
+        //console.log(querySnapshot.docs[0].data().title);
+        this.items = querySnapshot.docs;
+      }));
+    },
+
+    // BOOKMARKS METHODS
+    // jump time in video
     jumpTime(item){
       console.log('Bookmark Time: ', item.data().bookmarkTime);
       this.currentVideo.currentTime = item.data().bookmarkTime;
       this.currentVideo.pause();
       this.showBookmark(item);
     },
-    //method for opening bookmark title dialog
+    // open bookmark title dialog
     openDialog(){
       if(this.itemNow == null){
         this.dialog = true;
@@ -282,7 +290,7 @@ export default {
         this.addBookmark();
       }
     },
-    //method for setting bookmark name
+    // set bookmark title
     setbookmarkTitle(){
       this.currentTime = this.currentVideo.currentTime;
 
@@ -348,7 +356,6 @@ export default {
       }
       this.isBookmarking= false;
     },
-
     // loading notes on screen based on items
     showBookmark(item){
       this.currentVideo = document.getElementById('currentVideo');
@@ -370,7 +377,7 @@ export default {
         }
       } // show end
     },
-    // method for opening bookmark name edit
+    // open bookmark title edit
     async editbookmarkTitle(event, item){
       event.stopPropagation();
       console.log(event);
@@ -387,7 +394,7 @@ export default {
         this.isNamechange = true;
       }
     },
-    // method for deleting bookmark clicked
+    // delete bookmark clicked
     deleteBookmark(event,item){
       // need to fix error issues
       event.stopPropagation();
@@ -402,8 +409,8 @@ export default {
         `users/${this.$fire.auth.currentUser.uid}/files/${this.id}/bookmarks/${item.id}`).delete();
     },
 
-    //NOTES METHODS
-    //method for creating notes
+    // NOTES METHODS
+    // method for creating notes
     createNote(x, y, comment){
       let note=document.createElement('textarea');
       let noteWrap=document.createElement('div');
@@ -493,14 +500,14 @@ export default {
 
     },
 
-    // upload comments on firebase storage to json format
-    uploadComments(comments) {
-      const ref = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/currentVideo_comments.json`)
-      const file = new File(comments, 'currentVideo_comments.json')
-      ref.put(file).then( snapshot => {
-        console.log('Upload comments done')
-      })
-    }
+    // // upload comments on firebase storage to json format
+    // uploadComments(comments) {
+    //   const ref = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/currentVideo_comments.json`)
+    //   const file = new File(comments, 'currentVideo_comments.json')
+    //   ref.put(file).then( snapshot => {
+    //     console.log('Upload comments done')
+    //   })
+    // }
   },
 }
 </script>

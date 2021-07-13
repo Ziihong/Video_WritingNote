@@ -39,7 +39,7 @@ export default {
     }
   },
 
-  created() {
+  mounted() {
     if(!this.$fire.auth.currentUser)
       return
 
@@ -60,68 +60,78 @@ export default {
       else {
         console.log('not exists')
       }
-    })
+    });
 
-    this.updateData()
+    this.updateData();
 
   },
 
   methods: {
     async updateData() {
-      // reset dirs and files
-      this.dirs = []
-      this.files = []
-
       // get user's directory
       this.$fire.firestore.doc(`users/${this.uid}`)
-        .collection('directory').get().then(directory => {
-        directory.docs.forEach(dir => {
-          if (dir.data().path === this.currentDir) {
-            this.dirs.push(dir.data())
-          }
-        })
-      })
+        .collection('directory').onSnapshot((async querySnapshot =>{
+          console.log('Now directory update');
+          // reset dirs and files
+          this.dirs = [];
+          querySnapshot.docs.forEach(dir => {
+            if (dir.data().path === this.currentDir) {
+              console.log(dir.data().name);
+              this.dirs.push(dir.data())
+            }
+          })
+        }));
+      // end directory get
 
       // get user's file
       this.$fire.firestore.doc(`users/${this.uid}`)
-      .collection('files').get().then(files => {
-        files.docs.forEach(file => {
-
+      .collection('files').onSnapshot((async querySnapshot =>{
+        console.log('Now file update');
+        // reset dirs and files
+        this.docFiles=[];
+        this.files = [];
+        querySnapshot.docs.forEach(file => {
           if (file.data().path === this.currentDir) {
-            this.docFiles.push(file.data())
+            console.log(file.data().name);
+            this.files.push(file);
+            this.docFiles.push(file.data());
           }
         })
-      })
+      }));
+      // end file get
 
-      this.$fire.firestore.doc(`users/${this.uid}`)
-        .collection('files').orderBy('name').onSnapshot((async querySnapshot => {
-        //console.log(querySnapshot.docs.length)
-        this.files = querySnapshot.docs
-        const self = this
-        this.fileUrls = await Promise.all(this.files.map(file =>
-          file.data().path ? self.$fire.storage.ref(file.data().path).getDownloadURL() : ''))
-        //console.log('fileUrls', this.fileUrls)
-      }))
+      // update video urls
+      const self = this
+      this.fileUrls = await Promise.all(this.files.map(file =>
+        file.data().source ? self.$fire.storage.ref(file.data().source).getDownloadURL() : ''));
+      console.log('fileUrls', this.fileUrls)
+
+      // this.$fire.firestore.doc(`users/${this.uid}`)
+      //   .collection('files').orderBy('name').onSnapshot((async querySnapshot => {
+      //   //console.log(querySnapshot.docs.length)
+      //   this.files = querySnapshot.docs
+      //   const self = this
+      //   this.fileUrls = await Promise.all(this.files.map(file =>
+      //     file.data().path ? self.$fire.storage.ref(file.data().path).getDownloadURL() : ''))
+      //   //console.log('fileUrls', this.fileUrls)}
     },
 
     async createDirectory() {
-      
+
       if (this.createDir == null) {
-        console.log('Input your directory name')
-        return
+        console.log('Input your directory name');
+        return;
       }
 
       try {
         await this.$fire.firestore.collection(`users/${this.uid}/directory`)
           .doc(this.currentDir.replace('\/','').replace(/\//g,'.') + this.createDir)
-          .set({ name: this.createDir, path: this.currentDir })
+          .set({ name: this.createDir, path: this.currentDir });
 
-        this.updateData()
-
-        await this.$router.push({ params: { dir: this.currentDir }})
+        await this.$router.push({ params: { dir: this.currentDir }});
 
       } catch (e) {
-        console.log(e.message)
+        console.log(e.message);
       }
     },
 

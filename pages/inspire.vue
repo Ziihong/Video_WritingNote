@@ -95,7 +95,7 @@ export default {
 
       console.log('this',this);
 
-      this.fileUrls = await Promise.all(this.files.map(file => file.data().path ? self.$fire.storage.ref(file.data().path).getDownloadURL() : ''));
+      this.fileUrls = await Promise.all(this.files.map(file => file.data().source ? self.$fire.storage.ref(file.data().source).getDownloadURL() : ''));
 
       console.log('fileUrls', this.fileUrls);
     }));
@@ -189,7 +189,8 @@ export default {
         await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
           title: title,
           name: uploadTask.snapshot.ref.fullPath,
-          path: uploadTask.snapshot.ref.fullPath,
+          path: '/',
+          source: uploadTask.snapshot.ref.fullPath,
           timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
         })
         this.isUploading = false;
@@ -199,7 +200,7 @@ export default {
         });
       });
     }
-
+    // end examples
   },
 }
 </script>
