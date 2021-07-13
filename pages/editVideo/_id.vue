@@ -13,7 +13,7 @@
       </v-btn>
       <v-toolbar-title class="text-center" v-text="title" style="padding-left: 2%; padding-right: 2%"/>
       <v-btn v-if="isBookmarking" @click="removeNotesAll()">clear all</v-btn>
-      <v-btn v-if="isBookmarking" @click="removeNotesAll(), isBookmarking=false">cancel</v-btn>
+      <v-btn v-if="isBookmarking" @click="removeNotesAll(), isBookmarking=false, itemNow=null">cancel</v-btn>
       <v-spacer/>
       <v-btn icon id="newBtn" @click.stop="isBookmarking ? openDialog() : showBookmark()">
         <v-icon>mdi-{{`${isBookmarking? 'book-edit' : 'star'}`}}</v-icon>
@@ -68,10 +68,11 @@
                   <v-icon>{{ i+1 }}</v-icon>
                 </v-list-item-action>
                 <v-list-item-content>
-                  <v-list-item-title v-if="clickedIndex != i" v-text="item.title"/>
+                  <v-list-item-title v-if="clickedItem !== item" v-text="item.data().title"/>
                   <v-text-field v-else
+                                id="bookmarkTitle"
                                 placeholder ="Write your bookmark name."
-                                v-model="item.title"
+                                v-model="clickedItem.data().title"
                                 @click="$event.stopPropagation()"
                                 v-click-outside="editbookmarkTitle"
                                 style="margin: 0; padding: 0;"
@@ -79,10 +80,10 @@
                   ></v-text-field>
                 </v-list-item-content>
                 <v-btn icon id="editbookmarkTitle" style="z-index: 1"
-                       @click.stop= "isNamechange? null : editbookmarkTitle($event,i)">
+                       @click.stop= "isNamechange? null : editbookmarkTitle($event,item)">
                   <v-icon>mdi-square-edit-outline</v-icon></v-btn>
                 <v-btn icon id="deletebookmarkTitle" style="color: red; z-index: 1"
-                       @click.stop="deleteBookmark($event,i)">
+                       @click.stop="deleteBookmark($event,item)">
                   <v-icon>mdi-minus</v-icon></v-btn>
               </v-list-item>
             </v-list>
@@ -145,19 +146,13 @@ import Vue from 'vue'
 import VueColumnsResizable from 'vue-columns-resizable'
 Vue.use(VueColumnsResizable)
 
-class Bookmark{
-  constructor( inputTitle, inputTime, noteComments){
-    this.title=inputTitle;
-    this.time=inputTime;
-    this.notecomments=noteComments;
-  }
-}
-
 class Note{
-  constructor(x, y, comment) {
+  constructor(x, y, comment, zIndex, buttonDisplay) {
     this.xcomponent = x;
     this.ycomponent = y;
     this.comment = comment;
+    this.zIndex = zIndex;
+    this.buttonDisplay = buttonDisplay;
   }
 }
 
@@ -175,14 +170,19 @@ export default {
       isBookmarking: false,
       isPencil: false,
       isNamechange: false,
-      clickedIndex: null,
+      clickedItem: null,
       itemNow: null,
       currentTime: null,
       currentVideo: null,
       bookmarkTitle: null,
       prenote: null,
-      items: [
-        {
+      items: [],
+      fileUrl: '',
+      fileUrls: [],
+
+      // bookmark examples
+      /*
+      {
           title: 'Start',
           time: 0,
           notecomments: [{xcomponent: 60 , ycomponent: 300, comment: 'This is the start of video.'},
@@ -203,9 +203,7 @@ export default {
           time: 9,
           notecomments: [{xcomponent: 60 , ycomponent: 300, comment: 'This is the end of video.'}]
         }
-      ],
-      fileUrl: '',
-      fileUrls: [],
+       */
     }
   },
 
@@ -246,8 +244,8 @@ export default {
     this.$fire.firestore.doc(
       `users/${this.$fire.auth.currentUser.uid}/files/${this.id}`).
     collection('bookmarks').orderBy('bookmarkTime').onSnapshot((async querySnapshot => {
-      console.log(querySnapshot.docs[0].data().title);
-      this.items = this.items.concat(querySnapshot.docs);
+      //console.log(querySnapshot.docs[0].data().title);
+      this.items = querySnapshot.docs;
     }));
     // end bookmark setting
 
@@ -273,7 +271,8 @@ export default {
     //BOOKMARKS METHODS
     //method for time jump in video
     jumpTime(item){
-      this.currentVideo.currentTime = item.time;
+      console.log('Bookmark Time: ', item.data().bookmarkTime);
+      this.currentVideo.currentTime = item.data().bookmarkTime;
       this.currentVideo.pause();
       this.showBookmark(item);
     },
@@ -299,17 +298,21 @@ export default {
       this.dialog = false;
     },
     // add notes to item list using constructor
-    async addBookmark(){
+    addBookmark(){
       const videoArea = document.getElementById('videoArea');
       const notes=[];
 
       if(this.itemNow == null) { // add new bookmark
+
+        console.log('New Bookmark');
+
         for(let i = 0; i<videoArea.children.length;){
           if(videoArea.children[i].className === 'noteWrap'){
             // save note object in array
             notes.push(new Note(videoArea.children[i].style.top.replace('px', ''),
               videoArea.children[i].style.left.replace('px', ''),
               videoArea.children[i].children[0].value));
+
             // remove notes
             videoArea.removeChild(videoArea.children[i]);
           }
@@ -317,17 +320,15 @@ export default {
             i++;
           }
         } // end remove
-
-        let item= new Bookmark(this.bookmarkTitle, this.currentTime, notes);
-        this.items.push(item);
         // add to firestore
-        await this.$fire.firestore.collection(
+        this.$fire.firestore.collection(
           `users/${this.$fire.auth.currentUser.uid}/files/${this.id}/bookmarks`).
         add({title: this.bookmarkTitle, bookmarkTime: this.currentTime, comments: JSON.stringify(notes)});
-
-        //console.log(item);
       }
       else{
+
+        console.log('Update');
+
         for(let i = 0; i<videoArea.children.length;){
           if(videoArea.children[i].className === 'noteWrap'){
             // save note object in array
@@ -341,14 +342,13 @@ export default {
             i++;
           }
         } // end remove
-        this.itemNow.notecomments = notes;
+        // update changes on firestore
+        this.$fire.firestore.doc(
+          `users/${this.$fire.auth.currentUser.uid}/files/${this.id}/bookmarks/${this.itemNow.id}`).
+        set({comments: JSON.stringify(notes)},{merge: true});
+
         this.itemNow=null;
       }
-
-      // comments change to JSON
-      const commentsJSONString = JSON.stringify(this.items);
-      console.log(commentsJSONString);
-
       this.isBookmarking= false;
     },
 
@@ -363,10 +363,10 @@ export default {
       if(item != null){ // show item comments on screen
         let noteTemp =null;
         this.itemNow = item;
-        let length = item.notecomments.length;
-        const videoArea = document.getElementById('videoArea');
+        let length = JSON.parse(item.data().comments).length;
+
         for(let i =0; i< length; i++){
-          noteTemp = item.notecomments[i];
+          noteTemp = JSON.parse(item.data().comments)[i];
           this.createNote(noteTemp.xcomponent,
                           noteTemp.ycomponent,
                           noteTemp.comment);
@@ -374,34 +374,35 @@ export default {
       } // show end
     },
     // method for opening bookmark name edit
-    editbookmarkTitle(event, index){
+    async editbookmarkTitle(event, item){
       event.stopPropagation();
       console.log(event);
       if(this.isNamechange){
         // change bookmark title on firestore
-        this.clickedIndex= null;
+        await this.$fire.firestore.doc(
+          `users/${this.$fire.auth.currentUser.uid}/files/${this.id}/bookmarks/${this.clickedItem.id}`).
+        set({title: document.getElementById('bookmarkTitle').value},{merge: true});
+        this.clickedItem= null;
         this.isNamechange = false;
       }
       else{
-        this.clickedIndex= index;
+        this.clickedItem= item;
         this.isNamechange = true;
       }
     },
     // method for deleting bookmark clicked
-    deleteBookmark(event,index){
+    deleteBookmark(event,item){
+      // need to fix error issues
       event.stopPropagation();
       if(this.isBookmarking){ //check if deleting is currently open
-        if(this.items[index] === this.itemNow){
+        if(item === this.itemNow){
           this.removeNotesAll();
           this.isBookmarking = false;
         }
       } // delete on screen end
-      this.items.splice(index,1);
       // delete on firestore
-
-      // comments change to JSON
-      const commentsJSONString = JSON.stringify(this.items);
-      console.log(commentsJSONString);
+      this.$fire.firestore.doc(
+        `users/${this.$fire.auth.currentUser.uid}/files/${this.id}/bookmarks/${item.id}`).delete();
     },
 
     //NOTES METHODS
@@ -480,7 +481,7 @@ export default {
       let y= event.offsetX;
       //console.log( `Coordinate:(${x},${y})`);
 
-      this.createNote(x, y, '')
+      this.createNote(x, y, '');
     },
   },
 }
