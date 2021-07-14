@@ -126,8 +126,8 @@ export default {
         },
         {
           icon: 'mdi-chart-bubble',
-          title: 'Inspire',
-          to: '/inspire'
+          title: 'Storage',
+          to: '/storage'
         },
       ],
       miniVariant: false,

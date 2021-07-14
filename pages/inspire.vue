@@ -1,32 +1,48 @@
 <template>
   <v-row>
-    <v-col class="text-center">
-      <v-spacer></v-spacer>
-      <v-btn>Create directory</v-btn>
-      <div class="text-left">
+    <v-col class="text-left">
+
+      <div style="padding-top: 30px;background-color: white;color: black;">
+        name: {{ name }}<br>description: {{ description }}
+        <span>
+          <v-text-field v-model="name" light/>
+          <v-btn @click="onSave" v-html="`Save Name`" light/>
+        </span>
+      </div>
+
+      <div style="margin-bottom: 10px">
+        <v-text-field v-model="createDir" label="Directory name"></v-text-field>
+        <v-btn @click="createDirectory">Create directory</v-btn>
+        <v-btn @click="goHome">go Home Dir</v-btn>
+      </div>
+
+      <div style="background-color: lightcyan; margin-top: 10px" class="text-center"> Directory </div>
+      <div class="text-left" style="margin-top: 10px">
+        <v-list-item v-for="(dir,index) of dirs"
+                     style="display: inline; background-color: #ced4da; margin-right: 5px"
+                     @click="clickDir(dir.name, dir.path)">
+          <v-list-item-action  class="fileShape">
+            {{ dir.name }}
+          </v-list-item-action>
+        </v-list-item>
+        <hr>
+      </div>
+
+      <div style="background-color: lightcyan; margin-top: 10px" class="text-center"> Files </div>
+      <div class="text-left" style="margin-top: 10px">
         <v-btn class="addFilebtn" @click="dialog = !dialog">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
         <v-list-item v-for="(file,index) of files"
                      style="display: inline"
                      @click="gotoEditVideo(file)">
-          <v-list-item-action v-if="file.data().path" class="fileShape">
+          <v-list-item-action class="fileShape">
             <video :src="fileUrls[index]" width="200px"/>
             {{ file.data().title }}
           </v-list-item-action>
-          <v-list-item-action v-else>{{ file.data().title }}</v-list-item-action>
         </v-list-item>
         <hr>
       </div>
-
-      <!--check below code for add/remove file collection & file upload-->
-      <div style="padding: 30px;background-color: white;color: black;">
-        name: {{ name }}<br>
-        description: {{ description }}
-        <v-text-field v-model="name" light/>
-        <v-btn @click="onSave" v-html="`저장`" light/>
-      </div>
-      <!-- End of file management Example-->
 
       <v-dialog v-model="dialog" width="500" v-if="dialog">
         <v-card style="background-color: lightgray">
@@ -68,37 +84,53 @@ export default {
       fileObj: null,
       isUploading: false,
       fileUrls: [],
+
+      uid: null,
+      currentDir: null,
+      createDir: null,
+
+      dirs: [],
+      docFiles: []
     };
   },
 
-  //check below code for file handling
   mounted() {
     if(!this.$fire.auth.currentUser)
       return;
 
+    // set current uid & current Directory path
+    this.uid = this.$fire.auth.currentUser.uid
+    this.currentDir = this.$route.params.dir
+
+    // if user in home directory
+    if (this.currentDir == undefined) {
+      this.currentDir = '/'
+    }
+
+    // get user name
     this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).get().then(docSnap => {
       if (docSnap.exists) {
         this.name = docSnap.data().name;
         this.description = docSnap.data().description;
       }
-
       else {
-        console.log('');
+        console.log('not exists');
       }
     });
 
-    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-    collection('files').orderBy('name').onSnapshot((async querySnapshot => {
-      console.log(querySnapshot.docs.length);
-      this.files = querySnapshot.docs;
-      const self = this;
-
-      console.log('this',this);
-
-      this.fileUrls = await Promise.all(this.files.map(file => file.data().path ? self.$fire.storage.ref(file.data().path).getDownloadURL() : ''));
-
-      console.log('fileUrls', this.fileUrls);
-    }));
+    this.updateData();
+    // this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+    // collection('files').orderBy('name').onSnapshot((async querySnapshot => {
+    //   console.log(querySnapshot.docs.length);
+    //   this.files = querySnapshot.docs;
+    //   const self = this;
+    //
+    //   console.log('this',this);
+    //
+    //   this.fileUrls = await Promise.all(this.files.map(file => file.data().source ? self.$fire.storage.ref(file.data().source).getDownloadURL() : ''));
+    //
+    //   console.log('fileUrls', this.fileUrls);
+    // }));
   },
 
   methods: {
@@ -123,30 +155,27 @@ export default {
     },
 
     // Fire store example methods
+    // Save Name for account
     async onSave() {
-      // this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).update({name: this.name}).then(() => {
-      //   console.log('saved!');
-      // })
+
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
       set({name: this.name}, {merge: true}).
       then(() => {
         console.log('saved!');
       });
 
-      await this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/files`).
-      add({name: `test${this.files.length}`, title: `test${this.files.length}`});
     },
-
+    // Remove files on fire store
     async removeFile(file) {
       console.log('file: ', file.id);
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${file.id}`).delete();
     },
-
+    // Set file object for selected one
     onSelect(file) {
       console.log('onSelect:', file);
       this.fileObj = file;
     },
-
+    // Upload file on fire store and storage
     startUpload(title){
       if(!this.$fire.auth.currentUser) {
         return alert('로그인해주세요.');
@@ -189,7 +218,8 @@ export default {
         await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
           title: title,
           name: uploadTask.snapshot.ref.fullPath,
-          path: uploadTask.snapshot.ref.fullPath,
+          path: '/',
+          source: uploadTask.snapshot.ref.fullPath,
           timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
         })
         this.isUploading = false;
@@ -198,8 +228,79 @@ export default {
           console.log('File available at', downloadURL);
         });
       });
-    }
+    },
+    // Fetched from storage
+    async updateData() {
+      // get user's directory
+      this.$fire.firestore.doc(`users/${this.uid}`)
+        .collection('directory').onSnapshot((async querySnapshot =>{
+        console.log('Now directory update');
+        // reset dirs and files
+        this.dirs = [];
+        querySnapshot.docs.forEach(dir => {
+          if (dir.data().path === this.currentDir) {
+            console.log(dir.data().name);
+            this.dirs.push(dir.data())
+          }
+        })
+      }));
+      // end directory get
 
+      // get user's file
+      this.$fire.firestore.doc(`users/${this.uid}`)
+        .collection('files').onSnapshot((async querySnapshot =>{
+        console.log('Now file update');
+        // reset dirs and files
+        this.docFiles=[];
+        this.files = [];
+        querySnapshot.docs.forEach(file => {
+          if (file.data().path === this.currentDir) {
+            console.log(file.data().name);
+            this.files.push(file);
+            this.docFiles.push(file.data());
+          }
+        })
+        // update video urls
+        const self = this
+        this.fileUrls = await Promise.all(this.files.map(file =>
+          file.data().source ? self.$fire.storage.ref(file.data().source).getDownloadURL() : ''));
+        console.log('fileUrls', this.fileUrls)
+      }));
+      // end file get
+    },
+
+    async createDirectory() {
+
+      if (this.createDir == null) {
+        console.log('Input your directory name');
+        return;
+      }
+
+      try {
+        await this.$fire.firestore.collection(`users/${this.uid}/directory`)
+          .doc(this.currentDir.replace('\/','').replace(/\//g,'.') + this.createDir)
+          .set({ name: this.createDir, path: this.currentDir });
+
+        await this.$router.push({ params: { dir: this.currentDir }});
+
+      } catch (e) {
+        console.log(e.message);
+      }
+    },
+
+    async goHome() {
+      if (this.currentDir == '/') { // if not, caused error
+        return
+      }
+      await this.$router.push({ params: {dir: '/' }})
+    },
+
+    async clickDir(name, path) {
+
+      await this.$router.push({ params: {dir: path + name + '/' }})
+      console.log(this.$route.params)
+
+    },
   },
 }
 </script>
