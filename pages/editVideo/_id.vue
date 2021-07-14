@@ -11,7 +11,7 @@
         </v-icon>
         Home
       </v-btn>
-      <v-toolbar-title class="text-center" v-text="title" style="padding-left: 2%; padding-right: 2%"/>
+      <v-toolbar-title class="text-center" v-text="'Video Comment'" style="padding-left: 2%; padding-right: 2%"/>
       <v-btn v-if="isBookmarking" @click="removeNotesAll()">clear all</v-btn>
       <v-btn v-if="isBookmarking" @click="removeNotesAll(), isBookmarking=false, itemNow=null">cancel</v-btn>
       <v-spacer/>
@@ -168,7 +168,6 @@ export default {
   data () {
     return {
       id: this.$route.params.id,
-      title: 'Video Comment',
       dialog: false,
       isBookmarking: false,
       isPencil: false,
@@ -182,31 +181,6 @@ export default {
       prenote: null,
       items: [],
       fileUrl: '',
-
-      // bookmark examples
-      /*
-      {
-          title: 'Start',
-          time: 0,
-          notecomments: [{xcomponent: 60 , ycomponent: 300, comment: 'This is the start of video.'},
-            {xcomponent: 120 , ycomponent: 430, comment: 'Nothing special, just testing.'}]
-        },
-        {
-          title: 'I wanna go home',
-          time: 3,
-          notecomments: [{xcomponent: 70 , ycomponent: 400, comment: 'I want to go on a vacation.'}]
-        },
-        {
-          title: 'Cute Cute Cat',
-          time: 5,
-          notecomments: [{xcomponent: 100 , ycomponent: 370, comment: 'This cat is cute, though.'}]
-        },
-        {
-          title: 'Video End',
-          time: 9,
-          notecomments: [{xcomponent: 60 , ycomponent: 300, comment: 'This is the end of video.'}]
-        }
-       */
     }
   },
 
