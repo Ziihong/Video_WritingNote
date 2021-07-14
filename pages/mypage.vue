@@ -65,9 +65,7 @@
       <v-row>
         <div id="content-editor" contenteditable="true">
           <template v-for="note of notes">
-            <div>
-              {{ note.data().text }}
-            </div>
+            {{testFunc(note.data().text)}}
           </template>
         </div>
       </v-row>
@@ -167,41 +165,53 @@ export default {
     }));
   },
   methods: {
-    async onSaveNote() {
-      const self = this;
-      const textArr = [];
-      this.noteTexts = document.getElementById('content-editor').getElementsByTagName('div');
-      //add contentEditable div text because this is not in div tag
-      let strSplit = document.getElementById('content-editor').innerHTML.split('<div');
+    testFunc(html, event) {
+      try {
+        let div = document.getElementById("content-editor");
+        let newStr = "<div>" + html + "</div>";
+        div.insertAdjacentHTML( 'beforeend', newStr );
+        event.stopPropagation();
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    async onSaveNote(event) {
+      try {
+        let replacement = document.getElementById('content-editor').innerHTML.replace(/<div>/g, "`");
+        let everyReplace = replacement.replace(/<\/div>/g, "`");
+        let strSplit = everyReplace.split("`" || "``");
+        const textArr = [];
+        const self = this;
 
-      if (strSplit[0][0] !== '<') {
-        textArr.push(strSplit[0]);
+        for(let i=0; i<strSplit.length; i++){
+          textArr.push(strSplit[i]);
+        }
+        //delete all that has saved before
+        let i = this.notes.length;
+        while(i !== 0){
+          await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/notes/${this.notes[0].id}`).delete();
+          i--;
+        }
+        for(const i of textArr){
+          await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/notes`).add({
+            text: i,
+            timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
+          });
+        }
+        this.notes = [];
+        const fileStorageRef = this.$fire.firestore
+          .collection(`users/${this.$fire.auth.currentUser.uid}/notes`);
+        fileStorageRef.orderBy('timestamp')
+          .onSnapshot((async querySnapshot => {
+            this.notes = querySnapshot.docs;
+            const self = this;
+            this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
+          }));
+        document.getElementById('content-editor').innerHTML = "";
+      } catch (e) {
+        console.log(e);
       }
-      for (let i = 0; i < self.noteTexts.length; i++) {
-        textArr.push(self.noteTexts[i].innerText);
-      }
-      //delete all that has saved before
-      let i = this.notes.length;
-      while (i !== 0) {
-        await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/notes/${this.notes[0].id}`).delete();
-        i--;
-      }
-      for (const i of textArr) {
-        await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/notes`).add({
-          text: i,
-          timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
-        });
-      }
-      this.notes = [];
-      const fileStorageRef = this.$fire.firestore
-        .collection(`users/${this.$fire.auth.currentUser.uid}/notes`);
-      fileStorageRef.orderBy('timestamp')
-        .onSnapshot((async querySnapshot => {
-          this.notes = querySnapshot.docs;
-          const self = this;
-          this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
-        }));
-      document.getElementById('content-editor').innerHTML = "";
+      event.stopPropagation();
     },
     async removeMark(mark) {
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/marks/${mark.id}`).delete();
@@ -265,8 +275,17 @@ export default {
         let imgHeight = canvas.height * imgWidth / canvas.width;
         let doc = new jsPDF('p', 'mm');
         let position = -1;
-
+        let pageHeight = imgWidth * 1.414;
+        let heightLeft =  imgHeight;
         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
+
+        heightLeft -= pageHeight;
+        while(heightLeft >= 20){
+         position -= heightLeft - imgHeight;
+         doc.addPage();
+         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
+         heightLeft -= pageHeight;
+        }
         doc.save('sample.pdf');
       });
     },
