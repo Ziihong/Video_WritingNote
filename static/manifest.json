@@ -1,0 +1,10 @@
+{
+  "name": "Chrome-extension",
+  "description": "Build an Extension!",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": ["storage", "activeTab"],
+  "action": {
+    "default_popup": "index.html"
+  }
+}

@@ -1,92 +1,108 @@
 <template>
-  <v-row>
-    <v-col cols="8">
-      <v-row>
-        <Drawing :isCanvasViewed="this.isCanvasOn"
-                 :imageSrc="this.canvasImgsrc"
-                 ref="drawingPopup"
-        ></Drawing>
-        <v-btn color="primary" @click="toStorage">
-          <v-icon left>
-            mdi-arrow-left-circle
-          </v-icon>
-          내 파일함</v-btn>
-        <input placeholder="제목을 입력하세요" type="text"
-               style="width: 40%; background-color:white;"/>
-      </v-row>
-      <v-row>
-        <video class="video-frame" controls autoplay muted crossorigin="anonymous"
-               :src="`${videoUrl}#t=0.5`"
-               id="videoOrigin" width="100%" height="500"
-        >
-          브라우저가 비디오 플레이를 지원하지 않습니다
-        </video>
-      </v-row>
-      <v-row id="draw">
-        <canvas id="videoCanvas" ref="textarea" class="hidden"
-        ></canvas>
-        <v-stepper v-model="el">
-          <v-stepper-header>
-            <v-stepper-step v-for="mark of marks" v-bind:key="mark.timeline"
-                            :step="mark.data().time.toFixed(1)">
-              <v-btn @click="goToMarkTime(mark.data().time)">
-                <img src="/v.png" width="20" height="20">
-                <v-icon right @click="removeMark(mark)">mdi-close-box</v-icon>
-              </v-btn>
-            </v-stepper-step>
-          </v-stepper-header>
-        </v-stepper>
-      </v-row>
-    </v-col>
-    <v-col cols="4" class="note-box">
-      <v-row>
-        <v-btn color="primary">공유하기</v-btn>
-        <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>
-      </v-row>
-      <v-row>
-        <v-btn>노트</v-btn>
-        <Comment
-          :creator="creator"
-          :comments="comments"
-          :current_user="current_user">
-        </Comment>
-      </v-row>
-      <v-row class="edit-toolbar">
-        <Toolbar></Toolbar>
-      </v-row>
-      <v-row>
-        <div id="content-editor" contenteditable="true">
-          <template v-for="note of notes">
-            <div>
-              {{note.data().text}}
-            </div>
-          </template>
+  <div>
+    <v-container id="document-editor">
+      <v-card-title id="document-title">
+        {{ fileName }}
+      </v-card-title>
+    <div id="content-editor">
+      <template v-for="note of notes">
+        <div>
+          {{note.data().text}}
         </div>
-      </v-row>
-      <v-row>
-        <v-btn color="primary" @click="onSaveNote">save</v-btn>
-        <v-btn color="primary" @click="makeMarker">Mark</v-btn>
-        <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
-      </v-row>
-    </v-col>
-  </v-row>
+      </template>
+    </div>
+    </v-container>
+  </div>
+<!--  <v-row style="padding-top:20px;">-->
+<!--    <v-col cols="8">-->
+<!--      <v-row>-->
+<!--        <Drawing :isCanvasViewed="this.isCanvasOn"-->
+<!--                 :imageSrc="this.canvasImgsrc"-->
+<!--                 ref="drawingPopup"-->
+<!--        ></Drawing>-->
+<!--        <div>-->
+<!--        <v-btn color="primary" @click="toStorage">-->
+
+<!--          <v-icon left>-->
+<!--            mdi-arrow-left-circle-->
+<!--          </v-icon>-->
+<!--          내 파일함</v-btn>-->
+<!--        <span > {{fileName}}</span>-->
+<!--        </div>-->
+<!--      </v-row>-->
+<!--      <v-row>-->
+<!--        <video class="video-frame" controls autoplay muted-->
+<!--               :src="`${videoUrl}#t=0.5`" id="videoOrigin" width="100%" height="500"-->
+<!--        >-->
+<!--          브라우저가 비디오 플레이를 지원하지 않습니다-->
+<!--        </video>-->
+<!--      </v-row>-->
+<!--      <v-row id="draw">-->
+<!--        <canvas id="videoCanvas" ref="textarea" class="hidden"-->
+<!--        ></canvas>-->
+<!--        <v-stepper v-model="el" id="markStepper">-->
+<!--          <v-stepper-header>-->
+<!--            <v-stepper-step v-for="mark of marks" v-bind:key="mark.timeline"-->
+<!--                            :step="mark.data().time.toFixed(1)">-->
+<!--              <v-btn @click="goToMarkTime(mark.data().time)">-->
+<!--                <img src="/v.png" width="20" height="20">-->
+<!--                <v-icon right @click="removeMark(mark)">mdi-close-box</v-icon>-->
+<!--              </v-btn>-->
+<!--            </v-stepper-step>-->
+<!--          </v-stepper-header>-->
+<!--        </v-stepper>-->
+<!--      </v-row>-->
+<!--    </v-col>-->
+<!--    <v-col cols="4" class="note-box">-->
+<!--      <v-row>-->
+<!--        <v-btn color="primary">공유하기</v-btn>-->
+<!--        <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>-->
+<!--      </v-row>-->
+<!--      <v-row>-->
+<!--        <v-btn>노트</v-btn>-->
+<!--        <Comment-->
+<!--          :creator="creator"-->
+<!--          :comments="comments"-->
+<!--          :current_user="current_user">-->
+<!--        </Comment>-->
+<!--      </v-row>-->
+<!--      <div class="edit-toolbar">-->
+<!--        <Toolbar></Toolbar>-->
+<!--      </div>-->
+<!--      <v-row>-->
+<!--        <div id="content-editor" contenteditable="true">-->
+<!--          <template v-for="note of notes">-->
+<!--            <div>-->
+<!--              {{note.data().text}}-->
+<!--            </div>-->
+<!--          </template>-->
+<!--        </div>-->
+<!--      </v-row>-->
+<!--      <v-row>-->
+<!--        <v-btn color="primary" @click="onSaveNote">save</v-btn>-->
+<!--        <v-btn color="primary" @click="makeMarker">Mark</v-btn>-->
+<!--        <v-btn color="primary" @click="saveToPdf">PDF</v-btn>-->
+<!--      </v-row>-->
+<!--    </v-col>-->
+<!--  </v-row>-->
 </template>
 
 <script>
 import jsPDF from 'jspdf'
 import html2canvas from "html2canvas";
 import Drawing from "/components/Drawing";
-import Comments from '/components/Comment';
+import Comment from "/components/Comment";
 import Toolbar from "/components/Toolbar";
 
 export default {
   components: {
     Drawing,
-    Comments,
-    Toolbar
+    Comment,
+    Toolbar,
   },
   data() {
     return {
+      el: '1',
       description: '',
       name: '',
       comments: [],
@@ -95,13 +111,10 @@ export default {
       noteUrls: [],
       isUploading: false,
       commentUrls: [],
-      isPainting : false,
-      paintMode : 'draw',
+      imageClicked: false,
+      isCanvasOn: false,
+      clickedImage : '',
       canvasImgsrc : '',
-      brushSize : 3.5,
-      curColor : '#001dff',
-      undoStack : [],
-      redoStack : [],
       swMenubar: this.menubar,
       linkUrl: null,
       linkMenuIsActive: false,
@@ -117,20 +130,15 @@ export default {
         avatar: 'http://via.placeholder.com/100x100/36846e',
         user: 'user',
       },
-      commentsArr: [],
       fileId:this.$route.params.id,
-      fileName:'',
+      fileName:'제목없음',
       video:'',
       videoUrl:'',
-      el: '1',
     };
   },
+  computed:{
+  },
   mounted() {
-    this.canvas = document.querySelector("#videoCanvas");
-    this.context = this.canvas.getContext('2d');
-    this.context.strokeStyle = '#001dff';
-    this.context.fillStyle = '#001dff';
-    this.context.lineWidth = 3.5;
     this.queryVideo();
     this.viewData();
   },
@@ -151,7 +159,7 @@ export default {
     toStorage(){
       this.$router.push("/myfiles");
     },
-    async viewData(){
+    viewData(){
       if(!this.$fire.auth.currentUser)
         return;
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).get().then(docSnap => {
@@ -162,6 +170,7 @@ export default {
           console.log('');
         }
       });
+
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
       collection('comments').orderBy('timestamp').onSnapshot((async querySnapshot => {
         this.comments = querySnapshot.docs;
@@ -170,7 +179,8 @@ export default {
       }));
 
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-      collection('notes').orderBy('timestamp').onSnapshot((async querySnapshot => {
+      collection('notes').orderBy('timestamp').where('noteId','==',this.fileId).
+      onSnapshot((async querySnapshot => {
         this.notes = querySnapshot.docs;
         const self = this;
         this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
@@ -184,12 +194,13 @@ export default {
       }));
     },
     async onSaveNote() {
-      this.noteTexts = document.getElementById('content-editor').getElementsByTagName('div');
       const self = this;
       const textArr = [];
+      this.noteTexts = document.getElementById('content-editor').getElementsByTagName('div');
       //add contentEditable div text because this is not in div tag
-      let strSplit = document.getElementById('content-editor').innerHTML.split('<div>');
-      if(this.notes.length === 0){
+      let strSplit = document.getElementById('content-editor').innerHTML.split('<div');
+
+      if(strSplit[0][0] !== '<'){
         textArr.push(strSplit[0]);
       }
       for(let i=0; i<self.noteTexts.length; i++){
@@ -247,25 +258,17 @@ export default {
     },
     async makeMarker() {
       const originVideo = document.querySelector("#videoOrigin");
-
-      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-      set({name: this.name}, {merge: true}).
-      then(para => {
-        console.log('Save test : '+para);
-      });
-
       const self = this;
+
       await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/marks`).add({
         time: originVideo.currentTime,
         timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
       });
 
       this.marks = [];
-      const fileStorageRef = this.$fire.firestore
-        .collection(`users/${this.$fire.auth.currentUser.uid}/marks`);
+      const fileStorageRef = this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/marks`);
       fileStorageRef.orderBy('timestamp')
         .onSnapshot((async querySnapshot => {
-          //console.log(querySnapshot.docs.length);
           this.marks = querySnapshot.docs;
           const self = this;
           this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
@@ -314,11 +317,16 @@ export default {
 }
 #content-editor{
   position: relative;
-  width: 70%;
+  width: 100%;
   height: 600px;
+  max-height: 600px;
   padding: 10px;
   border: 1px solid;
   overflow-y: auto;
+  font-family: "Nanum Square";
+}
+#markStepper {
+  /*width: 100%;*/
 }
 .hidden{
   display: none;

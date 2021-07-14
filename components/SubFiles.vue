@@ -4,8 +4,11 @@
     <v-row>
       <template v-for="(file,index) of files">
           <div class="file-wrap">
-            <video :src="`${fileUrls[index]}#t=0.5`" muted width="100%" @click="goFile(file)">{{ fileUrls[index] }}</video>
-            <div class="title-wrap"><span @click="goFile(file)"> {{ file.data().name }}</span></div>
+<!--            <video :src="`${fileUrls[index]}#t=0.5`" muted width="100%" @click="goFile(file)">{{ fileUrls[index] }}</video>-->
+            <div class="title-wrap">
+              <v-icon left @click="goFile(file)">mdi-file</v-icon>
+              <span @click="goFile(file)"> {{ file.data().name }}</span>
+            </div>
             <div class="button-wrap">
             <button>
               <v-icon @click="renameModalOpen(file)">mdi-pen</v-icon>
@@ -118,20 +121,38 @@ export default {
 </script>
 
 <style scoped>
-.file-wrap{
-  display: inline;
+/*.file-wrap{*/
+/*  display: inline;*/
+/*  padding: 10px;*/
+/*  margin: 10px;*/
+/*  width: 280px;*/
+/*  border-radius: 10px;*/
+/*  border: solid 1px cornflowerblue;*/
+/*}*/
+/*.title-wrap{*/
+/*  display:inline-block;*/
+/*  overflow: hidden;*/
+/*  text-overflow:ellipsis;*/
+/*  white-space: nowrap;*/
+/*  width:160px;*/
+/*}*/
+
+.file-wrap {
+  display: inline-block;
+  width:250px;
+  height: 40px;
   padding: 10px;
   margin: 10px;
-  width: 280px;
   border-radius: 10px;
   border: solid 1px cornflowerblue;
 }
+
 .title-wrap{
   display:inline-block;
   overflow: hidden;
   text-overflow:ellipsis;
   white-space: nowrap;
-  width:160px;
+  width:140px;
 }
 .button-wrap{
   display: inline-block;

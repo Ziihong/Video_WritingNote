@@ -3,9 +3,10 @@
     <v-col>
       <v-container>
         <v-row>
-          <create-dir-btn :parentId="this.directoryId"></create-dir-btn>
-          <up-dir-btn :parentId="this.directoryId"></up-dir-btn>
-          <up-file-btn :parentId="this.directoryId"></up-file-btn>
+          <create-btn :parentId="this.directoryId" :title="'새 폴더'" :type="'directories'"></create-btn>
+          <create-btn :parentId="this.directoryId" :title="'새 노트'" :type="'files'"></create-btn>
+<!--          <up-dir-btn :parentId="this.directoryId"></up-dir-btn>-->
+<!--          <up-file-btn :parentId="this.directoryId"></up-file-btn>-->
         </v-row>
       </v-container>
       <v-container>
@@ -27,7 +28,7 @@
 <script>
 import SubFiles from '~/components/SubFiles'
 import SubDirectories from "../../components/SubDirectories";
-import CreateDirBtn from "../../components/CreateDirBtn";
+import CreateDirBtn from "../../components/CreateBtn";
 import UpFileBtn from "../../components/UpFileBtn";
 import UpDirBtn from "../../components/UpDirBtn";
 import DirPath from "../../components/DirPath";
