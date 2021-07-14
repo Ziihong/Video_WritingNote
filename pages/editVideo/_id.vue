@@ -139,6 +139,11 @@ import Highlight from '@tiptap/extension-highlight'
 import Underline from '@tiptap/extension-underline'
 import VTooltip from 'v-tooltip'
 import Typography from '@tiptap/extension-typography'
+import Table from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import Link from '@tiptap/extension-link'
 
 
 // import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
@@ -158,6 +163,31 @@ class Note{
     this.comment = comment;
   }
 }
+
+const CustomTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      // extend the existing attributes …
+      ...this.parent?.(),
+
+      // and add a new one …
+      backgroundColor: {
+        default: null,
+        parseHTML: element => {
+          return {
+            backgroundColor: element.getAttribute('data-background-color'),
+          }
+        },
+        renderHTML: attributes => {
+          return {
+            'data-background-color': attributes.backgroundColor,
+            style: `background-color: ${attributes.backgroundColor}`,
+          }
+        },
+      },
+    }
+  },
+})
 
 export default {
   layout:'empty',
@@ -213,20 +243,12 @@ export default {
   mounted() {
     this.editor = new Editor({
       extensions: [
-        StarterKit,
-        Document,
-        Paragraph,
-        Text,
-        CodeBlock,
-        Image,
-        Dropcursor,
-        TextAlign,
-        Highlight,
-        Underline,
-        Typography,
-        VTooltip,
+        StarterKit, Document, Paragraph, Text, Highlight, Underline, Link, CodeBlock, Image, Dropcursor, TextAlign, Typography, VTooltip, TableRow, TableHeader, CustomTableCell,
         TextAlign.configure({
           types: ['heading', 'paragraph'],
+        }),
+        Table.configure({
+          resizable: true,
         }),
       ],
     })

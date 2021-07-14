@@ -1,48 +1,4 @@
 
-<!--
-<template>
-  <div>
-    <Editor
-      ref="toastEditor"
-      initialEditType="wysiwyg"
-      height="500px"
-      previewStyle="vertical"
-    />
-    <v-btn @click="save">Save</v-btn>
-  </div>
-</template>
-
-<script>
-
-/*
-install
-yarn add @toast-ui/vue-editor
-yarn add vue-codemirror (or codemirror)
-yarn add @toast-ui/editor
-*/
-
-import { Editor } from '@toast-ui/vue-editor'
-import 'codemirror/lib/codemirror.css'
-import '@toast-ui/editor/dist/toastui-editor.css'
-
-export default{
-  components: {
-    Editor,
-  },
-  methods: {
-    async getContent() {
-      return this.$refs.toastEditor.invoke('getMarkdown')
-    },
-    async save() {
-      const content = this.getContent()
-      console.log(content)
-    },
-
-  },
-}
-</script>
--->
-
 <template>
   <div>
     <div v-if="editor" class="editBar" style="border: 2px solid lightgray">
@@ -54,22 +10,13 @@ export default{
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().unsetAllMarks().run()">cm</v-btn></template><span>Clear marks</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().clearNodes().run()">cn</v-btn></template><span>Clear nodes</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().setParagraph().run()" :class="{ 'is-active': editor.isActive('paragraph') }"><v-icon>mdi-format-pilcrow</v-icon></v-btn></template><span>Paragraph</span></v-tooltip>
-      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="setLink" :class="{ 'is-active': editor.isActive('link') }"><v-icon>mdi-minus</v-icon></v-btn></template><span>Link</span></v-tooltip>
-      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().unsetLink().run()" v-if="editor.isActive('link')" >rm</v-btn></template><span>Remove</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="setLink" :class="{ 'is-active': editor.isActive('link') }"><v-icon>mdi-link</v-icon></v-btn></template><span>Link</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().unsetLink().run()" >rm</v-btn></template><span>Link Remove</span></v-tooltip>
 
-
-      <v-dialog
-        v-model="dialog"
-        persistent
-        max-width="300px"
-      >
+      <v-dialog v-model="dialog" persistent max-width="30%">
         <template v-slot:activator="{ on, attrs }">
-          <v-btn
-            text icon
-            v-bind="attrs"
-            v-on="on"
-          >
-            Table
+          <v-btn text icon v-bind="attrs" v-on="on">
+            <v-icon>mdi-table</v-icon>
           </v-btn>
         </template>
         <v-card>
@@ -79,42 +26,22 @@ export default{
           <v-card-text>
             <v-container>
               <v-row>
-                <v-text-field
-                  label="row"
-                  type="number"
-                  required
-                ></v-text-field>
-                <v-text-field
-                  label="col"
-                  type="number"
-                  required
-                ></v-text-field>
+                <v-text-field label="row" v-model="inputRow" type="number" required></v-text-field>
+                <v-text-field label="col" v-model="inputCol" type="number" required></v-text-field>
               </v-row>
             </v-container>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn
-              color="blue darken-1"
-              text
-              @click="dialog = false"
-            >
-              Close
-            </v-btn>
-            <v-btn
-              color="blue darken-1"
-              text
-              @click="dialog = false"
-            >
-              Create
-            </v-btn>
+            <v-col>
+            <v-btn color="blue darken-1" text icon @click="dialog = false">Close</v-btn>
+            </v-col>
+            <v-col>
+            <v-btn color="blue darken-1" text icon @click="createTable">Create</v-btn>
+            </v-col>
           </v-card-actions>
         </v-card>
       </v-dialog>
-
-
-
-
 
       <v-menu>
         <template #activator="{ on: onMenu }">
@@ -170,7 +97,7 @@ export default{
           </v-tooltip>
         </template>
         <v-list>
-          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()"><v-icon>mdi-minus</v-icon></v-btn></template><span>create</span></v-tooltip></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()">create</v-btn></template><span>create</span></v-tooltip></v-list-item>
           <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addColumnBefore().run()" :disabled="!editor.can().addColumnBefore()">addCol</v-btn></template><span>addColBefore</span></v-tooltip></v-list-item>
           <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addColumnAfter().run()" :disabled="!editor.can().addColumnAfter()">addCol</v-btn></template><span>addColAfter</span></v-tooltip></v-list-item>
           <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().deleteColumn().run()" :disabled="!editor.can().deleteColumn()">delCol</v-btn></template><span>delCol</span></v-tooltip></v-list-item>
@@ -180,16 +107,27 @@ export default{
           <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().mergeOrSplit().run()" :disabled="!editor.can().mergeOrSplit()">merge/split</v-btn></template><span>merge/split</span></v-tooltip></v-list-item>
         </v-list>
       </v-menu>
-      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="addImage()"><v-icon>mdi-camera-iris</v-icon></v-btn></template><span>Screenshot</span></v-tooltip>
-      <v-btn style="align-self: center" @click="saveDocument">save</v-btn>
+
       <bubble-menu
         class="bubble-menu"
-        :tippy-options="{ duration: 100 }"
+        :tippy-options="{ animation: false }"
         :editor="editor"
         v-if="editor"
+        v-show="editor.isActive('custom-image')"
       >
-
+        <button @click="editor.chain().focus().setImage({ size: 'small' }).run()" :class="{'is-active': editor.isActive('custom-image', {size: 'small'})}">Small</button>
+        <button @click="editor.chain().focus().setImage({ size: 'medium' }).run()" :class="{'is-active': editor.isActive('custom-image', {size: 'medium'})}">Medium</button>
+        <button @click="editor.chain().focus().setImage({ size: 'large' }).run()" :class="{'is-active': editor.isActive('custom-image', {size: 'large'})}">Large</button>
+        <span style="color: #aaa">|</span>
+        <button @click="editor.chain().focus().setImage({ float: 'left' }).run()" :class="{'is-active': editor.isActive('custom-image', {float: 'left'})}">Left</button>
+        <button @click="editor.chain().focus().setImage({ float: 'none' }).run()" :class="{'is-active': editor.isActive('custom-image', {float: 'none'})}">No float</button>
+        <button @click="editor.chain().focus().setImage({ float: 'right' }).run()" :class="{'is-active': editor.isActive('custom-image', {float: 'right'})}">Right</button>
+        <span style="color: #aaa">|</span>
+        <button @click="addImage">Change</button>
       </bubble-menu>
+
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="addImage()"><v-icon>mdi-camera-iris</v-icon></v-btn></template><span>Screenshot</span></v-tooltip>
+      <v-btn style="align-self: center" @click="saveDocument">save</v-btn>
     </div>
     <editor-content :editor="editor" class="editDoc" style="border: 2px solid lightslategrey"/>
     <canvas id="screenshot" style="border: 1px solid black; width: 100%;" hidden></canvas>
@@ -197,7 +135,7 @@ export default{
 </template>
 
 <script>
-import { Editor ,EditorContent, BubbleMenu } from '@tiptap/vue-2'
+import { Editor ,EditorContent, BubbleMenu, VueNodeViewRenderer } from '@tiptap/vue-2'
 import StarterKit from '@tiptap/starter-kit'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
@@ -216,22 +154,12 @@ import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import Link from '@tiptap/extension-link'
+import CustomImage from 'assets/image_test'
 
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+// load all highlight.js languages
+import lowlight from 'lowlight'
 
-// import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
-// // load all highlight.js languages
-// import lowlight from 'lowlight'
-
-// YUI().use('resize', function(Y) {
-//   const resize = new YUI.Resize({
-//     //Selector of the node to resize
-//     node: 'img'
-//   });
-//   resize.plug(Y.Plugin.ResizeConstrained, {
-//     minHeight: 50,
-//     minWidth: 50
-//   });
-// });
 
 const CustomTableCell = TableCell.extend({
   addAttributes() {
@@ -268,6 +196,8 @@ export default {
     return {
       editor: null,
       dialog: false,
+      inputRow: '',
+      inputCol: '',
     }
   },
 
@@ -281,14 +211,12 @@ export default {
         Table.configure({
           resizable: true,
         }),
-
-        // CodeBlockLowlight
-        //   .extend({
-        //     addNodeView() {
-        //       return VueNodeViewRenderer(CodeBlockComponent)
-        //     },
-        //   })
-        //   .configure({  }),
+        CustomImage.configure({
+          HTMLAttributes: {
+            class: 'custom-image'
+          }
+        }),
+        // CodeBlockLowlight.configure({ lowlight }),
       ],
       content: ``,
 
@@ -326,6 +254,16 @@ export default {
       catch (e){
         console.log(e)
       }
+    },
+
+    // create table
+    createTable(){
+      this.dialog = false;
+      if(this.inputRow <= 0 || this.inputCol <= 0){
+        return;
+      }
+      console.log(this.inputRow, this.inputCol)
+      this.editor.chain().focus().insertTable({ rows: this.inputRow, cols: this.inputCol, withHeaderRow: true }).run()
     },
 
     // save comment in firestore
@@ -410,7 +348,54 @@ export default {
 img {
   width: 100%;
   height: auto;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  &.ProseMirror-selectednode {
+    outline: 3px solid #68cef8;
+  }
 }
+.custom-image-small {
+  max-width: 30%;
+}
+.custom-image-medium {
+  max-width: 50%;
+}
+.custom-image-large {
+  max-width: 100%;
+}
+.custom-image-float-none {
+  float: none;
+}
+.custom-image-float-left {
+  float: left;
+}
+.custom-image-float-right {
+  float: right;
+}
+.bubble-menu {
+  display: flex;
+  background-color: #0d0d0d;
+  padding: 0.2rem;
+  border-radius: 0.5rem;
+  button {
+    border: none;
+    background: none;
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0 0.2rem;
+    opacity: 0.6;
+    &:hover,
+    &.is-active {
+      opacity: 1;
+    }
+    &.is-active {
+      text-decoration: underline;
+    }
+  }
+}
+
 blockquote {
   margin-left: 1rem;
   padding-left: 1rem;
@@ -429,60 +414,60 @@ pre {
     padding: 0;
     background: none;
     font-size: 0.8rem;
-
-    .hljs-comment,
-    .hljs-quote {
-      color: #616161;
-    }
-
-    .hljs-variable,
-    .hljs-template-variable,
-    .hljs-attribute,
-    .hljs-tag,
-    .hljs-name,
-    .hljs-regexp,
-    .hljs-link,
-    .hljs-name,
-    .hljs-selector-id,
-    .hljs-selector-class {
-      color: #F98181;
-    }
-
-    .hljs-number,
-    .hljs-meta,
-    .hljs-built_in,
-    .hljs-builtin-name,
-    .hljs-literal,
-    .hljs-type,
-    .hljs-params {
-      color: #FBBC88;
-    }
-
-    .hljs-string,
-    .hljs-symbol,
-    .hljs-bullet {
-      color: #B9F18D;
-    }
-
-    .hljs-title,
-    .hljs-section {
-      color: #FAF594;
-    }
-
-    .hljs-keyword,
-    .hljs-selector-tag {
-      color: #70CFF8;
-    }
-
-    .hljs-emphasis {
-      font-style: italic;
-    }
-
-    .hljs-strong {
-      font-weight: 700;
-    }
   }
 
+  .hljs-comment,
+  .hljs-quote {
+    color: #616161;
+  }
+
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-attribute,
+  .hljs-tag,
+  .hljs-name,
+  .hljs-regexp,
+  .hljs-link,
+  .hljs-name,
+  .hljs-selector-id,
+  .hljs-selector-class {
+    color: #F98181;
+  }
+
+  .hljs-number,
+  .hljs-meta,
+  .hljs-built_in,
+  .hljs-builtin-name,
+  .hljs-literal,
+  .hljs-type,
+  .hljs-params {
+    color: #FBBC88;
+  }
+
+  .hljs-string,
+  .hljs-symbol,
+  .hljs-bullet {
+    color: #B9F18D;
+  }
+
+  .hljs-title,
+  .hljs-section {
+    color: #FAF594;
+  }
+
+  .hljs-keyword,
+  .hljs-selector-tag {
+    color: #70CFF8;
+  }
+
+  .hljs-emphasis {
+    font-style: italic;
+  }
+
+  .hljs-strong {
+    font-weight: 700;
+  }
 }
+
 
 </style>
