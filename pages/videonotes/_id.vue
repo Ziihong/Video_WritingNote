@@ -1,76 +1,90 @@
 <template>
-  <v-row style="padding-top:20px;">
-    <v-col cols="8">
-      <v-row>
-        <Drawing :isCanvasViewed="this.isCanvasOn"
-                 :imageSrc="this.canvasImgsrc"
-                 ref="drawingPopup"
-        ></Drawing>
+  <div>
+    <v-container id="document-editor">
+      <v-card-title id="document-title">
+        {{ fileName }}
+      </v-card-title>
+    <div id="content-editor">
+      <template v-for="note of notes">
         <div>
-        <v-btn color="primary" @click="toStorage">
+          {{note.data().text}}
+        </div>
+      </template>
+    </div>
+    </v-container>
+  </div>
+<!--  <v-row style="padding-top:20px;">-->
+<!--    <v-col cols="8">-->
+<!--      <v-row>-->
+<!--        <Drawing :isCanvasViewed="this.isCanvasOn"-->
+<!--                 :imageSrc="this.canvasImgsrc"-->
+<!--                 ref="drawingPopup"-->
+<!--        ></Drawing>-->
+<!--        <div>-->
+<!--        <v-btn color="primary" @click="toStorage">-->
 
-          <v-icon left>
-            mdi-arrow-left-circle
-          </v-icon>
-          내 파일함</v-btn>
-        <span > {{fileName}}</span>
-        </div>
-      </v-row>
-      <v-row>
-        <video class="video-frame" controls autoplay muted
-               :src="`${videoUrl}#t=0.5`" id="videoOrigin" width="100%" height="500"
-        >
-          브라우저가 비디오 플레이를 지원하지 않습니다
-        </video>
-      </v-row>
-      <v-row id="draw">
-        <canvas id="videoCanvas" ref="textarea" class="hidden"
-        ></canvas>
-        <v-stepper v-model="el" id="markStepper">
-          <v-stepper-header>
-            <v-stepper-step v-for="mark of marks" v-bind:key="mark.timeline"
-                            :step="mark.data().time.toFixed(1)">
-              <v-btn @click="goToMarkTime(mark.data().time)">
-                <img src="/v.png" width="20" height="20">
-                <v-icon right @click="removeMark(mark)">mdi-close-box</v-icon>
-              </v-btn>
-            </v-stepper-step>
-          </v-stepper-header>
-        </v-stepper>
-      </v-row>
-    </v-col>
-    <v-col cols="4" class="note-box">
-      <v-row>
-        <v-btn color="primary">공유하기</v-btn>
-        <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>
-      </v-row>
-      <v-row>
-        <v-btn>노트</v-btn>
-        <Comment
-          :creator="creator"
-          :comments="comments"
-          :current_user="current_user">
-        </Comment>
-      </v-row>
-      <div class="edit-toolbar">
-        <Toolbar></Toolbar>
-      </div>
-      <v-row>
-        <div id="content-editor" contenteditable="true">
-          <template v-for="note of notes">
-            <div>
-              {{note.data().text}}
-            </div>
-          </template>
-        </div>
-      </v-row>
-      <v-row>
-        <v-btn color="primary" @click="onSaveNote">save</v-btn>
-        <v-btn color="primary" @click="makeMarker">Mark</v-btn>
-        <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
-      </v-row>
-    </v-col>
-  </v-row>
+<!--          <v-icon left>-->
+<!--            mdi-arrow-left-circle-->
+<!--          </v-icon>-->
+<!--          내 파일함</v-btn>-->
+<!--        <span > {{fileName}}</span>-->
+<!--        </div>-->
+<!--      </v-row>-->
+<!--      <v-row>-->
+<!--        <video class="video-frame" controls autoplay muted-->
+<!--               :src="`${videoUrl}#t=0.5`" id="videoOrigin" width="100%" height="500"-->
+<!--        >-->
+<!--          브라우저가 비디오 플레이를 지원하지 않습니다-->
+<!--        </video>-->
+<!--      </v-row>-->
+<!--      <v-row id="draw">-->
+<!--        <canvas id="videoCanvas" ref="textarea" class="hidden"-->
+<!--        ></canvas>-->
+<!--        <v-stepper v-model="el" id="markStepper">-->
+<!--          <v-stepper-header>-->
+<!--            <v-stepper-step v-for="mark of marks" v-bind:key="mark.timeline"-->
+<!--                            :step="mark.data().time.toFixed(1)">-->
+<!--              <v-btn @click="goToMarkTime(mark.data().time)">-->
+<!--                <img src="/v.png" width="20" height="20">-->
+<!--                <v-icon right @click="removeMark(mark)">mdi-close-box</v-icon>-->
+<!--              </v-btn>-->
+<!--            </v-stepper-step>-->
+<!--          </v-stepper-header>-->
+<!--        </v-stepper>-->
+<!--      </v-row>-->
+<!--    </v-col>-->
+<!--    <v-col cols="4" class="note-box">-->
+<!--      <v-row>-->
+<!--        <v-btn color="primary">공유하기</v-btn>-->
+<!--        <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>-->
+<!--      </v-row>-->
+<!--      <v-row>-->
+<!--        <v-btn>노트</v-btn>-->
+<!--        <Comment-->
+<!--          :creator="creator"-->
+<!--          :comments="comments"-->
+<!--          :current_user="current_user">-->
+<!--        </Comment>-->
+<!--      </v-row>-->
+<!--      <div class="edit-toolbar">-->
+<!--        <Toolbar></Toolbar>-->
+<!--      </div>-->
+<!--      <v-row>-->
+<!--        <div id="content-editor" contenteditable="true">-->
+<!--          <template v-for="note of notes">-->
+<!--            <div>-->
+<!--              {{note.data().text}}-->
+<!--            </div>-->
+<!--          </template>-->
+<!--        </div>-->
+<!--      </v-row>-->
+<!--      <v-row>-->
+<!--        <v-btn color="primary" @click="onSaveNote">save</v-btn>-->
+<!--        <v-btn color="primary" @click="makeMarker">Mark</v-btn>-->
+<!--        <v-btn color="primary" @click="saveToPdf">PDF</v-btn>-->
+<!--      </v-row>-->
+<!--    </v-col>-->
+<!--  </v-row>-->
 </template>
 
 <script>
@@ -165,7 +179,8 @@ export default {
       }));
 
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-      collection('notes').orderBy('timestamp').onSnapshot((async querySnapshot => {
+      collection('notes').orderBy('timestamp').where('noteId','==',this.fileId).
+      onSnapshot((async querySnapshot => {
         this.notes = querySnapshot.docs;
         const self = this;
         this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
