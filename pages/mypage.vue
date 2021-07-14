@@ -1,55 +1,61 @@
 <template>
   <v-row>
     <v-col cols="8">
-      <v-row>
-        <Drawing :isCanvasViewed="this.isCanvasOn"
-                   :imageSrc="this.canvasImgsrc"
-                 ref="drawingPopup"
-        ></Drawing>
+      <v-row class="btn-wrap">
         <v-btn color="primary">
-          <v-icon left>
-            mdi-arrow-left-circle
-          </v-icon>
-          내 파일함</v-btn>
-        <input placeholder="제목을 입력하세요" type="text"
-               style="width: 40%; background-color:white;"/>
+          <v-icon left>mdi-arrow-left-circle</v-icon>
+          내 파일함
+        </v-btn>
+        <v-btn color="primary">
+          <v-icon left>mdi-monitor</v-icon>
+          화면공유
+        </v-btn>
+        <v-btn color="primary">
+          <v-icon left>mdi-movie</v-icon>
+          로컬공유
+        </v-btn>
+        <!--        <input placeholder="제목을 입력하세요" type="text"-->
+        <!--               style="width: 40%; background-color:white;"/>-->
       </v-row>
       <v-row>
         <video class="video-frame" controls autoplay muted
-               src="/hd.mp4" id="videoOrigin" width="100%" height="500"
-        >
+               src="/hd.mp4" id="videoOrigin" width="100%" height="500">
           브라우저가 비디오 플레이를 지원하지 않습니다
         </video>
       </v-row>
-      <v-row id="draw">
-        <canvas id="videoCanvas" ref="textarea" class="hidden"
-        ></canvas>
-        <v-stepper v-model="el" id="markStepper">
-          <v-stepper-header>
-            <v-stepper-step v-for="mark of marks" v-bind:key="mark.timeline"
-            :step="mark.data().time.toFixed(1)">
-              <v-btn @click="goToMarkTime(mark.data().time)">
-                <img src="/v.png" width="20" height="20">
-                <v-icon right @click="removeMark(mark)">mdi-close-box</v-icon>
-              </v-btn>
-            </v-stepper-step>
-          </v-stepper-header>
-        </v-stepper>
+      <v-row class="participant-wrap">
+        <div>참가자들</div>
+        <v-btn color="primary" right> 링크공유</v-btn>
       </v-row>
+      <!--      <v-row id="draw">-->
+      <!--        <v-stepper v-model="el" id="markStepper">-->
+      <!--          <v-stepper-header>-->
+      <!--            <v-stepper-step v-for="mark of marks" v-bind:key="mark.timeline"-->
+      <!--                            :step="mark.data().time.toFixed(1)">-->
+      <!--              <v-btn @click="goToMarkTime(mark.data().time)">-->
+      <!--                <img src="/v.png" width="20" height="20">-->
+      <!--                <v-icon right @click="removeMark(mark)">mdi-close-box</v-icon>-->
+      <!--              </v-btn>-->
+      <!--            </v-stepper-step>-->
+      <!--          </v-stepper-header>-->
+      <!--        </v-stepper>-->
+      <!--      </v-row>-->
     </v-col>
     <v-col cols="4" class="note-box">
-      <v-row>
-        <v-btn color="primary">공유하기</v-btn>
-        <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>
-      </v-row>
-      <v-row>
+      <canvas id="videoCanvas" ref="textarea" class="hidden"></canvas>
+      <Drawing :isCanvasViewed="this.isCanvasOn"
+               :imageSrc="this.canvasImgsrc"
+               ref="drawingPopup"></Drawing>
+      <v-row class="btn-wrap">
         <v-btn>노트</v-btn>
+        <v-btn>채팅</v-btn>
         <Comment
           :creator="creator"
           :comments="comments"
           :current_user="current_user">
         </Comment>
       </v-row>
+      <v-row><h1>노트 제목</h1></v-row>
       <div class="edit-toolbar">
         <Toolbar></Toolbar>
       </div>
@@ -57,15 +63,17 @@
         <div id="content-editor" contenteditable="true">
           <template v-for="note of notes">
             <div>
-              {{note.data().text}}
+              {{ note.data().text }}
             </div>
           </template>
         </div>
       </v-row>
       <v-row>
-        <v-btn color="primary" @click="onSaveNote">save</v-btn>
-        <v-btn color="primary" @click="makeMarker">Mark</v-btn>
+        <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>
+        <v-btn color="primary" @click="onSaveNote">저장</v-btn>
+<!--        <v-btn color="primary" @click="makeMarker">Mark</v-btn>-->
         <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
+<!--        <v-btn color="primary">공유하기</v-btn>-->
       </v-row>
     </v-col>
   </v-row>
@@ -97,8 +105,8 @@ export default {
       commentUrls: [],
       imageClicked: false,
       isCanvasOn: false,
-      clickedImage : '',
-      canvasImgsrc : '',
+      clickedImage: '',
+      canvasImgsrc: '',
       swMenubar: this.menubar,
       linkUrl: null,
       linkMenuIsActive: false,
@@ -116,10 +124,9 @@ export default {
       },
     };
   },
-  computed:{
-  },
+  computed: {},
   mounted() {
-    if(!this.$fire.auth.currentUser)
+    if (!this.$fire.auth.currentUser)
       return;
     this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).get().then(docSnap => {
       if (docSnap.exists) {
@@ -130,22 +137,19 @@ export default {
       }
     });
 
-    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-    collection('comments').orderBy('timestamp').onSnapshot((async querySnapshot => {
+    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).collection('comments').orderBy('timestamp').onSnapshot((async querySnapshot => {
       this.comments = querySnapshot.docs;
       const self = this;
       this.commentUrls = await Promise.all(this.comments.map(comment => comment.data().path ? self.$fire.storage.ref(comment.data().path).getDownloadURL() : ''));
     }));
 
-    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-    collection('notes').orderBy('timestamp').onSnapshot((async querySnapshot => {
+    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).collection('notes').orderBy('timestamp').onSnapshot((async querySnapshot => {
       this.notes = querySnapshot.docs;
       const self = this;
       this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
     }));
 
-    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
-    collection('marks').orderBy('timestamp').onSnapshot((async querySnapshot => {
+    this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).collection('marks').orderBy('timestamp').onSnapshot((async querySnapshot => {
       this.marks = querySnapshot.docs;
       const self = this;
       this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
@@ -159,19 +163,19 @@ export default {
       //add contentEditable div text because this is not in div tag
       let strSplit = document.getElementById('content-editor').innerHTML.split('<div');
 
-      if(strSplit[0][0] !== '<'){
+      if (strSplit[0][0] !== '<') {
         textArr.push(strSplit[0]);
       }
-      for(let i=0; i<self.noteTexts.length; i++){
+      for (let i = 0; i < self.noteTexts.length; i++) {
         textArr.push(self.noteTexts[i].innerText);
       }
       //delete all that has saved before
       let i = this.notes.length;
-      while(i !== 0){
+      while (i !== 0) {
         await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/notes/${this.notes[0].id}`).delete();
         i--;
       }
-      for(const i of textArr){
+      for (const i of textArr) {
         await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/notes`).add({
           text: i,
           timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
@@ -203,10 +207,10 @@ export default {
       imgNode.src = this.canvas.toDataURL();
 
       this.canvasImgsrc = this.canvas.toDataURL();
-      imgNode.width = this.canvas.width/4;
-      imgNode.height = this.canvas.height/4;
+      imgNode.width = this.canvas.width / 4;
+      imgNode.height = this.canvas.height / 4;
 
-      imgNode.addEventListener("click",this.popupCanvas);
+      imgNode.addEventListener("click", this.popupCanvas);
 
       document.getElementById('content-editor').appendChild(imgNode);
       this.isCanvasOn = false;
@@ -233,7 +237,7 @@ export default {
           this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
         }));
     },
-    goToMarkTime: function(time) {
+    goToMarkTime: function (time) {
       const originVideo = document.querySelector("#videoOrigin");
       originVideo.currentTime = time;
     },
@@ -244,7 +248,7 @@ export default {
         useCORS: true,
         logging: false,
         height: window.outerHeight + window.innerHeight,
-      }).then(function(canvas){
+      }).then(function (canvas) {
         let imgData = canvas.toDataURL('image/png');
         let imgWidth = 210;
         let imgHeight = canvas.height * imgWidth / canvas.width;
@@ -255,39 +259,53 @@ export default {
         doc.save('sample.pdf');
       });
     },
-    popupCanvas: function (event){
+    popupCanvas: function (event) {
       this.video = document.querySelector("#videoOrigin");
 
       this.canvasImgsrc = event.target.src;
       this.isCanvasOn = true;
-      this.$refs.drawingPopup.drawingImage(event.target.src,this.video.clientWidth,this.video.clientHeight);
+      this.$refs.drawingPopup.drawingImage(event.target.src, this.video.clientWidth, this.video.clientHeight);
     },
   }
 }
 </script>
 
 <style scoped>
-.note-box{
+.btn-wrap {
+  margin-top: 15px;
+  margin-bottom: 20px;
+}
+
+.participant-wrap {
+  margin-top: 30px;
+  border: cornflowerblue 1px solid;
+}
+
+.note-box {
   height: 600px;
 }
-.video-frame{
+
+.video-frame {
   max-width: 100%;
   height: auto;
 }
-#content-editor{
+
+#content-editor {
   position: relative;
   width: 100%;
-  height: 600px;
+  height: 340px;
   max-height: 600px;
   padding: 10px;
   border: 1px solid;
   overflow-y: auto;
   font-family: "Nanum Square";
 }
+
 #markStepper {
   /*width: 100%;*/
 }
-.hidden{
+
+.hidden {
   display: none;
 }
 </style>
