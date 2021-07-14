@@ -142,6 +142,11 @@ export default {
           title: 'share',
           to: '/share'
         },
+        {
+          icon: 'mdi-folder-multiple',
+          title: 'webcam',
+          to: '/webcamPage'
+        },
       ],
       miniVariant: false,
       right: true,
