@@ -18,10 +18,12 @@
         <!--               style="width: 40%; background-color:white;"/>-->
       </v-row>
       <v-row>
-        <video class="video-frame" controls autoplay muted
-               src="/hd.mp4" id="videoOrigin" width="100%" height="500">
-          브라우저가 비디오 플레이를 지원하지 않습니다
-        </video>
+<!--        <video class="video-frame" controls autoplay muted-->
+<!--               src="/hd.mp4" id="videoOrigin" width="100%" height="500">-->
+<!--          브라우저가 비디오 플레이를 지원하지 않습니다-->
+<!--        </video>-->
+<!--        <video id="videoOrigin" autoplay width="100%" height="500"></video>-->
+        <share></share>
       </v-row>
       <v-row class="participant-wrap">
         <div>참가자들</div>
@@ -47,14 +49,15 @@
                :imageSrc="this.canvasImgsrc"
                ref="drawingPopup"></Drawing>
       <v-row class="btn-wrap">
-        <v-btn>노트</v-btn>
-        <v-btn>채팅</v-btn>
+        <v-btn @click="isChat=false;">노트</v-btn>
+        <v-btn @click="isChat=true;">채팅</v-btn>
         <Comment
           :creator="creator"
           :comments="comments"
           :current_user="current_user">
         </Comment>
       </v-row>
+      <v-col class="note-wrap" v-if="!isChat">
       <v-row><h1>노트 제목</h1></v-row>
       <div class="edit-toolbar">
         <Toolbar></Toolbar>
@@ -75,6 +78,10 @@
         <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
 <!--        <v-btn color="primary">공유하기</v-btn>-->
       </v-row>
+      </v-col>
+      <v-col v-else>
+        chatting
+      </v-col>
     </v-col>
   </v-row>
 </template>
@@ -85,12 +92,14 @@ import html2canvas from "html2canvas";
 import Drawing from "../components/Drawing";
 import Comment from '../components/Comment';
 import Toolbar from "../components/Toolbar";
+import share from "/pages/share";
 
 export default {
   components: {
     Drawing,
     Comment,
     Toolbar,
+    share,
   },
   data() {
     return {
@@ -122,6 +131,8 @@ export default {
         avatar: 'http://via.placeholder.com/100x100/36846e',
         user: 'user',
       },
+      isChat: false,
+      isStorage:true,
     };
   },
   computed: {},
@@ -271,6 +282,12 @@ export default {
 </script>
 
 <style scoped>
+video {
+  margin: 0 0 20px 0;
+  width: 100%;
+  background: #222;
+}
+
 .btn-wrap {
   margin-top: 15px;
   margin-bottom: 20px;
@@ -283,6 +300,11 @@ export default {
 
 .note-box {
   height: 600px;
+}
+
+.note-wrap{
+  position:relative;
+  /*background-color: #41b883;*/
 }
 
 .video-frame {

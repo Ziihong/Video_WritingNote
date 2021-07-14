@@ -2,7 +2,7 @@
   <div id="content">
     <div class="wrap">
       <v-btn color="primary" @click="startScreenShare">Start</v-btn>
-      <video id="local-video" autoplay></video>
+      <video id="videoOrigin" autoplay></video>
     </div>
   </div>
 </template>
@@ -38,7 +38,7 @@ export default {
     },
     onLocalStream(stream) {
       console.log('onLocalStream', stream);
-      const $video = document.querySelector('#local-video');
+      const $video = document.querySelector('#videoOrigin');
       $video.srcObject = stream;
     },
     getCrossBrowserScreenCapture() {
