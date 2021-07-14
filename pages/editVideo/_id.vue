@@ -24,10 +24,16 @@
     </v-app-bar>
 
     <!--table과 th에 width 속성을 지정 => resize bar(.columns-resize-bar)정상 작동 x-->
-    <table class="pageTable" style="width: 100%">
-      <thead v-columns-resizable>
+
+    <table class="pageTable" >
+<!--      <thead v-columns-resizable>-->
+      <colgroup>
+        <col width="70%">
+        <col width="30%">
+      </colgroup>
+      <thead>
       <tr>
-        <th id="videoArea" style="width: 70%">
+        <th id="videoArea">
           <div
             v-if="isBookmarking"
             @click="setNote($event)"
@@ -41,7 +47,7 @@
               :src=fileUrl>
             </video>
         </th>
-        <th style="width: 30%; height: auto" rowspan="2" id="docArea">
+        <th style="height: auto" rowspan="2" id="docArea">
           <TextEditor/>
         </th>
       </tr>
@@ -541,5 +547,10 @@ export default {
 #docArea{
   padding-left: 1em;
   border-left: lightgrey;
+}
+
+table{
+ table-layout: auto;
+  width: 100%;
 }
 </style>

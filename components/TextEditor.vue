@@ -54,7 +54,69 @@ export default{
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().unsetAllMarks().run()">cm</v-btn></template><span>Clear marks</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().clearNodes().run()">cn</v-btn></template><span>Clear nodes</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().setParagraph().run()" :class="{ 'is-active': editor.isActive('paragraph') }"><v-icon>mdi-format-pilcrow</v-icon></v-btn></template><span>Paragraph</span></v-tooltip>
-      <v-menu offset-x>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="setLink" :class="{ 'is-active': editor.isActive('link') }"><v-icon>mdi-minus</v-icon></v-btn></template><span>Link</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().unsetLink().run()" v-if="editor.isActive('link')" >rm</v-btn></template><span>Remove</span></v-tooltip>
+
+
+      <v-dialog
+        v-model="dialog"
+        persistent
+        max-width="300px"
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            text icon
+            v-bind="attrs"
+            v-on="on"
+          >
+            Table
+          </v-btn>
+        </template>
+        <v-card>
+          <v-card-title>
+            <span>Table</span>
+          </v-card-title>
+          <v-card-text>
+            <v-container>
+              <v-row>
+                <v-text-field
+                  label="row"
+                  type="number"
+                  required
+                ></v-text-field>
+                <v-text-field
+                  label="col"
+                  type="number"
+                  required
+                ></v-text-field>
+              </v-row>
+            </v-container>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn
+              color="blue darken-1"
+              text
+              @click="dialog = false"
+            >
+              Close
+            </v-btn>
+            <v-btn
+              color="blue darken-1"
+              text
+              @click="dialog = false"
+            >
+              Create
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+
+
+
+
+      <v-menu>
         <template #activator="{ on: onMenu }">
           <v-tooltip top>
             <template #activator="{ on: onTooltip }">
@@ -81,7 +143,8 @@ export default{
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().undo().run()"><v-icon>mdi-undo</v-icon></v-btn></template><span>Undo</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().redo().run()"><v-icon>mdi-redo</v-icon></v-btn></template><span>Redo</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHighlight().run()" :class="{ 'is-active': editor.isActive('highlight') }"><v-icon>mdi-marker</v-icon></v-btn></template><span>Highlight</span></v-tooltip>
-      <v-menu offset-y>
+      <v-tooltip top><v-dialog><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHighlight().run()" :class="{ 'is-active': editor.isActive('highlight') }">table</v-btn></template></v-dialog><span>Table</span></v-tooltip>
+      <v-menu>
         <template #activator="{ on: onMenu }">
           <v-tooltip top>
             <template #activator="{ on: onTooltip }">
@@ -97,17 +160,44 @@ export default{
           <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().setTextAlign('right').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'right' }) }"><v-icon>mdi-format-align-right</v-icon></v-btn></template><span>Right</span></v-tooltip></v-list-item>
         </v-list>
       </v-menu>
+      <v-menu offset-y>
+        <template #activator="{ on: onMenu }">
+          <v-tooltip top>
+            <template #activator="{ on: onTooltip }">
+              <v-btn text icon v-on="{ ...onMenu, ...onTooltip }">Table</v-btn>
+            </template>
+            <span>Table</span>
+          </v-tooltip>
+        </template>
+        <v-list>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()"><v-icon>mdi-minus</v-icon></v-btn></template><span>create</span></v-tooltip></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addColumnBefore().run()" :disabled="!editor.can().addColumnBefore()">addCol</v-btn></template><span>addColBefore</span></v-tooltip></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addColumnAfter().run()" :disabled="!editor.can().addColumnAfter()">addCol</v-btn></template><span>addColAfter</span></v-tooltip></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().deleteColumn().run()" :disabled="!editor.can().deleteColumn()">delCol</v-btn></template><span>delCol</span></v-tooltip></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addRowBefore().run()" :disabled="!editor.can().addRowBefore()">addRow</v-btn></template><span>addRowBefore</span></v-tooltip></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addRowAfter().run()" :disabled="!editor.can().addRowAfter()">addRow</v-btn></template><span>addRowAfter</span></v-tooltip></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().deleteRow().run()" :disabled="!editor.can().deleteRow()">delRow</v-btn></template><span>delRow</span></v-tooltip></v-list-item>
+          <v-list-item><v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().mergeOrSplit().run()" :disabled="!editor.can().mergeOrSplit()">merge/split</v-btn></template><span>merge/split</span></v-tooltip></v-list-item>
+        </v-list>
+      </v-menu>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="addImage()"><v-icon>mdi-camera-iris</v-icon></v-btn></template><span>Screenshot</span></v-tooltip>
       <v-btn style="align-self: center" @click="saveDocument">save</v-btn>
+      <bubble-menu
+        class="bubble-menu"
+        :tippy-options="{ duration: 100 }"
+        :editor="editor"
+        v-if="editor"
+      >
+
+      </bubble-menu>
     </div>
     <editor-content :editor="editor" class="editDoc" style="border: 2px solid lightslategrey"/>
     <canvas id="screenshot" style="border: 1px solid black; width: 100%;" hidden></canvas>
-
   </div>
 </template>
 
 <script>
-import { Editor ,EditorContent, VueNodeViewRenderer  } from '@tiptap/vue-2'
+import { Editor ,EditorContent, BubbleMenu } from '@tiptap/vue-2'
 import StarterKit from '@tiptap/starter-kit'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
@@ -121,40 +211,75 @@ import Underline from '@tiptap/extension-underline'
 import VTooltip from 'v-tooltip'
 import Typography from '@tiptap/extension-typography'
 
+import Table from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import Link from '@tiptap/extension-link'
+
+
 // import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 // // load all highlight.js languages
 // import lowlight from 'lowlight'
 
+// YUI().use('resize', function(Y) {
+//   const resize = new YUI.Resize({
+//     //Selector of the node to resize
+//     node: 'img'
+//   });
+//   resize.plug(Y.Plugin.ResizeConstrained, {
+//     minHeight: 50,
+//     minWidth: 50
+//   });
+// });
+
+const CustomTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      // extend the existing attributes …
+      ...this.parent?.(),
+
+      // and add a new one …
+      backgroundColor: {
+        default: null,
+        parseHTML: element => {
+          return {
+            backgroundColor: element.getAttribute('data-background-color'),
+          }
+        },
+        renderHTML: attributes => {
+          return {
+            'data-background-color': attributes.backgroundColor,
+            style: `background-color: ${attributes.backgroundColor}`,
+          }
+        },
+      },
+    }
+  },
+})
 
 export default {
   components: {
     EditorContent,
+    BubbleMenu,
   },
 
   data() {
     return {
       editor: null,
-      temps: [],
+      dialog: false,
     }
   },
 
   mounted() {
     this.editor = new Editor({
       extensions: [
-        StarterKit,
-        Document,
-        Paragraph,
-        Text,
-        CodeBlock,
-        Image,
-        Dropcursor,
-        TextAlign,
-        Highlight,
-        Underline,
-        Typography,
-        VTooltip,
+        StarterKit, Document, Paragraph, Text, Highlight, Underline, Link, CodeBlock, Image, Dropcursor, TextAlign, Typography, VTooltip, TableRow, TableHeader, CustomTableCell,
         TextAlign.configure({
           types: ['heading', 'paragraph'],
+        }),
+        Table.configure({
+          resizable: true,
         }),
 
         // CodeBlockLowlight
@@ -166,6 +291,7 @@ export default {
         //   .configure({  }),
       ],
       content: ``,
+
     })
   },
 
@@ -190,6 +316,18 @@ export default {
 
     },
 
+    // set link text editor
+    setLink() {
+      const url = window.prompt('URL')
+      try{
+        //this.editor.chain().focus().extendMarkRange('link').toggleLink({ href: 'https://jybaek.tistory.com/733' }).run()
+        this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+      }
+      catch (e){
+        console.log(e)
+      }
+    },
+
     // save comment in firestore
     saveDocument(){
       const document = this.editor.getJSON()
@@ -197,7 +335,7 @@ export default {
       const docToJson = JSON.stringify(document)
       console.log(docToJson)
     },
-  }
+  },
 }
 </script>
 
@@ -210,13 +348,67 @@ export default {
   font-family: 'Noto Sans JP', sans-serif;
   font-weight: normal;
   text-align: justify;
+  overflow-y: scroll;
+  height: 30rem; //화면 크기에 따라 높이 다름.
+  width: 100%;
 }
 .ProseMirror{
-  min-height: 40em;
+  min-height: 30rem; // 화면 크기에 따라 높이 다름.
   border: 1px solid lightslategrey;
+
+  a {
+    color: slateblue;
+  }
+
+  table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    margin: 0;
+    overflow: auto;
+
+    td,
+    th {
+      min-width: 1em;
+      border: 2px solid #ced4da;
+      padding: 3px 5px;
+      vertical-align: top;
+      box-sizing: border-box;
+      position: relative;
+
+      > * {
+        margin-bottom: 0;
+      }
+    }
+
+    th {
+      font-weight: bold;
+      text-align: left;
+      background-color: #f1f3f5;
+    }
+
+    .selectedCell:after {
+      z-index: 2;
+      position: absolute;
+      content: "";
+      left: 0; right: 0; top: 0; bottom: 0;
+      background: rgba(200, 200, 255, 0.4);
+      pointer-events: none;
+    }
+
+    .column-resize-handle {
+      position: absolute;
+      right: -2px;
+      top: 0;
+      bottom: -2px;
+      width: 4px;
+      background-color: #adf;
+      pointer-events: none;
+    }
+  }
 }
 img {
-  max-width: 100%;
+  width: 100%;
   height: auto;
 }
 blockquote {
