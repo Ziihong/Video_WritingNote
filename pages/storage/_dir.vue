@@ -16,7 +16,14 @@
         <v-btn @click="goHome">go Home Dir</v-btn>
       </div>
 
-      <div style="background-color: lightcyan; margin-top: 10px" class="text-center"> Directory </div>
+      <div style="background-color: lightcyan; margin-top: 10px" class="text-left">
+        <v-btn text style="display: inline; min-width: 25%" class="text-center">
+          Directory
+        </v-btn>
+        <v-btn text style="display: inline;min-width: 25%" class="text-center">
+          Directory 2
+        </v-btn>
+      </div>
       <div class="text-left" style="margin-top: 10px">
         <v-list-item v-for="(dir,index) of dirs"
                      style="display: inline; background-color: #ced4da; margin-right: 5px"
@@ -39,7 +46,8 @@
                      @click="gotoEditVideo(file)">
           <div class="fileShape">
             <video :src="fileUrls[index]" width="200px"/><br>
-            {{ file.data().title }}
+            {{ file.data().title }}<br>
+            <v-btn @click="$event.stopPropagation() ,removeFile(file)">Delete</v-btn>
           </div>
         </div >
 
@@ -197,6 +205,8 @@ export default {
     // Remove files on fire store
     async removeFile(file) {
       console.log('file: ', file.id);
+      console.log('source', file.data().source);
+      await this.$fire.storage.ref(file.data().source).delete();
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${file.id}`).delete();
     },
     // Set file object for selected one
