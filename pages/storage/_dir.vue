@@ -76,7 +76,7 @@ export default {
           this.dirs = [];
           querySnapshot.docs.forEach(dir => {
             if (dir.data().path === this.currentDir) {
-              console.log(dir.data().name);
+              //console.log(dir.data().name);
               this.dirs.push(dir.data())
             }
           })
@@ -88,11 +88,11 @@ export default {
       .collection('files').onSnapshot((async querySnapshot =>{
         console.log('Now file update');
         // reset dirs and files
-        this.docFiles=[];
+        this.docFiles = [];
         this.files = [];
         querySnapshot.docs.forEach(file => {
           if (file.data().path === this.currentDir) {
-            console.log(file.data().name);
+            //console.log(file.data().name);
             this.files.push(file);
             this.docFiles.push(file.data());
           }
@@ -104,7 +104,7 @@ export default {
       const self = this
       this.fileUrls = await Promise.all(this.files.map(file =>
         file.data().source ? self.$fire.storage.ref(file.data().source).getDownloadURL() : ''));
-      console.log('fileUrls', this.fileUrls)
+      //console.log('fileUrls', this.fileUrls)
 
       // this.$fire.firestore.doc(`users/${this.uid}`)
       //   .collection('files').orderBy('name').onSnapshot((async querySnapshot => {
@@ -124,9 +124,11 @@ export default {
       }
 
       try {
-        await this.$fire.firestore.collection(`users/${this.uid}/directory`)
-          .doc(this.currentDir.replace('\/','').replace(/\//g,'.') + this.createDir)
-          .set({ name: this.createDir, path: this.currentDir });
+        const docRef = this.$fire.firestore.collection(`users/${this.uid}/directory`);
+        console.log(docRef[0])
+
+        await docRef.add({
+        name: this.createDir, path: this.currentDir, timestamp: new Date().toLocaleString() });
 
         await this.$router.push({ params: { dir: this.currentDir }});
 
@@ -147,7 +149,6 @@ export default {
     },
 
     async clickDir(name, path) {
-
       await this.$router.push({ params: {dir: path + name + '/' }})
       console.log(this.$route.params)
 
