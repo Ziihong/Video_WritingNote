@@ -119,13 +119,13 @@ export default {
 
             // Add user's file in firestore
             this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`)
-            .collection('files').doc('sample').set({
+            .collection('files').add({
               name: 'sample',
               path: '/',
               timestamp: new Date().toLocaleString()
             })
             this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`)
-            .collection('directory').doc('home').set({
+            .collection('directory').add({
               name: 'home',
               path: ''
             })
