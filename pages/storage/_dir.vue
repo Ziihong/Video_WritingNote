@@ -20,6 +20,7 @@
       <div class="text-left" style="margin-top: 10px">
         <v-list-item v-for="(dir,index) of dirs"
                      style="display: inline; background-color: #ced4da; margin-right: 5px"
+                     v-bind:key = index
                      @click="clickDir(dir.name, dir.path)">
           <v-list-item-action  class="fileShape">
             {{ dir.name }}
@@ -35,6 +36,7 @@
         </v-btn>
         <v-list-item v-for="(file,index) of files"
                      style="display: inline"
+                     v-bind:key = index
                      @click="gotoEditVideo(file)">
           <v-list-item-action class="fileShape">
             <video :src="fileUrls[index]" width="200px"/>
@@ -127,16 +129,16 @@ export default {
       // get user's directory
       this.$fire.firestore.doc(`users/${this.uid}`)
         .collection('directory').onSnapshot((async querySnapshot =>{
-        console.log('Now directory update');
-        // reset dirs and files
-        this.dirs = [];
-        querySnapshot.docs.forEach(dir => {
-          if (dir.data().path === this.currentDir) {
-            console.log(dir.data().name);
-            this.dirs.push(dir.data())
-          }
-        })
-      }));
+          console.log('Now directory update');
+          // reset dirs and files
+          this.dirs = [];
+          querySnapshot.docs.forEach(dir => {
+            if (dir.data().path === this.currentDir) {
+              //console.log(dir.data().name);
+              this.dirs.push(dir.data())
+            }
+          })
+        }));
       // end directory get
 
       // get user's file
@@ -144,11 +146,11 @@ export default {
         .collection('files').onSnapshot((async querySnapshot =>{
         console.log('Now file update');
         // reset dirs and files
-        this.docFiles=[];
+        this.docFiles = [];
         this.files = [];
         querySnapshot.docs.forEach(file => {
           if (file.data().path === this.currentDir) {
-            console.log(file.data().name);
+            //console.log(file.data().name);
             this.files.push(file);
             this.docFiles.push(file.data());
           }
@@ -182,7 +184,6 @@ export default {
     },
     // Save Name for account
     async onSave() {
-
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
       set({name: this.name}, {merge: true}).
       then(() => {
@@ -263,9 +264,11 @@ export default {
       }
 
       try {
-        await this.$fire.firestore.collection(`users/${this.uid}/directory`)
-          .doc(this.currentDir.replace('\/','').replace(/\//g,'.') + this.createDir)
-          .set({ name: this.createDir, path: this.currentDir });
+        const docRef = this.$fire.firestore.collection(`users/${this.uid}/directory`);
+        console.log(docRef[0])
+
+        await docRef.add({
+        name: this.createDir, path: this.currentDir, timestamp: new Date().toLocaleString() });
 
         await this.$router.push({ params: { dir: this.currentDir }});
 
@@ -282,7 +285,6 @@ export default {
     },
     // Go to clicked directory
     async clickDir(name, path) {
-
       await this.$router.push({ params: {dir: path + name + '/' }})
       console.log(this.$route.params)
 
