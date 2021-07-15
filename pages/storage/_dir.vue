@@ -214,6 +214,10 @@ export default {
         return alert('파일을 선택해주세요.');
       }
 
+      // set file's field data before uploading
+      const name = this.fileObj.name;
+      const currentDir = this.currentDir
+
       const storageRef =
         this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${this.fileObj.name}`);
       const uploadTask = storageRef.put(this.fileObj);
@@ -244,9 +248,6 @@ export default {
         // For instance, get the download URL: https://firebasestorage.googleapis.com/...
         console.log(uploadTask.snapshot.ref.fullPath);
 
-        // set file's field data before uploading
-        const name = this.fileObj.name;
-        const currentDir = this.currentDir
         // add file on firestore
         await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
           title: title,
