@@ -30,17 +30,18 @@
 
       <div style="background-color: lightcyan; margin-top: 10px" class="text-center"> Files </div>
       <div class="text-left" style="margin-top: 10px">
-        <v-btn class="addFilebtn" @click="dialog = !dialog">
+        <v-btn class="addFilebtn" @click="dialog = true">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
-        <v-list-item v-for="(file,index) of files"
-                     style="display: inline"
-                     @click="gotoEditVideo(file)">
-          <v-list-item-action class="fileShape">
-            <video :src="fileUrls[index]" width="200px"/>
+        <div v-for="(file,index) of files"
+             style="display: inline-block; margin: 10px"
+             @click="gotoEditVideo(file)">
+          <div class="fileShape">
+            <video :src="fileUrls[index]" width="200px"/><br>
             {{ file.data().title }}
-          </v-list-item-action>
-        </v-list-item>
+          </div>
+        </div >
+
         <hr>
       </div>
 
@@ -59,6 +60,9 @@
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
+            <v-btn @click="dialog = false" color="primary">
+              Cancel
+            </v-btn>
             <v-btn
               id ="addBtn"
               color="primary"
@@ -148,7 +152,6 @@ export default {
         this.files = [];
         querySnapshot.docs.forEach(file => {
           if (file.data().path === this.currentDir) {
-            console.log(file.data().name);
             this.files.push(file);
             this.docFiles.push(file.data());
           }
@@ -163,7 +166,7 @@ export default {
     },
     // method for adding video on screen
     addVideo(){
-      const src= document.getElementById('inputVideo').files[0];
+      const src= this.fileObj;
       let title = document.getElementById('inputVideoTitle').value;
       if(src){
         if(!title){
@@ -240,10 +243,14 @@ export default {
         // For instance, get the download URL: https://firebasestorage.googleapis.com/...
         console.log(uploadTask.snapshot.ref.fullPath);
 
+        // set file's field data before uploading
+        const name = this.fileObj.name;
+        const currentDir = this.currentDir
+        // add file on firestore
         await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
           title: title,
-          name: uploadTask.snapshot.ref.fullPath,
-          path: this.currentDir,
+          name: name,
+          path: currentDir,
           source: uploadTask.snapshot.ref.fullPath,
           timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
         })
@@ -299,7 +306,8 @@ export default {
 }
 
 .fileShape{
-  max-height: 200px;
+  max-width: 200px;
   margin: 0px;
+  text-align: center;
 }
 </style>
