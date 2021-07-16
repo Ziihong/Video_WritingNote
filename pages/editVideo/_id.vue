@@ -44,6 +44,7 @@
               style="margin-left: 0px; padding-left: 0px; width: 100%"
               controls
               muted
+              crossorigin="anonymous"
               :src=fileUrl>
             </video>
         </th>

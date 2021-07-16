@@ -8,7 +8,7 @@ export default Image.extend({
     return {
       ...Image.config.addAttributes(),
       size: {
-        default: 'small',
+        default: 'large',
         rendered: false
       },
       float: {
