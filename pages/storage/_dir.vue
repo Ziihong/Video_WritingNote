@@ -27,7 +27,7 @@
       </div>
       <div class="text-left" style="margin-top: 10px">
         <v-list-item v-for="(dir,index) of dirs"
-                     style="display: inline; background-color: #ced4da; margin-right: 5px"
+                     style="background-color: #ced4da; margin-right: 5px; margin-bottom: 1px"
                      v-bind:key = index
                      @click="clickDir(dir.name, dir.path)">
           <v-list-item-action class="fileShape">
@@ -42,14 +42,26 @@
         <v-btn class="addFilebtn" @click="dialog = !dialog">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
+        <div v-if="isUploading">
+          <v-progress-circular
+            :rotate="-90"
+            :size="100"
+            :width="15"
+            :value="loadPercent"
+            color="primary"
+          >
+            {{ loadPercent }}
+          </v-progress-circular>
+        </div>
         <v-list-item v-for="(file,index) of files"
                      style="display: inline"
                      v-bind:key = index
                      @click="gotoEditVideo(file)">
-          <v-list-item-action class="fileShape">
+          <v-list-item-action class="fileShape" >
             <video :src="fileUrls[index]" width="200px"/>
-            {{ file.data().title }}<br>
+            {{ file.data().title }}
             <v-btn @click="$event.stopPropagation() ,removeFile(file)">Delete</v-btn>
+            <v-btn @click="$event.stopPropagation()">Edit Name</v-btn>
           </v-list-item-action>
         </v-list-item>
         <hr>
@@ -98,6 +110,7 @@ export default {
       fileObj: null,
       isUploading: false,
       fileUrls: [],
+      loadPercent: null,
 
       uid: null,
       currentDir: null,
@@ -138,7 +151,7 @@ export default {
         console.log('not exists');
       }
     });
-
+    // update data of current directory
     this.updateData();
   },
 
@@ -202,13 +215,11 @@ export default {
     },
     // Save Name for account
     async onSave() {
-
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
       set({name: this.name}, {merge: true}).
       then(() => {
         console.log('saved!');
       });
-
     },
     // Remove files on fire store
     async removeFile(file) {
@@ -237,7 +248,7 @@ export default {
       const currentDir = this.currentDir
 
       const storageRef =
-        this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${this.fileObj.name}`);
+        this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${name}`);
       const uploadTask = storageRef.put(this.fileObj);
       this.isUploading = true;
       const self = this;
@@ -246,6 +257,7 @@ export default {
         // Observe state change events such as progress, pause, and resume
         // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        self.loadPercent = parseInt(progress) ;
 
         console.log('Upload is ' + progress + '% done');
         switch (snapshot.state) {
@@ -265,6 +277,7 @@ export default {
         // Handle successful uploads on complete
         // For instance, get the download URL: https://firebasestorage.googleapis.com/...
         console.log(uploadTask.snapshot.ref.fullPath);
+        self.isUploading = false;
 
         // add file on firestore
         await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
@@ -274,7 +287,6 @@ export default {
           source: uploadTask.snapshot.ref.fullPath,
           timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
         })
-        this.isUploading = false;
 
         uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
           console.log('File available at', downloadURL);
@@ -376,6 +388,6 @@ export default {
 .fileShape{
   max-width: 200px;
   margin: 0px;
-  text-align: center;
+  align-items: center;
 }
 </style>
