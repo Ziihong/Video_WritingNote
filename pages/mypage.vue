@@ -14,6 +14,7 @@
           <v-icon left>mdi-movie</v-icon>
           로컬공유
         </v-btn>
+        <channel v-on:join-event="joinReceive" v-on:leave-event="leaveReceive"></channel>
         <!--        <input placeholder="제목을 입력하세요" type="text"-->
         <!--               style="width: 40%; background-color:white;"/>-->
       </v-row>
@@ -26,8 +27,8 @@
         <share></share>
       </v-row>
       <v-row class="participant-wrap">
-        <div>참가자들</div>
-        <v-btn color="primary" right> 링크공유</v-btn>
+        <div v-if="isChannel">{{ authUser.nickname }}</div>
+        <v-btn @click="copyEncryptUrl" color="primary" right> 링크공유</v-btn>
       </v-row>
       <!--      <v-row id="draw">-->
       <!--        <v-stepper v-model="el" id="markStepper">-->
@@ -91,6 +92,10 @@ import Drawing from "../components/Drawing";
 import Comment from '../components/Comment';
 import Toolbar from "../components/Toolbar";
 import share from "/pages/share";
+import Channel from '../components/Channel';
+import apiVersions from '../static/api';
+import b64 from '../static/b64';
+import {mapGetters, mapState} from "vuex";
 
 export default {
   components: {
@@ -98,6 +103,7 @@ export default {
     Comment,
     Toolbar,
     share,
+    Channel,
   },
   data() {
     return {
@@ -131,9 +137,17 @@ export default {
       },
       isChat: false,
       isStorage:true,
+      isChannel: false,
     };
   },
-  computed: {},
+  computed: {
+    ...mapState({
+      authUser: state => state.authUser,
+    }),
+    ...mapGetters({
+      isLoggedIn: 'isLoggedIn',
+    }),
+  },
   mounted() {
     if (!this.$fire.auth.currentUser)
       return;
@@ -165,6 +179,12 @@ export default {
     }));
   },
   methods: {
+    joinReceive() {
+      this.isChannel = true;
+    },
+    leaveReceive() {
+      this.isChannel = false;
+    },
     testFunc(html, event) {
       try {
         let div = document.getElementById("content-editor");
@@ -240,28 +260,6 @@ export default {
     choiceFile: function () {
       document.getElementById("fileupload").click();
     },
-    async makeMarker() {
-      const originVideo = document.querySelector("#videoOrigin");
-      const self = this;
-
-      await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/marks`).add({
-        time: originVideo.currentTime,
-        timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
-      });
-
-      this.marks = [];
-      const fileStorageRef = this.$fire.firestore.collection(`users/${this.$fire.auth.currentUser.uid}/marks`);
-      fileStorageRef.orderBy('timestamp')
-        .onSnapshot((async querySnapshot => {
-          this.marks = querySnapshot.docs;
-          const self = this;
-          this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
-        }));
-    },
-    goToMarkTime: function (time) {
-      const originVideo = document.querySelector("#videoOrigin");
-      originVideo.currentTime = time;
-    },
     saveToPdf: function () {
       html2canvas(document.querySelector("#content-editor"), {
         scale: 3,
@@ -295,6 +293,37 @@ export default {
       this.canvasImgsrc = event.target.src;
       this.isCanvasOn = true;
       this.$refs.drawingPopup.drawingImage(event.target.src, this.video.clientWidth, this.video.clientHeight);
+    },
+    async generateFragment(url, passwd) {
+      const encrypted = await apiVersions["0.0.1"].encrypt(url, passwd);
+      const output = {
+        v: "0.0.1",
+        e: b64.binaryToBase64(new Uint8Array(encrypted))
+      }
+      // Return the base64-encoded output
+      return b64.encode(JSON.stringify(output));
+    },
+    async copyEncryptUrl() {
+      // Get password value
+      const password = prompt("Set password for link");
+      // Get current page url
+      const url = window.document.location.href;
+      // Copy url to clipboard
+      let textarea = document.createElement("textarea");
+      const encrypted = await this.generateFragment(url, password);
+      const output = `http://localhost:3000/alertPage/#${encrypted}`;
+
+      document.body.appendChild(textarea);
+      textarea.value = output;
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      alert("URL이 복사되었습니다.");
+
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth",
+      });
     },
   }
 }
