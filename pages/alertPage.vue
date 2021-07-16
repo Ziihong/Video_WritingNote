@@ -31,7 +31,7 @@ export default {
         const encrypted = b64.base64ToBinary(params["e"]);
         const salt = "s" in params ? b64.base64ToBinary(params["s"]) : null;
         const iv = "i" in params ? b64.base64ToBinary(params["i"]) : null;
-        let password = prompt("Please enter the password to unlock the link.");
+        let password = prompt("Enter the password to unlock the link.");
         // Decrypt and redirect if possible
         let url;
 
