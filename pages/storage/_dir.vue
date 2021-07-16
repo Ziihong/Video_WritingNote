@@ -17,11 +17,11 @@
       </div>
 
       <div style="background-color: lightcyan; margin-top: 10px" class="text-left">
-        <v-btn text style="display: inline; min-width: 25%" class="text-center">
-          Directory
+        <v-btn text style="display: inline; min-width: 20%; text-transform: none" class="text-center">
+          {{ 'storage/' }}
         </v-btn>
-        <v-btn text style="display: inline;min-width: 25%" class="text-center">
-          Directory 2
+        <v-btn text style="display: inline;min-width: 20%; text-transform: none" class="text-center">
+          {{ currentDir }}
         </v-btn>
       </div>
       <div class="text-left" style="margin-top: 10px">
@@ -29,7 +29,7 @@
                      style="display: inline; background-color: #ced4da; margin-right: 5px"
                      v-bind:key = index
                      @click="clickDir(dir.name, dir.path)">
-          <v-list-item-action  class="fileShape">
+          <v-list-item-action class="fileShape">
             {{ dir.name }}
           </v-list-item-action>
         </v-list-item>
@@ -102,6 +102,7 @@ export default {
       currentDir: null,
       createDir: null,
 
+      dirLog: [],
       dirs: [],
       docFiles: []
     };
