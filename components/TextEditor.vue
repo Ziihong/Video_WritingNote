@@ -123,7 +123,6 @@
         <button @click="editor.chain().focus().setImage({ float: 'none' }).run()" :class="{'is-active': editor.isActive('custom-image', {float: 'none'})}">No float</button>
         <button @click="editor.chain().focus().setImage({ float: 'right' }).run()" :class="{'is-active': editor.isActive('custom-image', {float: 'right'})}">Right</button>
         <span style="color: #aaa">|</span>
-        <button @click="addImage">Change</button>
       </bubble-menu>
 
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="addImage()"><v-icon>mdi-camera-iris</v-icon></v-btn></template><span>Screenshot</span></v-tooltip>
@@ -216,7 +215,9 @@ export default {
             class: 'custom-image'
           }
         }),
-        // CodeBlockLowlight.configure({ lowlight }),
+        CodeBlockLowlight.configure({
+
+        }),
       ],
       content: ``,
 
@@ -240,8 +241,7 @@ export default {
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       const dataURL = canvas.toDataURL("image/jpg");
-      this.editor.chain().focus('end').setImage({src: dataURL}).run()
-
+      this.editor.chain().focus('end').setImage({src: dataURL}).run();
     },
 
     // set link text editor
@@ -262,7 +262,6 @@ export default {
       if(this.inputRow <= 0 || this.inputCol <= 0){
         return;
       }
-      console.log(this.inputRow, this.inputCol)
       this.editor.chain().focus().insertTable({ rows: this.inputRow, cols: this.inputCol, withHeaderRow: true }).run()
     },
 
@@ -356,7 +355,7 @@ img {
   }
 }
 .custom-image-small {
-  max-width: 30%;
+  max-width: 33%;
 }
 .custom-image-medium {
   max-width: 50%;
@@ -375,7 +374,7 @@ img {
 }
 .bubble-menu {
   display: flex;
-  background-color: #0d0d0d;
+  background-color: slategray;
   padding: 0.2rem;
   border-radius: 0.5rem;
   button {

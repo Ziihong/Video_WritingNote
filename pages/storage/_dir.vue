@@ -14,6 +14,7 @@
         <v-text-field v-model="createDir" label="Directory name"></v-text-field>
         <v-btn @click="createDirectory">Create directory</v-btn>
         <v-btn @click="goHome">go Home Dir</v-btn>
+        <v-btn @click="renameDirectory">rename current directory</v-btn>
       </div>
 
       <div style="background-color: lightcyan; margin-top: 10px" class="text-left">
@@ -38,19 +39,19 @@
 
       <div style="background-color: lightcyan; margin-top: 10px" class="text-center"> Files </div>
       <div class="text-left" style="margin-top: 10px">
-        <v-btn class="addFilebtn" @click="dialog = true">
+        <v-btn class="addFilebtn" @click="dialog = !dialog">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
-        <div v-for="(file,index) of files"
-             style="display: inline-block; margin: 10px"
+        <v-list-item v-for="(file,index) of files"
+                     style="display: inline"
+                     v-bind:key = index
                      @click="gotoEditVideo(file)">
-          <div class="fileShape">
-            <video :src="fileUrls[index]" width="200px"/><br>
+          <v-list-item-action class="fileShape">
+            <video :src="fileUrls[index]" width="200px"/>
             {{ file.data().title }}<br>
             <v-btn @click="$event.stopPropagation() ,removeFile(file)">Delete</v-btn>
-          </div>
-        </div >
-
+          </v-list-item-action>
+        </v-list-item>
         <hr>
       </div>
 
@@ -100,6 +101,8 @@ export default {
 
       uid: null,
       currentDir: null,
+      currentDirName: null,
+      currentDirPath: null,
       createDir: null,
 
       dirLog: [],
@@ -115,10 +118,14 @@ export default {
     // set current uid & current Directory path
     this.uid = this.$fire.auth.currentUser.uid
     this.currentDir = this.$route.params.dir
+    this.currentDirName = this.$route.params.name
+    this.currentDirPath = this.$route.params.path
 
     // if user in home directory
     if (this.currentDir == undefined) {
-      this.currentDir = '/'
+      this.currentDir = '/';
+      this.currentDirName = 'home';
+      this.currentDirPath = '/';
     }
 
     // get user name
@@ -274,6 +281,7 @@ export default {
         });
       });
     },
+
     // Create lower directory
     async createDirectory() {
 
@@ -295,18 +303,64 @@ export default {
         console.log(e.message);
       }
     },
+
+    // Renaming current directory
+    async renameDirectory() {
+      // Use this.createDir input box
+      if (this.createDir == null) {
+        console.log('Input your directory name');
+        return;
+      }
+
+      // If user change home dir name
+      if (this.currentDir == '/') {
+        console.log('Can not change home directory name');
+        return;
+      }
+
+      try {
+        const collection = this.$fire.firestore.collection(`users/${this.uid}/directory`);
+
+        // Change current dir name
+        collection.where("name", "==", this.currentDirName).where("path", "==", this.currentDirPath)
+        .get().then(querySnapshot => {
+          querySnapshot.forEach(doc => {
+            const batch = this.$fire.firestore.batch();
+            const docRef = collection.doc(doc.id);
+            batch.set(docRef, { "name": this.createDir }, { merge: true });
+            batch.commit();
+          })
+        })
+
+        // Change dirs path which in current dir
+        collection.where("path", ">=", this.currentDir).where("path", "<=", this.currentDir + "~")
+        .get().then(querySnapshot => {
+          querySnapshot.forEach(doc => {
+            const batch = this.$fire.firestore.batch();
+            const docRef = collection.doc(doc.id);
+            batch.set(docRef, { "path": this.currentDirPath + this.createDir + '/' }, { merge: true });
+            batch.commit();
+          })
+        });
+
+        this.clickDir(this.createDir, this.currentDirPath);
+
+      } catch (e) {
+        console.log(e.message);
+      }
+    },
+
     // Go to home directory
     async goHome() {
       if (this.currentDir == '/') { // if not, caused error
         return
       }
-      await this.$router.push({ params: {dir: '/' }})
+      await this.$router.push({ params: {dir: '/', name: 'home', path: '/' }})
     },
+
     // Go to clicked directory
     async clickDir(name, path) {
-      await this.$router.push({ params: {dir: path + name + '/' }})
-      console.log(this.$route.params)
-
+      await this.$router.push({ params: {dir: path + name + '/', name: name, path: path }})
     },
   },
 }
