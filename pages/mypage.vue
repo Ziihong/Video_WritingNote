@@ -71,10 +71,11 @@
         </div>
       </v-row>
       <v-row>
-        <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>
-        <v-btn color="primary" @click="onSaveNote">저장</v-btn>
+        <v-btn color="primary" @click.stop="drawVideo">캡쳐</v-btn>
+        <v-btn color="primary" @click.stop="onSaveNote">저장</v-btn>
 <!--        <v-btn color="primary" @click="makeMarker">Mark</v-btn>-->
         <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
+        <v-btn @click="testF">aa</v-btn>
 <!--        <v-btn color="primary">공유하기</v-btn>-->
       </v-row>
       </v-col>
@@ -185,17 +186,27 @@ export default {
     leaveReceive() {
       this.isChannel = false;
     },
-    testFunc(html, event) {
+    testFunc(html) {
       try {
         let div = document.getElementById("content-editor");
         let newStr = "<div>" + html + "</div>";
-        div.insertAdjacentHTML( 'beforeend', newStr );
-        event.stopPropagation();
+        // div.innerHTML = newStr;
+        let newdiv = document.createElement('div');
+        newdiv.innerHTML = html;
+        div.appendChild(newdiv);
+        // div.insertAdjacentHTML( 'beforeend', newStr );
+        // event.stopPropagation();
       } catch (e) {
         console.log(e);
       }
     },
-    async onSaveNote(event) {
+    testF(){
+      let newdiv = document.createElement('div');
+      let newimg = document.createElement('img');
+      newimg.src="v.png";
+      document.getElementById("content-editor").appendChild(newimg);
+    },
+    async onSaveNote() {
       try {
         let replacement = document.getElementById('content-editor').innerHTML.replace(/<div>/g, "`");
         let everyReplace = replacement.replace(/<\/div>/g, "`");
@@ -204,7 +215,9 @@ export default {
         const self = this;
 
         for(let i=0; i<strSplit.length; i++){
-          textArr.push(strSplit[i]);
+          if(strSplit[i]!==""){
+            textArr.push(strSplit[i]);
+          }
         }
         //delete all that has saved before
         let i = this.notes.length;
@@ -212,6 +225,7 @@ export default {
           await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/notes/${this.notes[0].id}`).delete();
           i--;
         }
+        console.log(textArr);
         for(const i of textArr){
           await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/notes`).add({
             text: i,
@@ -231,10 +245,6 @@ export default {
       } catch (e) {
         console.log(e);
       }
-      event.stopPropagation();
-    },
-    async removeMark(mark) {
-      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/marks/${mark.id}`).delete();
     },
     drawVideo: function () {
       this.video = document.querySelector("#videoOrigin");
@@ -247,14 +257,14 @@ export default {
       const imgNode = document.createElement("img");
       imgNode.src = this.canvas.toDataURL();
 
-      this.canvasImgsrc = this.canvas.toDataURL();
+      // this.canvasImgsrc = this.canvas.toDataURL();
       imgNode.width = this.canvas.width / 4;
       imgNode.height = this.canvas.height / 4;
 
       imgNode.addEventListener("click", this.popupCanvas);
 
       document.getElementById('content-editor').appendChild(imgNode);
-      this.isCanvasOn = false;
+      // this.isCanvasOn = false;
       //document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
     },
     choiceFile: function () {
@@ -272,14 +282,15 @@ export default {
         let imgWidth = 210;
         let imgHeight = canvas.height * imgWidth / canvas.width;
         let doc = new jsPDF('p', 'mm');
-        let position = -1;
+        let position = 0;
         let pageHeight = imgWidth * 1.414;
         let heightLeft =  imgHeight;
+        let margin = 10;
         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
 
         heightLeft -= pageHeight;
         while(heightLeft >= 20){
-         position -= heightLeft - imgHeight;
+         position = heightLeft - imgHeight;
          doc.addPage();
          doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
          heightLeft -= pageHeight;
@@ -290,8 +301,8 @@ export default {
     popupCanvas: function (event) {
       this.video = document.querySelector("#videoOrigin");
 
-      this.canvasImgsrc = event.target.src;
-      this.isCanvasOn = true;
+      // this.canvasImgsrc = event.target.src;
+      // this.isCanvasOn = true;
       this.$refs.drawingPopup.drawingImage(event.target.src, this.video.clientWidth, this.video.clientHeight);
     },
     async generateFragment(url, passwd) {
