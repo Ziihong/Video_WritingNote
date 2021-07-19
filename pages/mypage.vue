@@ -313,6 +313,7 @@ export default {
       const encrypted = await this.generateFragment(url, password);
       const output = `http://localhost:3000/alertPage/#${encrypted}`;
 
+      if(password == null) return;
       document.body.appendChild(textarea);
       textarea.value = output;
       textarea.select();

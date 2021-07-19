@@ -32,14 +32,12 @@ let b64 = (function() {
     },
 
     // Convert a string to a Uint8Array
-    // FIXME: TextEncoding and TextDecoding are not actually inverses
     asciiToBinary: function(text) {
       return _enc.encode(text);
     },
 
 
     // Convert a Uint8Array to a string
-    // FIXME: TextEncoding and TextDecoding are not actually inverses
     binaryToAscii: function(binary) {
       return _dec.decode(binary);
     },
