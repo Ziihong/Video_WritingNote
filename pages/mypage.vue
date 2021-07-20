@@ -177,6 +177,7 @@ export default {
       const self = this;
       this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
     }));
+    // Default is note
     this.noteClick();
   },
   methods: {
@@ -256,6 +257,8 @@ export default {
       imgNode.addEventListener("click", this.popupCanvas);
 
       document.getElementById('content-editor').appendChild(imgNode);
+
+      // Video capture event bubbling bug occur if this code exist
       // this.isCanvasOn = false;
       //document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
     },
@@ -293,6 +296,7 @@ export default {
     popupCanvas: function (event) {
       this.video = document.querySelector("#videoOrigin");
 
+      // Video capture event bubbling bug occur if this code exist
       // this.canvasImgsrc = event.target.src;
       // this.isCanvasOn = true;
       this.$refs.drawingPopup.drawingImage(event.target.src, this.video.clientWidth, this.video.clientHeight);
@@ -330,6 +334,7 @@ export default {
       });
     },
     noteClick(){
+      // Changed from v-if to display none
       document.getElementById('note-wrap').style.display = "block";
       document.getElementById('chat-wrap').style.display = "none";
     },
