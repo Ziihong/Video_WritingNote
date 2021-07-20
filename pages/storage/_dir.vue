@@ -18,18 +18,23 @@
       </div>
 
       <div style="background-color: lightcyan; margin-top: 10px" class="text-left">
-        <v-btn text style="display: inline; min-width: 20%; text-transform: none" class="text-center">
-          {{ 'storage/' }}
-        </v-btn>
-        <v-btn text style="display: inline;min-width: 20%; text-transform: none" class="text-center">
-          {{ currentDir }}
-        </v-btn>
+        <span v-for="(dir,index) of dirPathLog">
+          <v-btn text
+                 style="display: inline;min-width: 16%; text-transform: none"
+                 class="text-center"
+                 @click="dirPathLog.splice(index+1); clickDir(dir.name, dir.path)"
+                 v-bind:key = index>
+            {{ dir.name }}
+          </v-btn>
+          <v-icon>mdi-chevron-right</v-icon>
+        </span>
+
       </div>
-      <div class="text-left" style="margin-top: 10px">
+      <div class="text-left" style="margin-top: 10px; overflow-scrolling: auto">
         <v-list-item v-for="(dir,index) of dirs"
                      style="background-color: #ced4da; margin-right: 5px; margin-bottom: 1px"
                      v-bind:key = index
-                     @click="clickDir(dir.name, dir.path)">
+                     @click="dirPathLog.push(dir),clickDir(dir.name, dir.path)">
           <v-list-item-action class="fileShape">
             {{ dir.name }}
           </v-list-item-action>
@@ -42,17 +47,6 @@
         <v-btn class="addFilebtn" @click="dialog = !dialog">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
-        <div v-if="isUploading">
-          <v-progress-circular
-            :rotate="-90"
-            :size="100"
-            :width="15"
-            :value="loadPercent"
-            color="primary"
-          >
-            {{ loadPercent }}
-          </v-progress-circular>
-        </div>
         <v-list-item v-for="(file,index) of files"
                      style="display: inline"
                      v-bind:key = index
@@ -64,6 +58,17 @@
             <v-btn @click="$event.stopPropagation()">Edit Name</v-btn>
           </v-list-item-action>
         </v-list-item>
+        <div v-if="isUploading">
+          <v-progress-circular
+            :rotate="-90"
+            :size="100"
+            :width="15"
+            :value="loadPercent+'%'"
+            color="primary"
+          >
+            {{ loadPercent }}
+          </v-progress-circular>
+        </div>
         <hr>
       </div>
 
@@ -118,7 +123,7 @@ export default {
       currentDirPath: null,
       createDir: null,
 
-      dirLog: [],
+      dirPathLog: [ ],
       dirs: [],
       docFiles: []
     };
@@ -146,11 +151,23 @@ export default {
       if (docSnap.exists) {
         this.name = docSnap.data().name;
         this.description = docSnap.data().description;
+        try{
+          if(this.currentDir =='/'){
+            this.dirPathLog = [{path: '/', name: 'home'}];
+          }
+          else{
+            this.dirPathLog = JSON.parse(docSnap.data().dirPathLog);
+          }
+        }
+        catch (e){
+          this.dirPathLog = [{path: '/', name: 'home'}];
+        }
       }
       else {
         console.log('not exists');
       }
     });
+
     // update data of current directory
     this.updateData();
   },
@@ -202,6 +219,10 @@ export default {
         if(!title){
           title = src.name;
         }
+
+        //check same title and save as {{title}}_#number
+        console.log(this.files.includes(title));
+
         this.startUpload(title);
         this.dialog = false;
       }
@@ -365,13 +386,26 @@ export default {
     // Go to home directory
     async goHome() {
       if (this.currentDir == '/') { // if not, caused error
-        return
+        return;
       }
       await this.$router.push({ params: {dir: '/', name: 'home', path: '/' }})
     },
 
     // Go to clicked directory
     async clickDir(name, path) {
+      console.log('dirPathLog: ',this.dirPathLog);
+      this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
+      set({dirPathLog: JSON.stringify(this.dirPathLog)}, {merge: true}).
+      then(() => {
+        console.log('path saved!');
+      });
+
+      // if clicked is home directory
+      if(name == 'home'){
+        await this.goHome();
+        return;
+      }
+      // else
       await this.$router.push({ params: {dir: path + name + '/', name: name, path: path }})
     },
   },
