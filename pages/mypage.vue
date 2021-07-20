@@ -235,6 +235,8 @@ export default {
             this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
           }));
         document.getElementById('content-editor').innerHTML = "";
+        // Div tag refresh
+        // this.$router.go();
       } catch (e) {
         console.log(e);
       }
@@ -266,6 +268,7 @@ export default {
       document.getElementById("fileupload").click();
     },
     saveToPdf: function () {
+
       html2canvas(document.querySelector("#content-editor"), {
         scale: 3,
         allowTaint: true,
@@ -280,7 +283,6 @@ export default {
         let position = 0;
         let pageHeight = imgWidth * 1.414;
         let heightLeft =  imgHeight;
-        let margin = 10;
         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
 
         heightLeft -= pageHeight;

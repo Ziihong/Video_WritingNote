@@ -21,7 +21,7 @@
       </v-icon>
     </v-btn>
     <select id="fontSelect" @change="editFontSize">
-      <option selected>3</option>
+      <option selected>선택</option>
       <option value="1">1</option>
       <option value="2">2</option>
       <option value="3">3</option>
@@ -45,7 +45,6 @@ export default {
     },
     async editFontSize() {
       let size = document.getElementById("fontSelect");
-      console.log(size.value);
       await document.execCommand("fontsize", false, size.value);
     }
   }
