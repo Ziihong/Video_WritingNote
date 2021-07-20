@@ -41,6 +41,7 @@
             <v-icon left>mdi-google</v-icon>
             Google 계정으로 시작하기
           </v-btn>
+          <v-btn @click="signInAnonymous" class="btn-login">게스트로 시작하기</v-btn>
 
           <br>
         </form>
@@ -95,6 +96,15 @@ export default {
         this.formData.email = '';
         this.formData.password = '';
         alert(e)
+      }
+    },
+    async signInAnonymous() {
+      try{
+        firebase.auth().signInAnonymously().then(() => {
+
+        })
+      } catch (e) {
+        alert(e);
       }
     },
     async signWithGoogle() {

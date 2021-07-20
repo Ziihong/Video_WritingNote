@@ -3,12 +3,12 @@
 <span class="btn">
     <v-btn color="primary" class="filebox" @click="modalOpen">
       <v-icon left>mdi-folder-plus-outline</v-icon>
-      <span>새 폴더</span>
+      <span>{{title}}</span>
     </v-btn>
 </span>
     <ModalRename
       :isShowed="this.isRename"
-      :title="'새 폴더'"
+      :title="this.title"
       @rename-close="modalClose"
       @rename-ok="modalCreate">
     </ModalRename>
@@ -24,6 +24,8 @@ export default {
     ModalRename,
   },
   props: {
+    title: String,
+    type: String,
     parentId: String,
   },
   data() {
@@ -43,7 +45,7 @@ export default {
       }
       else {
         await this.$fire.firestore
-          .collection(`users/${this.$fire.auth.currentUser.uid}/directories`)
+          .collection(`users/${this.$fire.auth.currentUser.uid}/${this.type}`)
           .add({
             name: createName,
             parentId: this.parentId,

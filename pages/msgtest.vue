@@ -1,5 +1,5 @@
 <template>
-  <v-row>
+  <v-row style="padding: 20px">
     <form id="loginForm">
       <div class="input-field" style="margin: 10px">
         <label>User ID</label>
@@ -23,20 +23,7 @@
           <v-btn type="button" id="leave" @click="leaveChannel">LEAVE</v-btn>
         </div>
       </v-row>
-      <div class="input-field channel-padding">
-        <label>Channel Message</label>
-        <input type="text" placeholder="channel message" id="channelMessage">
-        <v-btn type="button" id="send_channel_message"
-               @click="sendChannelMsg"
-        >SEND</v-btn>
-      </div>
-      <v-row>
-        <input type="file" id="file_message">
-        <v-btn color="primary" id="send_channel_file"
-               @click="sendChannelFileMsg"
-        >SEND</v-btn>
-      </v-row>
-      <div class="input-field">
+      <div class="input-field" style="margin: 10px">
         <label>Peer Id</label>
         <input type="text" placeholder="peer id" id="peerId">
       </div>
@@ -50,6 +37,25 @@
     </form>
     <v-row style="margin: 10px">
       <div id="log"></div>
+    </v-row>
+    <v-row>
+      <v-row>
+        <div class="input-field channel-padding">
+          <label>Channel Message</label>
+          <input type="text" placeholder="channel message" id="channelMessage">
+          <v-btn type="button" id="send_channel_message"
+                 @click="sendChannelMsg"
+          >SEND</v-btn>
+        </div>
+      </v-row>
+      <v-row>
+        <v-btn>
+          <v-file-input type="file" id="file_message"/>
+        </v-btn>
+        <v-btn color="primary" id="send_channel_file"
+               @click="sendChannelFileMsg"
+        >SEND</v-btn>
+      </v-row>
     </v-row>
   </v-row>
 </template>
@@ -78,6 +84,7 @@ export default {
     this.clientID = AgoraRTM.createInstance(this.appId);
     this.clientID.on('MessageFromPeer', function (message, peerId) {
       document.getElementById("log").appendChild(document.createElement('div')).append("Message from: " + peerId + " Message: " + message.text)
+      document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
     });
 // Display connection state changes
     this.clientID.on('ConnectionStateChanged', function (state, reason) {
@@ -90,23 +97,26 @@ export default {
       }
       else if(message.messageType=='IMAGE'){
         console.log(message);
+        document.getElementById("log").appendChild(document.createElement('div')).append("Image received from: " + memberId + " Message: " + message.fileName);
         const blob = await this.clientID.downloadMedia(message.mediaId).catch(function (err){
           console.log("Media download failed!");
         });
-        document.getElementById("log").appendChild(document.createElement('div')).append("Image received from: " + memberId + " Message: " + message.fileName);
         console.log(blob);
       }
       else{
         console.log('Other type');
       }
+      document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
     })
 // Display channel member stats
     this.channel.on('MemberJoined', function (memberId) {
       document.getElementById("log").appendChild(document.createElement('div')).append(memberId + " joined the channel")
+      document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
     })
 // Display channel member stats
     this.channel.on('MemberLeft', function (memberId) {
       document.getElementById("log").appendChild(document.createElement('div')).append(memberId + " left the channel")
+      document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
     })
   },
   methods: {
@@ -155,6 +165,7 @@ export default {
             append("Channel message "+this.options.uid+": " + channelMessage + " from " + this.channel.channelId);
             let messageInput = document.getElementById("channelMessage");
             messageInput.value = "";
+            document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
         });
       }
       else console.log('Channel is empty');
@@ -192,6 +203,7 @@ export default {
           console.log('Image Message send success');
           document.getElementById("log").appendChild(document.createElement('div')).
           append("Channel message "+this.options.uid+": " + mediaMessage.fileName + " from " + this.channel.channelId);
+          document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
         }).catch(function (err){
           console.log('Image Message send error!');
         });
@@ -213,10 +225,11 @@ export default {
           document.getElementById("log").appendChild(document.createElement('div'))
             .append("Message sent to: " + peerId + " Message: " + peerMessage)
         }
+        document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
       });
     },
     tokenGenerate(account){
-      const expirationTimeInSeconds = 3600;
+      const expirationTimeInSeconds = 7200;
       const currentTimestamp = Math.floor(Date.now() / 1000);
       const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
       const token = RtmTokenBuilder.buildToken(this.appId, this.appCertificate, account, RtmRole, privilegeExpiredTs);
@@ -233,5 +246,14 @@ export default {
 input{
   border: #222222 solid 1px;
   margin-left: 5px;
+}
+#log{
+  border: #222222 solid 1px;
+  overflow : auto;
+  width: 700px;
+  height: 200px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
 }
 </style>

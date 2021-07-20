@@ -20,6 +20,7 @@
     "flora": "^2.0.13",
     "global": "^4.4.0",
     "html2canvas": "^1.0.0-rc.7",
+    "js-cookie": "^2.2.1",
     "jspdf": "^2.3.1",
     "nuxt": "^2.15.3",
     "nuxt-video-player": "^1.0.17",
@@ -42,6 +43,6 @@
     "@nuxtjs/vuetify": "^1.11.3",
     "froala-editor": "^4.0.2",
     "jquery": "^3.6.0",
-    "webpack": "^5.41.1"
+    "webpack": "^4.46.0"
   }
 }

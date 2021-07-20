@@ -142,6 +142,16 @@ export default {
           title: 'share',
           to: '/share'
         },
+        {
+          icon: 'mdi-folder-multiple',
+          title: 'webcam',
+          to: '/webcamPage'
+        },
+        {
+          icon: 'mdi-forum',
+          title: 'messageTest',
+          to: '/msgtest'
+        },
       ],
       miniVariant: false,
       right: true,
