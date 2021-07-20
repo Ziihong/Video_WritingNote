@@ -1,5 +1,7 @@
 <template>
   <div id="content">
+    <up-file-btn></up-file-btn>
+    <up-dir-btn></up-dir-btn>
     <div class="wrap">
       <v-btn color="primary" @click="startScreenShare">Start</v-btn>
       <video id="videoOrigin" autoplay></video>
@@ -8,7 +10,11 @@
 </template>
 
 <script>
+
+import UpFileBtn from "../components/UpFileBtn";
+import UpDirBtn from "../components/UpDirBtn";
 export default {
+  components: {UpDirBtn, UpFileBtn},
   data() {
     return {
       constraints: {
