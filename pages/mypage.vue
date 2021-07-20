@@ -50,15 +50,15 @@
                :imageSrc="this.canvasImgsrc"
                ref="drawingPopup"></Drawing>
       <v-row class="btn-wrap">
-        <v-btn @click="isChat=false;">노트</v-btn>
-        <v-btn @click="isChat=true;">채팅</v-btn>
+        <v-btn @click="noteClick">노트</v-btn>
+        <v-btn @click="chatClick">채팅</v-btn>
         <Comment
           :creator="creator"
           :comments="comments"
           :current_user="current_user">
         </Comment>
       </v-row>
-      <v-col class="note-wrap" v-if="!isChat">
+      <v-col id="note-wrap">
       <v-row><h1>노트 제목</h1></v-row>
       <div class="edit-toolbar">
         <Toolbar></Toolbar>
@@ -66,7 +66,7 @@
       <v-row>
         <div id="content-editor" contenteditable="true">
           <template v-for="note of notes">
-            {{testFunc(note.data().text)}}
+            {{makeHtml(note.data().text)}}
           </template>
         </div>
       </v-row>
@@ -75,11 +75,10 @@
         <v-btn color="primary" @click.stop="onSaveNote">저장</v-btn>
 <!--        <v-btn color="primary" @click="makeMarker">Mark</v-btn>-->
         <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
-        <v-btn @click="testF">aa</v-btn>
 <!--        <v-btn color="primary">공유하기</v-btn>-->
       </v-row>
       </v-col>
-      <v-col v-else>
+      <v-col id="chat-wrap">
         chatting
       </v-col>
     </v-col>
@@ -178,6 +177,7 @@ export default {
       const self = this;
       this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
     }));
+    this.noteClick();
   },
   methods: {
     joinReceive() {
@@ -186,25 +186,18 @@ export default {
     leaveReceive() {
       this.isChannel = false;
     },
-    testFunc(html) {
+    makeHtml(html) {
       try {
-        let div = document.getElementById("content-editor");
-        let newStr = "<div>" + html + "</div>";
-        // div.innerHTML = newStr;
-        let newdiv = document.createElement('div');
-        newdiv.innerHTML = html;
-        div.appendChild(newdiv);
-        // div.insertAdjacentHTML( 'beforeend', newStr );
-        // event.stopPropagation();
+        let contentDiv = document.getElementById("content-editor");
+        let newDiv = document.createElement('div');
+        newDiv.innerHTML = html;
+        if(html.includes('<img')){
+          newDiv.firstElementChild.addEventListener("click", this.popupCanvas);
+        }
+        contentDiv.appendChild(newDiv);
       } catch (e) {
         console.log(e);
       }
-    },
-    testF(){
-      let newdiv = document.createElement('div');
-      let newimg = document.createElement('img');
-      newimg.src="v.png";
-      document.getElementById("content-editor").appendChild(newimg);
     },
     async onSaveNote() {
       try {
@@ -225,7 +218,6 @@ export default {
           await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/notes/${this.notes[0].id}`).delete();
           i--;
         }
-        console.log(textArr);
         for(const i of textArr){
           await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/notes`).add({
             text: i,
@@ -337,6 +329,14 @@ export default {
         behavior: "smooth",
       });
     },
+    noteClick(){
+      document.getElementById('note-wrap').style.display = "block";
+      document.getElementById('chat-wrap').style.display = "none";
+    },
+    chatClick(){
+      document.getElementById('chat-wrap').style.display = "block";
+      document.getElementById('note-wrap').style.display = "none";
+    }
   }
 }
 </script>
@@ -362,7 +362,7 @@ video {
   height: 600px;
 }
 
-.note-wrap{
+#note-wrap{
   position:relative;
   /*background-color: #41b883;*/
 }
