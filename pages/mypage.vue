@@ -71,15 +71,18 @@
         </div>
       </v-row>
       <v-row>
-        <v-btn color="primary" @click.stop="drawVideo">캡쳐</v-btn>
-        <v-btn color="primary" @click.stop="onSaveNote">저장</v-btn>
+        <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>
+        <v-btn color="primary" @click="onSaveNote">저장</v-btn>
 <!--        <v-btn color="primary" @click="makeMarker">Mark</v-btn>-->
         <v-btn color="primary" @click="saveToPdf">PDF</v-btn>
 <!--        <v-btn color="primary">공유하기</v-btn>-->
       </v-row>
       </v-col>
-      <v-col id="chat-wrap">
-        chatting
+      <v-col>
+        <div id="chat-wrap">
+          <div id="chat-log"></div>
+          <input type="text" id="message-input" placeholder="send message">
+        </div>
       </v-col>
     </v-col>
   </v-row>
@@ -116,7 +119,6 @@ export default {
       noteUrls: [],
       isUploading: false,
       commentUrls: [],
-      imageClicked: false,
       isCanvasOn: false,
       clickedImage: '',
       canvasImgsrc: '',
@@ -177,8 +179,6 @@ export default {
       const self = this;
       this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
     }));
-    // Default is note
-    this.noteClick();
   },
   methods: {
     joinReceive() {
@@ -268,7 +268,6 @@ export default {
       document.getElementById("fileupload").click();
     },
     saveToPdf: function () {
-
       html2canvas(document.querySelector("#content-editor"), {
         scale: 3,
         allowTaint: true,
@@ -302,6 +301,9 @@ export default {
       // this.canvasImgsrc = event.target.src;
       // this.isCanvasOn = true;
       this.$refs.drawingPopup.drawingImage(event.target.src, this.video.clientWidth, this.video.clientHeight);
+    },
+    saveImage: function (changedImage){
+      this.clickedImage.src = changedImage;
     },
     async generateFragment(url, passwd) {
       const encrypted = await apiVersions["0.0.1"].encrypt(url, passwd);
@@ -389,7 +391,19 @@ video {
   overflow-y: auto;
   font-family: "Nanum Square";
 }
-
+#chat-wrap{
+  height: 75vh;
+  width: 100%;
+  background-color: #abc1d1;
+}
+#message-input{
+  background-color: white;
+  width: 25%;
+  border: #222222 1px solid;
+  bottom: 0;
+  position: fixed;
+  overflow: scroll;
+}
 #markStepper {
   /*width: 100%;*/
 }

@@ -147,6 +147,11 @@ export default {
           title: 'webcam',
           to: '/webcamPage'
         },
+        {
+          icon: 'mdi-forum',
+          title: 'messageTest',
+          to: '/msgtest'
+        },
       ],
       miniVariant: false,
       right: true,
