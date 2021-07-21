@@ -111,9 +111,7 @@ export default {
       noteUrls: [],
       isUploading: false,
       commentUrls: [],
-      imageClicked: false,
       isCanvasOn: false,
-      clickedImage : '',
       canvasImgsrc : '',
       swMenubar: this.menubar,
       linkUrl: null,
@@ -236,6 +234,7 @@ export default {
       this.video = document.querySelector("#videoOrigin");
       this.canvas = document.querySelector("#videoCanvas");
       this.context = this.canvas.getContext('2d');
+
       this.canvas.width = this.video.clientWidth;
       this.canvas.height = this.video.clientHeight;
 
@@ -298,7 +297,6 @@ export default {
     },
     popupCanvas: function (event){
       this.video = document.querySelector("#videoOrigin");
-
       this.canvasImgsrc = event.target.src;
       this.isCanvasOn = true;
       this.$refs.drawingPopup.drawingImage(event.target.src,this.video.clientWidth,this.video.clientHeight);

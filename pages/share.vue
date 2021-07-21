@@ -79,6 +79,7 @@ button {
 video {
   margin: 0 0 20px 0;
   width: 100%;
+  height: auto;
   background: #222;
 }
 
