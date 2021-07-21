@@ -179,6 +179,7 @@ export default {
       const self = this;
       this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
     }));
+    this.noteClick();
   },
   methods: {
     joinReceive() {
