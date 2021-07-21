@@ -1,18 +1,18 @@
 <template>
   <div>
     <div class='informBox'>
-      <div class="inputToAccess">
-        <div class="agora-text">Appid</div>
-        <input v-model="option.appid" class="inputBox" placeholder="Appid">
+      <div class="input-field" style="margin: 10px">
+        <label>User ID</label>
+        <input type="text" placeholder="User ID" id="userID">
       </div>
-      <div class="inputToAccess">
-        <div class="agora-text">Token</div>
-        <input v-model="option.token" class="inputBox" placeholder="Token">
-      </div>
-      <div class="inputToAccess">
-        <div class="agora-text">Channel Name</div>
-        <input v-model="option.channel" class="inputBox" placeholder="Channel Name">
-      </div>
+      <v-row>
+        <div style="margin: 10px">
+          <v-btn color="primary" id="login" @click="loginUser"
+          >LOGIN</v-btn>
+          <v-btn type="button" id="logout" @click="logoutUser"
+          >LOGOUT</v-btn>
+        </div>
+      </v-row>
       <div class="agora-button">
         <v-btn type="primary" @click="joinEvent">join</v-btn>
         <v-btn type="primary" @click='leaveEvent'>leave</v-btn>
@@ -30,8 +30,10 @@
 </template>
 
 <script>
-import RTCClient from "../static/agora-rtc-client";
 import StreamPlayer from "../components/StreamPlayer";
+import AgoraRTC from "agora-rtc-sdk";
+import {RtmRole, RtmTokenBuilder} from "agora-access-token";
+import AgoraRTM from "agora-rtm-sdk";
 
 export default {
   components: {
@@ -48,24 +50,39 @@ export default {
       disableJoin: false,
       localStream: null,
       remoteStreams: [],
+      client: null,
+      stream: null,
+      clientId: "",
+      channel: "",
+      appId: "",
+      appCertificate: "",
     }
   },
-  props: {
+  created() {
+    this.appId = "e68902b5adbf4686abbf25626ba75b91";
+    this.appCertificate = "8789fcbdc5514adbb59cbc42f17ee7fb";
+    this.clientID = AgoraRTM.createInstance(this.appId);
+    this.channel = this.clientID.createChannel("demoChannel");
   },
   methods: {
+    async loginUser(){
+      this.option.uid = document.getElementById("userID").value.toString();
+      this.option.token = this.tokenGenerate(this.option.uid);
+      console.log('RTM Tokens : '+this.option.token);
+      await this.clientID.login(this.option).catch(function (err){
+        console.log('AgoraRTM client login failure!!!');
+      });
+    },
+    async logoutUser(){
+      await this.clientID.logout().catch(function (err){
+        console.log('AgoraRTM client logout failure!!!');
+      });
+    },
     joinEvent () {
-      if(!this.option.appid) {
-        this.judge('Appid')
-        return
-      }
-      if(!this.option.channel) {
-        this.judge('Channel Name')
-        return
-      }
-      this.rtc.joinChannel(this.option).then(() => {
+      this.joinChannel(this.option).then(() => {
         alert("Join Success");
 
-        this.rtc.publishStream().then((stream) => {
+        this.publishStream().then((stream) => {
           alert("Publish Success");
           this.localStream = stream
         }).catch((e) => {
@@ -79,7 +96,7 @@ export default {
     },
     leaveEvent () {
       this.disableJoin = false
-      this.rtc.leaveChannel().then(() => {
+      this.leaveChannel().then(() => {
         alert("Leave Success");
       }).catch((e) => {
         alert("Leave Failure");
@@ -90,36 +107,80 @@ export default {
     judge(detail) {
       alert(`Please enter the ${detail}`);
     },
-  },
-  created() {
-    this.rtc = new RTCClient()
-    let rtc = this.rtc
-    rtc.on('stream-added', (event) => {
-      let {stream} = event
-      rtc.client.subscribe(stream)
-    })
+    async joinChannel(){
+      await this.channel.join().then(()=>{
+        document.getElementById("log").appendChild(document.createElement('div'))
+          .append("You have successfully joined channel " + this.channel.channelId)
+      }).catch(function (err){
+        console.log('AgoraRTM channel join failure!!!');
+      });
+      this.channel.getMembers().then((memberList)=>{
+        this.userList = memberList;
+      });
 
-    rtc.on('stream-subscribed', (event) => {
-      let {stream} = event
-      if (!this.remoteStreams.find((it) => it.getId() === stream.getId())) {
-        this.remoteStreams.push(stream)
+    },
+    async leaveChannel(){
+      if (this.channel != null) {
+        await this.channel.leave().catch(function (err){
+          console.log('Channel leaving failed!');
+        });
+        this.userList = this.userList.filter((member)=>member!=this.options.uid);
       }
-    })
-
-    rtc.on('stream-removed', (event) => {
-      let {stream} = event
-      this.remoteStreams = this.remoteStreams.filter((it) => it.getId() !== stream.getId())
-    })
-
-    rtc.on('peer-online', (event) => {
-      alert(`Peer ${event.uid} is online`);
-    })
-
-    rtc.on('peer-leave', (event) => {
-      alert(`Peer ${event.uid} already leave`);
-      this.remoteStreams = this.remoteStreams.filter((it) => it.getId() !== event.uid)
-    })
-  }
+      else
+      {
+        console.log("Channel is empty");
+      }
+    },
+    publishStream() {
+      return new Promise((resolve, reject) => {
+        // Create a local stream
+        this.stream = AgoraRTC.createStream({
+          streamID: this.option.uid,
+          audio: true,
+          video: true,
+          screen: false,
+        })
+        // Initialize the local stream
+        this.stream.init(() => {
+          console.log("init local stream success")
+          resolve(this.stream)
+          // Publish the local stream
+          this.client.publish(this.stream, (err) =>  {
+            console.log("publish failed")
+            console.error(err)
+          })
+        })
+      })
+    },
+    publishVoiceStream() {
+      return new Promise((resolve, reject) => {
+        // Create a local stream
+        this.stream = AgoraRTC.createStream({
+          streamID: this.option.uid,
+          audio: true,
+          video: false,
+          screen: false
+        })
+        // Initialize the local stream
+        this.stream.init(() => {
+          console.log("init local stream success")
+          resolve(this.stream)
+          // Publish the local stream
+          this.client.publish(this.stream, (err) =>  {
+            console.log("publish failed")
+            console.error(err)
+          })
+        })
+      })
+    },
+    tokenGenerate(account){
+      const expirationTimeInSeconds = 7200;
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+      const token = RtmTokenBuilder.buildToken(this.appId, this.appCertificate, account, RtmRole, privilegeExpiredTs);
+      return token;
+    },
+  },
 }
 </script>
 
@@ -151,3 +212,4 @@ export default {
   height: 240px;
 }
 </style>
+

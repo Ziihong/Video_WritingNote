@@ -36,8 +36,8 @@
 </template>
 
 <script>
-import RTCClient from "../static/agora-rtc-client";
 import StreamPlayer from "../components/StreamPlayer";
+import AgoraRTC from "agora-rtc-sdk";
 
 export default {
   components: {
@@ -97,35 +97,98 @@ export default {
     judge(detail) {
       alert(`Please enter the ${detail}`);
     },
+    joinChannel(option) {
+      return new Promise((resolve, reject) => {
+        this.client = AgoraRTC.createClient({mode: "rtc", codec: "vp8"})
+        this.client.init(option.appid, () => {
+          console.log("init success")
+          // this.clientListener()
+          this.client.join(option.token ? option.token : null, option.channel, null, (uid) => {
+            console.log("join channel: " + this.option.channel + " success, uid: ", uid)
+            this.option = {
+              appid: option.appid,
+              token: option.token,
+              channel: option.channel,
+              uid: uid,
+            }
+            resolve()
+          }, (err) => {
+            console.error("client join failed", err)
+          })
+        }, (err) => {
+          reject(err)
+          console.error(err)
+        })
+        console.log("[agora-vue] appId", option.appid)
+      })
+    },
+    publishStream() {
+      return new Promise((resolve, reject) => {
+        // Create a local stream
+        this.stream = AgoraRTC.createStream({
+          streamID: this.option.uid,
+          audio: true,
+          video: true,
+          screen: false,
+        })
+        // Initialize the local stream
+        this.stream.init(() => {
+          console.log("init local stream success")
+          resolve(this.stream)
+          // Publish the local stream
+          this.client.publish(this.stream, (err) =>  {
+            console.log("publish failed")
+            console.error(err)
+          })
+        })
+      })
+    },
+    publishVoiceStream() {
+      return new Promise((resolve, reject) => {
+        // Create a local stream
+        this.stream = AgoraRTC.createStream({
+          streamID: this.option.uid,
+          audio: true,
+          video: false,
+          screen: false
+        })
+        // Initialize the local stream
+        this.stream.init(() => {
+          console.log("init local stream success")
+          resolve(this.stream)
+          // Publish the local stream
+          this.client.publish(this.stream, (err) =>  {
+            console.log("publish failed")
+            console.error(err)
+          })
+        })
+      })
+    },
+    leaveChannel() {
+      return new Promise((resolve, reject) => {
+        // Leave the channel
+        this.client.unpublish(this.stream, (err) => {
+          console.log(err)
+        })
+        this.client.leave(() => {
+          // Stop playing the local stream
+          if (this.stream.isPlaying()) {
+            this.stream.stop()
+          }
+          // Close the local stream
+          this.stream.close()
+          this.client = null
+          resolve()
+          console.log("client leaves channel success");
+        }, (err) => {
+          reject(err)
+          console.log("channel leave failed");
+          console.error(err);
+        })
+      })
+    }
   },
   created() {
-    this.rtc = new RTCClient()
-    let rtc = this.rtc
-    rtc.on('stream-added', (event) => {
-      let {stream} = event
-      rtc.client.subscribe(stream)
-    })
-
-    rtc.on('stream-subscribed', (event) => {
-      let {stream} = event
-      if (!this.remoteStreams.find((it) => it.getId() === stream.getId())) {
-        this.remoteStreams.push(stream)
-      }
-    })
-
-    rtc.on('stream-removed', (event) => {
-      let {stream} = event
-      this.remoteStreams = this.remoteStreams.filter((it) => it.getId() !== stream.getId())
-    })
-
-    rtc.on('peer-online', (event) => {
-      alert(`Peer ${event.uid} is online`);
-    })
-
-    rtc.on('peer-leave', (event) => {
-      alert(`Peer ${event.uid} already leave`);
-      this.remoteStreams = this.remoteStreams.filter((it) => it.getId() !== event.uid)
-    })
   }
 }
 </script>
