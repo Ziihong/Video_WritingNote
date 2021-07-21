@@ -57,6 +57,9 @@
         >SEND</v-btn>
       </v-row>
     </v-row>
+    <template v-for="(member) of userList">
+      <li>{{member}}</li>
+    </template>
   </v-row>
 </template>
 
@@ -72,6 +75,7 @@ export default {
       appCertificate: "",
       clientID: "",
       channel: "",
+      userList: [],
       options: {
         uid: "",
         token: "",
@@ -82,6 +86,7 @@ export default {
     this.appId = "e0137c98e86c47b58b38606d42109aca";
     this.appCertificate = "0899f451a3b048dcb073db0f2f7c3f37";
     this.clientID = AgoraRTM.createInstance(this.appId);
+    const self = this;
     this.clientID.on('MessageFromPeer', function (message, peerId) {
       document.getElementById("log").appendChild(document.createElement('div')).append("Message from: " + peerId + " Message: " + message.text)
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
@@ -97,11 +102,17 @@ export default {
       }
       else if(message.messageType=='IMAGE'){
         console.log(message);
+        const receivedImage = document.createElement("img");
+        const reader = new FileReader();
         document.getElementById("log").appendChild(document.createElement('div')).append("Image received from: " + memberId + " Message: " + message.fileName);
-        const blob = await this.clientID.downloadMedia(message.mediaId).catch(function (err){
+        const blob = await self.clientID.downloadMedia(message.mediaId).catch(function (err){
           console.log("Media download failed!");
         });
-        console.log(blob);
+        const url = window.URL.createObjectURL(blob);
+        receivedImage.src = url;
+        receivedImage.width = message.width;
+        receivedImage.height = message.height;
+        document.getElementById("log").appendChild(receivedImage);
       }
       else{
         console.log('Other type');
@@ -112,12 +123,19 @@ export default {
     this.channel.on('MemberJoined', function (memberId) {
       document.getElementById("log").appendChild(document.createElement('div')).append(memberId + " joined the channel")
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
+      self.userList.push(memberId);
     })
 // Display channel member stats
     this.channel.on('MemberLeft', function (memberId) {
       document.getElementById("log").appendChild(document.createElement('div')).append(memberId + " left the channel")
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
+      self.userList = self.userList.filter((member)=>member!=memberId);
     })
+  },
+  mounted() {
+    this.channel.getMembers().then((memberList)=>{
+      this.userList = memberList;
+    });
   },
   methods: {
     async loginUser(){
@@ -141,7 +159,7 @@ export default {
         console.log('AgoraRTM channel join failure!!!');
       });
       this.channel.getMembers().then((memberList)=>{
-        console.log(memberList);
+        this.userList = memberList;
       });
 
     },
@@ -150,6 +168,7 @@ export default {
         await this.channel.leave().catch(function (err){
           console.log('Channel leaving failed!');
         });
+        this.userList = this.userList.filter((member)=>member!=this.options.uid);
       }
       else
       {
@@ -198,7 +217,6 @@ export default {
           thumbnailWidth: 50,
           thumbnailHeight: 200,
         });
-        console.log(imageMessage);
         this.channel.sendMessage(mediaMessage).then(()=>{
           console.log('Image Message send success');
           document.getElementById("log").appendChild(document.createElement('div')).
