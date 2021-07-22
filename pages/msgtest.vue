@@ -113,6 +113,9 @@ export default {
         receivedImage.width = message.width;
         receivedImage.height = message.height;
         document.getElementById("log").appendChild(receivedImage);
+        receivedImage.onload = function () {
+          window.URL.revokeObjectURL(url);
+        }
       }
       else{
         console.log('Other type');
@@ -206,17 +209,17 @@ export default {
           console.log('Create by upload error! '+err);
         });
         console.log(mediaMessage.mediaId);
-        const imageMessage = await this.clientID.createMessage({
-          mediaId: mediaMessage.mediaId,
-          messageType: 'IMAGE',
-          fileName: fileName,
-          description: 'send image',
-          thumbnail: undefined,
-          width: 100,
-          height: 200,
-          thumbnailWidth: 50,
-          thumbnailHeight: 200,
-        });
+        // const imageMessage = await this.clientID.createMessage({
+        //   mediaId: mediaMessage.mediaId,
+        //   messageType: 'IMAGE',
+        //   fileName: fileName,
+        //   description: 'send image',
+        //   thumbnail: undefined,
+        //   width: 100,
+        //   height: 200,
+        //   thumbnailWidth: 50,
+        //   thumbnailHeight: 200,
+        // });
         this.channel.sendMessage(mediaMessage).then(()=>{
           console.log('Image Message send success');
           document.getElementById("log").appendChild(document.createElement('div')).
