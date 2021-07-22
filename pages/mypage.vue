@@ -50,15 +50,15 @@
                :imageSrc="this.canvasImgsrc"
                ref="drawingPopup"></Drawing>
       <v-row class="btn-wrap">
-        <v-btn @click="isChat=false;">노트</v-btn>
-        <v-btn @click="isChat=true;">채팅</v-btn>
+        <v-btn @click="noteClick">노트</v-btn>
+        <v-btn @click="chatClick">채팅</v-btn>
         <Comment
           :creator="creator"
           :comments="comments"
           :current_user="current_user">
         </Comment>
       </v-row>
-      <v-col class="note-wrap" v-if="!isChat">
+      <v-col id="note-wrap">
       <v-row><h1>노트 제목</h1></v-row>
       <div class="edit-toolbar">
         <Toolbar></Toolbar>
@@ -66,7 +66,7 @@
       <v-row>
         <div id="content-editor" contenteditable="true">
           <template v-for="note of notes">
-            {{testFunc(note.data().text)}}
+            {{makeHtml(note.data().text)}}
           </template>
         </div>
       </v-row>
@@ -78,7 +78,7 @@
 <!--        <v-btn color="primary">공유하기</v-btn>-->
       </v-row>
       </v-col>
-      <v-col v-else>
+      <v-col>
         <div id="chat-wrap">
           <div id="chat-log"></div>
           <input type="text" id="message-input" placeholder="send message">
@@ -179,6 +179,7 @@ export default {
       const self = this;
       this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
     }));
+    this.noteClick();
   },
   methods: {
     joinReceive() {
@@ -187,17 +188,20 @@ export default {
     leaveReceive() {
       this.isChannel = false;
     },
-    testFunc(html, event) {
+    makeHtml(html) {
       try {
-        let div = document.getElementById("content-editor");
-        let newStr = "<div>" + html + "</div>";
-        div.insertAdjacentHTML( 'beforeend', newStr );
-        event.stopPropagation();
+        let contentDiv = document.getElementById("content-editor");
+        let newDiv = document.createElement('div');
+        newDiv.innerHTML = html;
+        if(html.includes('<img')){
+          newDiv.firstElementChild.addEventListener("click", this.popupCanvas);
+        }
+        contentDiv.appendChild(newDiv);
       } catch (e) {
         console.log(e);
       }
     },
-    async onSaveNote(event) {
+    async onSaveNote() {
       try {
         let replacement = document.getElementById('content-editor').innerHTML.replace(/<div>/g, "`");
         let everyReplace = replacement.replace(/<\/div>/g, "`");
@@ -206,7 +210,9 @@ export default {
         const self = this;
 
         for(let i=0; i<strSplit.length; i++){
-          textArr.push(strSplit[i]);
+          if(strSplit[i]!==""){
+            textArr.push(strSplit[i]);
+          }
         }
         //delete all that has saved before
         let i = this.notes.length;
@@ -230,13 +236,11 @@ export default {
             this.noteUrls = await Promise.all(this.notes.map(note => note.data().path ? self.$fire.storage.ref(note.data().path).getDownloadURL() : ''));
           }));
         document.getElementById('content-editor').innerHTML = "";
+        // Div tag refresh
+        // this.$router.go();
       } catch (e) {
         console.log(e);
       }
-      event.stopPropagation();
-    },
-    async removeMark(mark) {
-      await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/marks/${mark.id}`).delete();
     },
     drawVideo: function () {
       this.video = document.querySelector("#videoOrigin");
@@ -249,14 +253,16 @@ export default {
       const imgNode = document.createElement("img");
       imgNode.src = this.canvas.toDataURL();
 
-      this.canvasImgsrc = this.canvas.toDataURL();
+      // this.canvasImgsrc = this.canvas.toDataURL();
       imgNode.width = this.canvas.width / 4;
       imgNode.height = this.canvas.height / 4;
 
       imgNode.addEventListener("click", this.popupCanvas);
 
       document.getElementById('content-editor').appendChild(imgNode);
-      this.isCanvasOn = false;
+
+      // Video capture event bubbling bug occur if this code exist
+      // this.isCanvasOn = false;
       //document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
     },
     choiceFile: function () {
@@ -274,14 +280,17 @@ export default {
         let imgWidth = 210;
         let imgHeight = canvas.height * imgWidth / canvas.width;
         let doc = new jsPDF('p', 'mm');
-        let position = -1;
+        let position = 0;
         let pageHeight = imgWidth * 1.414;
         let heightLeft =  imgHeight;
         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
 
+        console.log("img"+imgHeight);
+        console.log("page"+pageHeight);
+        console.log("left"+heightLeft);
         heightLeft -= pageHeight;
         while(heightLeft >= 20){
-         position -= heightLeft - imgHeight;
+         position = heightLeft - imgHeight;
          doc.addPage();
          doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
          heightLeft -= pageHeight;
@@ -292,11 +301,10 @@ export default {
     popupCanvas: function (event) {
       this.video = document.querySelector("#videoOrigin");
 
-      this.canvasImgsrc = event.target.src;
-      this.isCanvasOn = true;
-      this.clickedImage = event.target;
-
-      this.$refs.drawingPopup.drawingImage(event.target.src,this.video.clientWidth,this.video.clientHeight);
+      // Video capture event bubbling bug occur if this code exist
+      // this.canvasImgsrc = event.target.src;
+      // this.isCanvasOn = true;
+      this.$refs.drawingPopup.drawingImage(event.target.src, this.video.clientWidth, this.video.clientHeight);
     },
     saveImage: function (changedImage){
       this.clickedImage.src = changedImage;
@@ -320,6 +328,7 @@ export default {
       const encrypted = await this.generateFragment(url, password);
       const output = `http://localhost:3000/alertPage/#${encrypted}`;
 
+      if(password == null) return;
       document.body.appendChild(textarea);
       textarea.value = output;
       textarea.select();
@@ -332,6 +341,15 @@ export default {
         behavior: "smooth",
       });
     },
+    noteClick(){
+      // Changed from v-if to display none
+      document.getElementById('note-wrap').style.display = "block";
+      document.getElementById('chat-wrap').style.display = "none";
+    },
+    chatClick(){
+      document.getElementById('chat-wrap').style.display = "block";
+      document.getElementById('note-wrap').style.display = "none";
+    }
   }
 }
 </script>
@@ -357,7 +375,7 @@ video {
   height: 600px;
 }
 
-.note-wrap{
+#note-wrap{
   position:relative;
   /*background-color: #41b883;*/
 }
@@ -370,8 +388,8 @@ video {
 #content-editor {
   position: relative;
   width: 100%;
-  height: 340px;
-  max-height: 600px;
+  height: 600px;
+  max-height: 340px;
   padding: 10px;
   border: 1px solid;
   overflow-y: auto;

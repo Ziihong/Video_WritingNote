@@ -36,14 +36,17 @@ export default {
         let url;
 
         try {
+          // Close the window if cancel button clicked
+          if(password == null) return;
+          // Decrypt Url
           url = await api.decrypt(encrypted, password, salt, iv);
+          // Go to decrypted url
+          window.location.href = url;
         } catch {
           // Incorrect password, try until it success.
+          alert("Incorrect password!")
           await this.main();
         }
-
-        // Go to decrypted url
-        window.location.href = url;
       } else {
         // Otherwise redirect to the creator
         window.location.replace("");
