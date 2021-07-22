@@ -14,15 +14,23 @@
         <v-text-field v-model="createDir" label="Directory name"></v-text-field>
         <v-btn @click="createDirectory">Create directory</v-btn>
         <v-btn @click="goHome">go Home Dir</v-btn>
+        <v-btn @click="renameDirectory">rename current directory</v-btn>
       </div>
 
-      <div style="background-color: lightcyan; margin-top: 10px" class="text-center"> Directory </div>
+      <div style="background-color: lightcyan; margin-top: 10px" class="text-left">
+        <v-btn text style="display: inline; min-width: 20%; text-transform: none" class="text-center">
+          {{ 'storage/' }}
+        </v-btn>
+        <v-btn text style="display: inline;min-width: 20%; text-transform: none" class="text-center">
+          {{ currentDir }}
+        </v-btn>
+      </div>
       <div class="text-left" style="margin-top: 10px">
         <v-list-item v-for="(dir,index) of dirs"
-                     style="display: inline; background-color: #ced4da; margin-right: 5px"
+                     style="background-color: #ced4da; margin-right: 5px; margin-bottom: 1px"
                      v-bind:key = index
                      @click="clickDir(dir.name, dir.path)">
-          <v-list-item-action  class="fileShape">
+          <v-list-item-action class="fileShape">
             {{ dir.name }}
           </v-list-item-action>
         </v-list-item>
@@ -31,18 +39,31 @@
 
       <div style="background-color: lightcyan; margin-top: 10px" class="text-center"> Files </div>
       <div class="text-left" style="margin-top: 10px">
-        <v-btn class="addFilebtn" @click="dialog = true">
+        <v-btn class="addFilebtn" @click="dialog = !dialog">
           <v-icon>mdi-plus</v-icon>
         </v-btn>
-        <div v-for="(file,index) of files"
-             style="display: inline-block; margin: 10px"
+        <div v-if="isUploading">
+          <v-progress-circular
+            :rotate="-90"
+            :size="100"
+            :width="15"
+            :value="loadPercent"
+            color="primary"
+          >
+            {{ loadPercent }}
+          </v-progress-circular>
+        </div>
+        <v-list-item v-for="(file,index) of files"
+                     style="display: inline"
+                     v-bind:key = index
                      @click="gotoEditVideo(file)">
-          <div class="fileShape">
-            <video :src="fileUrls[index]" width="200px"/><br>
+          <v-list-item-action class="fileShape" >
+            <video :src="fileUrls[index]" width="200px"/>
             {{ file.data().title }}
-          </div>
-        </div >
-
+            <v-btn @click="$event.stopPropagation() ,removeFile(file)">Delete</v-btn>
+            <v-btn @click="$event.stopPropagation()">Edit Name</v-btn>
+          </v-list-item-action>
+        </v-list-item>
         <hr>
       </div>
 
@@ -89,11 +110,15 @@ export default {
       fileObj: null,
       isUploading: false,
       fileUrls: [],
+      loadPercent: null,
 
       uid: null,
       currentDir: null,
+      currentDirName: null,
+      currentDirPath: null,
       createDir: null,
 
+      dirLog: [],
       dirs: [],
       docFiles: []
     };
@@ -106,10 +131,14 @@ export default {
     // set current uid & current Directory path
     this.uid = this.$fire.auth.currentUser.uid
     this.currentDir = this.$route.params.dir
+    this.currentDirName = this.$route.params.name
+    this.currentDirPath = this.$route.params.path
 
     // if user in home directory
     if (this.currentDir == undefined) {
-      this.currentDir = '/'
+      this.currentDir = '/';
+      this.currentDirName = 'home';
+      this.currentDirPath = '/';
     }
 
     // get user name
@@ -122,7 +151,7 @@ export default {
         console.log('not exists');
       }
     });
-
+    // update data of current directory
     this.updateData();
   },
 
@@ -186,17 +215,17 @@ export default {
     },
     // Save Name for account
     async onSave() {
-
       this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}`).
       set({name: this.name}, {merge: true}).
       then(() => {
         console.log('saved!');
       });
-
     },
     // Remove files on fire store
     async removeFile(file) {
       console.log('file: ', file.id);
+      console.log('source', file.data().source);
+      await this.$fire.storage.ref(file.data().source).delete();
       await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${file.id}`).delete();
     },
     // Set file object for selected one
@@ -219,7 +248,7 @@ export default {
       const currentDir = this.currentDir
 
       const storageRef =
-        this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${this.fileObj.name}`);
+        this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${name}`);
       const uploadTask = storageRef.put(this.fileObj);
       uploadTask.on('state_changed', async function(snapshot){
         // Observe state change events such as progress, pause, and resume
@@ -246,6 +275,7 @@ export default {
         // Observe state change events such as progress, pause, and resume
         // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        self.loadPercent = parseInt(progress) ;
 
         console.log('Upload is ' + progress + '% done');
         switch (snapshot.state) {
@@ -265,6 +295,7 @@ export default {
         // Handle successful uploads on complete
         // For instance, get the download URL: https://firebasestorage.googleapis.com/...
         console.log(uploadTask.snapshot.ref.fullPath);
+        self.isUploading = false;
 
         // add file on firestore
         await self.$fire.firestore.collection(`users/${self.$fire.auth.currentUser.uid}/files`).add({
@@ -274,13 +305,13 @@ export default {
           source: uploadTask.snapshot.ref.fullPath,
           timestamp: self.$fireModule.firestore.FieldValue.serverTimestamp()
         })
-        this.isUploading = false;
 
         uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
           console.log('File available at', downloadURL);
         });
       });
     },
+
     // Create lower directory
     async createDirectory() {
 
@@ -302,18 +333,64 @@ export default {
         console.log(e.message);
       }
     },
+
+    // Renaming current directory
+    async renameDirectory() {
+      // Use this.createDir input box
+      if (this.createDir == null) {
+        console.log('Input your directory name');
+        return;
+      }
+
+      // If user change home dir name
+      if (this.currentDir == '/') {
+        console.log('Can not change home directory name');
+        return;
+      }
+
+      try {
+        const collection = this.$fire.firestore.collection(`users/${this.uid}/directory`);
+
+        // Change current dir name
+        collection.where("name", "==", this.currentDirName).where("path", "==", this.currentDirPath)
+        .get().then(querySnapshot => {
+          querySnapshot.forEach(doc => {
+            const batch = this.$fire.firestore.batch();
+            const docRef = collection.doc(doc.id);
+            batch.set(docRef, { "name": this.createDir }, { merge: true });
+            batch.commit();
+          })
+        })
+
+        // Change dirs path which in current dir
+        collection.where("path", ">=", this.currentDir).where("path", "<=", this.currentDir + "~")
+        .get().then(querySnapshot => {
+          querySnapshot.forEach(doc => {
+            const batch = this.$fire.firestore.batch();
+            const docRef = collection.doc(doc.id);
+            batch.set(docRef, { "path": this.currentDirPath + this.createDir + '/' }, { merge: true });
+            batch.commit();
+          })
+        });
+
+        this.clickDir(this.createDir, this.currentDirPath);
+
+      } catch (e) {
+        console.log(e.message);
+      }
+    },
+
     // Go to home directory
     async goHome() {
       if (this.currentDir == '/') { // if not, caused error
         return
       }
-      await this.$router.push({ params: {dir: '/' }})
+      await this.$router.push({ params: {dir: '/', name: 'home', path: '/' }})
     },
+
     // Go to clicked directory
     async clickDir(name, path) {
-      await this.$router.push({ params: {dir: path + name + '/' }})
-      console.log(this.$route.params)
-
+      await this.$router.push({ params: {dir: path + name + '/', name: name, path: path }})
     },
   },
 }
@@ -329,6 +406,6 @@ export default {
 .fileShape{
   max-width: 200px;
   margin: 0px;
-  text-align: center;
+  align-items: center;
 }
 </style>
