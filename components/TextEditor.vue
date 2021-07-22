@@ -134,7 +134,7 @@
 </template>
 
 <script>
-import { Editor ,EditorContent, BubbleMenu, VueNodeViewRenderer } from '@tiptap/vue-2'
+import { Editor ,EditorContent, BubbleMenu } from '@tiptap/vue-2'
 import StarterKit from '@tiptap/starter-kit'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
@@ -201,6 +201,12 @@ export default {
   },
 
   mounted() {
+
+    //fetchDocument 에서 불러온 데이터 content 에 설정
+    this.fetchDocument();
+
+    const test = `<p>This is <strong>some</strong> inserted text. 👋</p>`
+
     this.editor = new Editor({
       extensions: [
         StarterKit, Document, Paragraph, Text, Highlight, Underline, Link, CodeBlock, Image, Dropcursor, TextAlign, Typography, VTooltip, TableRow, TableHeader, CustomTableCell,
@@ -215,11 +221,11 @@ export default {
             class: 'custom-image'
           }
         }),
-        CodeBlockLowlight.configure({
-
-        }),
+        // CodeBlockLowlight.configure({
+        //
+        // }),
       ],
-      content: ``,
+      content: test, // = document
 
     })
   },
@@ -230,7 +236,7 @@ export default {
 
   methods: {
     // screenshot upload text editor
-    async addImage(){
+    async addImage() {
       const video = document.getElementById("currentVideo")
       let canvas = document.querySelector("#screenshot");
       const context = canvas.getContext("2d");
@@ -247,32 +253,55 @@ export default {
     // set link text editor
     setLink() {
       const url = window.prompt('URL')
-      try{
-        //this.editor.chain().focus().extendMarkRange('link').toggleLink({ href: 'https://jybaek.tistory.com/733' }).run()
-        this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
-      }
-      catch (e){
+      try {
+        this.editor.chain().focus().extendMarkRange('link').setLink({href: url}).run()
+      } catch (e) {
         console.log(e)
       }
     },
 
     // create table
-    createTable(){
+    createTable() {
       this.dialog = false;
-      if(this.inputRow <= 0 || this.inputCol <= 0){
+      if (this.inputRow <= 0 || this.inputCol <= 0) {
         return;
       }
-      this.editor.chain().focus().insertTable({ rows: this.inputRow, cols: this.inputCol, withHeaderRow: true }).run()
+      this.editor.chain().focus().insertTable({rows: this.inputRow, cols: this.inputCol, withHeaderRow: true}).run()
     },
 
-    // save comment in firestore
-    saveDocument(){
+    // save document in firestore
+    saveDocument() {
       const document = this.editor.getJSON()
       console.log(document)
       const docToJson = JSON.stringify(document)
       console.log(docToJson)
+      const t = this.editor.getHTML()
+      console.log(t)
+
+
+      const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`)
+      file.get().then( async (doc)=>{
+        const title = doc.data().title;
+        const s = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${title+'.html'}`);
+        //const s = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${title+'.md'}`);
+        const up = s.putString(t); // 데이터 저장
+
+      });
     },
-  },
+
+    //fetch from firebase storage
+    fetchDocument(){
+      //this.editor.setContents('<p>This is <strong>some</strong> inserted text. 👋</p>');
+      const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`);
+      file.get().then( async (doc)=>{
+        const fileTitle = doc.data().title+'.html'
+        let fileDoc;
+        await Promise.resolve(this.$fire.storage.ref(fileTitle).getDownloadURL().then(result=>(fileDoc = result))); //permission error
+        console.log(fileDoc);
+
+    })
+    }
+  }
 }
 </script>
 
