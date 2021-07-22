@@ -179,6 +179,7 @@ export default {
       const self = this;
       this.markUrls = await Promise.all(this.marks.map(mark => mark.data().path ? self.$fire.storage.ref(mark.data().path).getDownloadURL() : ''));
     }));
+    this.noteClick();
   },
   methods: {
     joinReceive() {
@@ -284,6 +285,9 @@ export default {
         let heightLeft =  imgHeight;
         doc.addImage(imgData, 'PNG', -6, position, imgWidth, imgHeight);
 
+        console.log("img"+imgHeight);
+        console.log("page"+pageHeight);
+        console.log("left"+heightLeft);
         heightLeft -= pageHeight;
         while(heightLeft >= 20){
          position = heightLeft - imgHeight;
@@ -384,8 +388,8 @@ video {
 #content-editor {
   position: relative;
   width: 100%;
-  height: 340px;
-  max-height: 600px;
+  height: 600px;
+  max-height: 340px;
   padding: 10px;
   border: 1px solid;
   overflow-y: auto;
