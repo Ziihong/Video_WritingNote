@@ -1,9 +1,13 @@
 <template>
   <div>
     <div class='informBox'>
+      <div class="input-field" style="margin: 10px">
+        <label>User ID</label>
+        <input type="text" placeholder="User ID" id="userID">
+      </div>
       <v-row>
         <div style="margin: 10px">
-          <v-btn color="primary" id="login" @click="loginUser(authUser.nickname)"
+          <v-btn color="primary" id="login" @click="loginUser()"
           >LOGIN</v-btn>
           <v-btn type="button" id="logout" @click="logoutUser"
           >LOGOUT</v-btn>
@@ -88,8 +92,8 @@ export default {
     });
   },
   methods: {
-    async loginUser(nickname){
-      this.option.uid = nickname;
+    async loginUser(){
+      this.option.uid = document.getElementById("userID").value.toString();
       this.option.token = this.tokenGenerate(this.option.uid);
       alert("Success agora logIn");
       console.log('RTM Tokens : '+this.option.token);
