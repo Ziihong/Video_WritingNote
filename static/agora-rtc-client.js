@@ -5,10 +5,10 @@ export default class RTCClient {
   constructor() {
     // Options for joining a channel
     this.option = {
-      appid: '',
-      channel: '',
-      uid: '',
-      token: '',
+      appid: "",
+      token: "",
+      channel: "",
+      uid: "",
     }
     this.client = null
     this.localStream = null
@@ -35,78 +35,28 @@ export default class RTCClient {
       this._eventBus.emit('peer-leave', evt)
     })
   }
-
   on(eventName, callback) {
     this._eventBus.on(eventName, callback)
   }
-  //init client and Join a channel
   joinChannel(option) {
     return new Promise((resolve, reject) => {
       this.client = AgoraRTC.createClient({mode: "rtc", codec: "vp8"})
-      this.clientListener()
-      this.option = {
-        appid: option.appid,
-        token: option.token,
-        channel: option.channel,
-        uid: option.uid,
-      }
       this.client.init(option.appid, () => {
         console.log("init success")
-        this.client.join(option.token, option.channel, option.uid)
-      }, (err) => {
-        reject(err)
-        console.error(err)
-      })
-      resolve();
-      console.log("[agora-vue] appId", option.appid)
-    })
-  }
-
-  publishVideoCall() {
-    return new Promise((resolve, reject) => {
-      // Create a local stream
-      this.localStream = AgoraRTC.createStream({
-        streamID: this.option.uid,
-        audio: true,
-        video: true,
-        screen: false,
-      })
-      // Initialize the local stream
-      this.localStream.init(() => {
-        console.log("init local stream success")
-        resolve(this.localStream)
-        // Publish the local stream
-        this.client.publish(this.localStream, (err) =>  {
-          console.log("publish failed")
-          console.error(err)
+        this.clientListener()
+        this.client.join(option.token, option.channel, option.uid, () => {
+          this.option = {
+            appid: option.appid,
+            token: option.token,
+            channel: option.channel,
+            uid: option.uid,
+          }
+          resolve()
+        }, (err) => {
+          console.log(err)
         })
       }, (err) => {
         reject(err)
-        console.error("init local stream failed ", err)
-      })
-    })
-  }
-  publishVoiceCall() {
-    return new Promise((resolve, reject) => {
-      // Create a local stream
-      this.localStream = AgoraRTC.createStream({
-        streamID: this.option.uid,
-        audio: true,
-        video: false,
-        screen: false,
-      })
-      // Initialize the local stream
-      this.localStream.init(() => {
-        console.log("init local stream success")
-        resolve(this.localStream)
-        // Publish the local stream
-        this.client.publish(this.localStream, (err) =>  {
-          console.log("publish failed")
-          console.error(err)
-        })
-      }, (err) => {
-        reject(err)
-        console.error("init local stream failed ", err)
       })
     })
   }
@@ -129,7 +79,52 @@ export default class RTCClient {
       }, (err) => {
         reject(err)
         console.log("channel leave failed");
-        console.error(err);
+      })
+    })
+  }
+  publishVideoCall() {
+    return new Promise((resolve, reject) => {
+      // Create a local stream
+      this.localStream = AgoraRTC.createStream({
+        streamID: this.option.uid,
+        audio: true,
+        video: true,
+        screen: false,
+      })
+      // Initialize the local stream
+      this.localStream.init(() => {
+        console.log("init local stream success")
+        resolve(this.localStream)
+        // Publish the local stream
+        this.client.publish(this.localStream, (err) =>  {
+          console.log(err)
+        })
+      }, (err) => {
+        reject(err)
+        console.error("init local stream failed ", err)
+      })
+    })
+  }
+  publishVoiceCall() {
+    return new Promise((resolve, reject) => {
+      // Create a local stream
+      this.localStream = AgoraRTC.createStream({
+        streamID: this.option.uid,
+        audio: true,
+        video: false,
+        screen: false,
+      })
+      // Initialize the local stream
+      this.localStream.init(() => {
+        console.log("init local stream success")
+        resolve(this.localStream)
+        // Publish the local stream
+        this.client.publish(this.localStream, (err) =>  {
+          console.log(err)
+        })
+      }, (err) => {
+        reject(err)
+        console.error("init local stream failed ", err)
       })
     })
   }
