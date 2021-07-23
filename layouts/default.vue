@@ -152,6 +152,11 @@ export default {
           title: 'messageTest',
           to: '/msgtest'
         },
+        {
+          icon: 'mdi-forum',
+          title: 'TMP',
+          to: '/tmp'
+        },
       ],
       miniVariant: false,
       right: true,
