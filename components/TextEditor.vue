@@ -197,6 +197,7 @@ export default {
       dialog: false,
       inputRow: '',
       inputCol: '',
+      fileDoc: '',
     }
   },
 
@@ -271,21 +272,23 @@ export default {
 
     // save document in firestore
     saveDocument() {
-      const document = this.editor.getJSON()
+      //const document = this.editor.getJSON()
+      //const docToJson = JSON.stringify(document)
+      const document = this.editor.getHTML()
       console.log(document)
-      const docToJson = JSON.stringify(document)
-      console.log(docToJson)
-      const t = this.editor.getHTML()
-      console.log(t)
 
 
       const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`)
       file.get().then( async (doc)=>{
-        const title = doc.data().title;
-        const s = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${title+'.html'}`);
-        //const s = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${title+'.md'}`);
-        const up = s.putString(t); // 데이터 저장
 
+        const self = this
+
+        const title = doc.data().title;
+        const fileTitle = title + '.html';
+        const storageRef = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${fileTitle}`)
+        const uploadTask = storageRef.putString(document); // 데이터 저장
+
+        await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`).update({documentSrc: uploadTask.snapshot.ref.fullPath})
       });
     },
 
@@ -294,10 +297,11 @@ export default {
       //this.editor.setContents('<p>This is <strong>some</strong> inserted text. 👋</p>');
       const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`);
       file.get().then( async (doc)=>{
-        const fileTitle = doc.data().title+'.html'
-        let fileDoc;
-        await Promise.resolve(this.$fire.storage.ref(fileTitle).getDownloadURL().then(result=>(fileDoc = result))); //permission error
-        console.log(fileDoc);
+
+        const src = doc.data().documentSrc
+        const self = this;
+        await Promise.resolve(self.$fire.storage.ref(src).getDownloadURL().then(result=>(this.fileDoc = result)));
+        console.log(this.fileDoc);
 
     })
     }
