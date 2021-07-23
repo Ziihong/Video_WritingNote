@@ -237,7 +237,7 @@ export default {
           }));
         document.getElementById('content-editor').innerHTML = "";
         // Div tag refresh
-        // this.$router.go();
+        this.$router.go();
       } catch (e) {
         console.log(e);
       }

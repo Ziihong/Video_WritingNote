@@ -1,43 +1,30 @@
 <template>
-  <v-dialog transition="dialog-bottom-transition" max-width="600">
-    <template v-slot:activator="{ on, attrs }">
-        <v-btn color="primary" v-bind="attrs" v-on="on">새 방</v-btn>
-    </template>
-    <template v-slot:default="dialog">
-      <v-card>
-        <v-toolbar color="primary" dark>접속 정보</v-toolbar>
-        <div class='informBox'>
-          <div v-if="!localStream">
-            <div class="inputToAccess">
-              <div class="agora-text">Appid</div>
-              <input v-model="option.appid" class="inputBox" placeholder="Appid">
-            </div>
-            <div class="inputToAccess">
-              <div class="agora-text">Token</div>
-              <input v-model="option.token" class="inputBox" placeholder="Token">
-            </div>
-            <div class="inputToAccess">
-              <div class="agora-text">Channel Name</div>
-              <input v-model="option.channel" class="inputBox" placeholder="Channel Name">
-            </div>
-          </div>
-          <div v-else class="agora-text">Connected to channel</div>
-          <div class="agora-button">
-            <v-btn type="primary" @click="joinEvent">join</v-btn>
-            <v-btn type="primary" @click='leaveEvent'>leave</v-btn>
-          </div>
-        </div>
-        <v-card-actions class="justify-end">
-          <v-btn text @click="dialog.value = false">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </template>
-  </v-dialog>
+  <div>
+    <div>
+      <label>User ID</label>
+      <input type="text" placeholder="User ID" id="userID">
+      <input type="text" placeholder="Channel" id="channelID">
+      <!--      <v-btn v-if="!onVideo" color="primary" @click="videoCallJoin"><v-icon left>mdi-video</v-icon></v-btn>-->
+<!--      <v-btn v-else @click='leaveCall'><v-icon>mdi-video-off</v-icon></v-btn>-->
+      <v-btn v-if="!onVoice" color="primary" @click="voiceCallJoin"><v-icon left>mdi-phone</v-icon></v-btn>
+      <v-btn v-else @click='leaveCall'><v-icon>mdi-phone-off</v-icon></v-btn>
+    </div>
+    <div class="agora-view">
+      <div class="showVideo">
+        <StreamPlayer :stream="localStream" :domId="localStream.getId()" v-if="localStream"></StreamPlayer>
+      </div>
+      <div class="showVideo" :key="index" v-for="(remoteStream, index) in remoteStreams">
+        <StreamPlayer :stream="remoteStream" :domId="remoteStream.getId()"></StreamPlayer>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
+import RTCClient from "../static/agora-rtc-client";
 import StreamPlayer from "../components/StreamPlayer";
-import AgoraRTC from "agora-rtc-sdk";
+import {RtcRole, RtcTokenBuilder} from "agora-access-token";
+import {mapGetters, mapState} from "vuex";
 
 export default {
   components: {
@@ -46,178 +33,113 @@ export default {
   data () {
     return {
       option: {
-        appid: '',
-        token: '',
-        uid: null,
-        channel: '',
+        appid: "",
+        token: "",
+        channel: "",
+        uid: "",
       },
       disableJoin: false,
-      localStream: null,
+      localStream: "",
       remoteStreams: [],
-    }
-  },
-  props: {
-  },
-  methods: {
-    joinEvent () {
-      if(!this.option.appid) {
-        this.judge('Appid')
-        return
-      }
-      if(!this.option.channel) {
-        this.judge('Channel Name')
-        return
-      }
-      this.rtc.joinChannel(this.option).then((stream) => {
-        alert("Join Success");
-        this.$emit('join-event');
-        this.rtc.publishStream().then((stream) => {
-          alert("Publish Success");
-          this.localStream = stream
-        }).catch((e) => {
-          alert("Publish Failure");
-          console.log(e)
-        })
-      }).catch((e) => {
-        alert("Join Failure");
-      })
-      this.disableJoin = true
-    },
-    leaveEvent () {
-      this.disableJoin = false
-      this.rtc.leaveChannel().then(() => {
-        alert("Leave Success");
-      }).catch((e) => {
-        alert("Leave Failure");
-      })
-      this.$emit('leave-event')
-      this.localStream = null
-      this.remoteStreams = []
-    },
-    judge(detail) {
-      alert(`Please enter the ${detail}`);
-    },
-    joinChannel(option) {
-      return new Promise((resolve, reject) => {
-        this.client = AgoraRTC.createClient({mode: "rtc", codec: "vp8"})
-        this.client.init(option.appid, () => {
-          console.log("init success")
-          // this.clientListener()
-          this.client.join(option.token ? option.token : null, option.channel, null, (uid) => {
-            console.log("join channel: " + this.option.channel + " success, uid: ", uid)
-            this.option = {
-              appid: option.appid,
-              token: option.token,
-              channel: option.channel,
-              uid: uid,
-            }
-            resolve()
-          }, (err) => {
-            console.error("client join failed", err)
-          })
-        }, (err) => {
-          reject(err)
-          console.error(err)
-        })
-        console.log("[agora-vue] appId", option.appid)
-      })
-    },
-    publishStream() {
-      return new Promise((resolve, reject) => {
-        // Create a local stream
-        this.stream = AgoraRTC.createStream({
-          streamID: this.option.uid,
-          audio: true,
-          video: true,
-          screen: false,
-        })
-        // Initialize the local stream
-        this.stream.init(() => {
-          console.log("init local stream success")
-          resolve(this.stream)
-          // Publish the local stream
-          this.client.publish(this.stream, (err) =>  {
-            console.log("publish failed")
-            console.error(err)
-          })
-        })
-      })
-    },
-    publishVoiceStream() {
-      return new Promise((resolve, reject) => {
-        // Create a local stream
-        this.stream = AgoraRTC.createStream({
-          streamID: this.option.uid,
-          audio: true,
-          video: false,
-          screen: false
-        })
-        // Initialize the local stream
-        this.stream.init(() => {
-          console.log("init local stream success")
-          resolve(this.stream)
-          // Publish the local stream
-          this.client.publish(this.stream, (err) =>  {
-            console.log("publish failed")
-            console.error(err)
-          })
-        })
-      })
-    },
-    leaveChannel() {
-      return new Promise((resolve, reject) => {
-        // Leave the channel
-        this.client.unpublish(this.stream, (err) => {
-          console.log(err)
-        })
-        this.client.leave(() => {
-          // Stop playing the local stream
-          if (this.stream.isPlaying()) {
-            this.stream.stop()
-          }
-          // Close the local stream
-          this.stream.close()
-          this.client = null
-          resolve()
-          console.log("client leaves channel success");
-        }, (err) => {
-          reject(err)
-          console.log("channel leave failed");
-          console.error(err);
-        })
-      })
+      userList: [],
+      appCertificate: "",
+      onVideo: false,
+      onVoice: false,
     }
   },
   created() {
-  }
+    this.option.appid = "e68902b5adbf4686abbf25626ba75b91";
+    this.appCertificate = "8789fcbdc5514adbb59cbc42f17ee7fb";
+    // this.option.channel = "test";
+    this.rtc = new RTCClient()
+    let rtc = this.rtc
+    rtc.on('stream-added', (event) => {
+      let {stream} = event
+      rtc.client.subscribe(stream)
+    })
+    rtc.on('stream-subscribed', (event) => {
+      let {stream} = event
+      if (!this.remoteStreams.find((it) => it.getId() === stream.getId())) {
+        this.remoteStreams.push(stream)
+      }
+    })
+    rtc.on('stream-removed', (event) => {
+      let {stream} = event
+      this.remoteStreams = this.remoteStreams.filter((it) => it.getId() !== stream.getId())
+    })
+    rtc.on('peer-online', (event) => {
+      this.userList.push((event.uid));
+    })
+    rtc.on('peer-leave', (event) => {
+      this.userList = this.userList.filter((it)=>it !== event.uid);
+      this.remoteStreams = this.remoteStreams.filter((it) => it.getId() !== event.uid);
+    })
+  },
+  methods: {
+    // videoCallJoin() {
+    //   this.option.token = this.tokenGenerate();
+    //   this.rtc.joinChannel(this.option).then(() => {
+    //     this.rtc.publishVideoCall().then((stream) => {
+    //       alert("Joined video call");
+    //       this.localStream = stream;
+    //       this.onVideo = true;
+    //     }).catch((err) => {
+    //       console.log("Publish Failure" + err);
+    //     })
+    //   }).catch((err) => {
+    //     console.log("Join Failure" + err);
+    //   })
+    //   this.disableJoin = true;
+    // },
+    voiceCallJoin() {
+      this.option.token = this.tokenGenerate();
+      this.rtc.joinChannel(this.option).then(() => {
+        this.rtc.publishVoiceCall().then((stream) => {
+          alert("Joined voice call");
+          this.localStream = stream;
+          this.onVoice = true;
+        }).catch((err) => {
+          console.log("Publish Failure" + err);
+        })
+      }).catch((err) => {
+        console.log("Join Failure" + err);
+      })
+      this.disableJoin = true;
+    },
+    leaveCall() {
+      this.disableJoin = false;
+      this.rtc.leaveChannel().then(() => {
+        alert("Leave Success");
+      }).catch((err) => {
+        console.log("Leave Failure" + err)
+      })
+      this.localStream = null;
+      this.remoteStreams = [];
+      this.userList = [];
+      this.onVideo = false;
+      this.onVoice = false;
+    },
+    // async loginUser(){
+    //   this.option.token = this.tokenGenerate();
+    //   alert("Success agora logIn");
+    // },
+    tokenGenerate() {
+      this.option.uid = document.getElementById("userID").value.toString();
+      this.option.channel = document.getElementById("channelID").value.toString();
+      // this.option.uid = Math.floor(Math.random() * 100000);
+      const expirationTimeInSeconds = 7200;
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+      const token = RtcTokenBuilder.buildTokenWithUid(this.option.appid, this.appCertificate, this.option.channel, this.option.uid, RtcRole.PUBLISHER, privilegeExpiredTs);
+      return token;
+    },
+    alertFunc() {
+      alert(document.getElementById("channelID").value.toString());
+    }
+  },
 }
 </script>
 
 <style scoped>
-.agora-view {
-  display: flex;
-  flex-wrap: wrap;
-}
-.inputToAccess {
-  margin: 20px;
-  width: 320px;
-}
-.agora-text {
-  margin: 5px;
-  font-size: 16px;
-  font-weight: bold;
-}
-.inputBox {
-  border: 1px solid;
-}
-.agora-button {
-  display: flex;
-  width: 160px;
-  justify-content: space-between;
-  margin: 20px;
-}
-.showVideo {
-  width: 320px;
-  height: 240px;
-}
+
 </style>
