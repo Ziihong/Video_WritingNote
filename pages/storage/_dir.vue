@@ -271,6 +271,24 @@ export default {
       const storageRef =
         this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${name}`);
       const uploadTask = storageRef.put(this.fileObj);
+      uploadTask.on('state_changed', async function(snapshot){
+        // Observe state change events such as progress, pause, and resume
+        // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+
+        console.log('Upload is ' + progress + '% done');
+        switch (snapshot.state) {
+          case self.$fireModule.storage.TaskState.PAUSED: // or 'paused'
+            console.log('Upload is paused');
+            break;
+          case self.$fireModule.storage.TaskState.RUNNING: // or 'running'
+            console.log('Upload is running');
+            break;
+        }
+      })
+      //test
+
+
       this.isUploading = true;
       const self = this;
 
