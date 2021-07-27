@@ -80,8 +80,7 @@
       </v-col>
       <v-col>
         <div id="chat-wrap">
-          <div id="chat-log"></div>
-          <input type="text" id="message-input" placeholder="send message">
+          <Messaging></Messaging>
         </div>
       </v-col>
     </v-col>
@@ -99,9 +98,11 @@ import Channel from '../components/Channel';
 import apiVersions from '../static/api';
 import b64 from '../static/b64';
 import {mapGetters, mapState} from "vuex";
+import Messaging from "../components/Messaging";
 
 export default {
   components: {
+    Messaging,
     Drawing,
     Comment,
     Toolbar,
@@ -399,14 +400,6 @@ video {
   height: 75vh;
   width: 100%;
   background-color: #abc1d1;
-}
-#message-input{
-  background-color: white;
-  width: 25%;
-  border: #222222 1px solid;
-  bottom: 0;
-  position: fixed;
-  overflow: scroll;
 }
 #markStepper {
   /*width: 100%;*/
