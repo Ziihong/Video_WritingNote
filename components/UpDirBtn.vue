@@ -40,6 +40,7 @@ export default {
       // parentID는 length-1 로 지정
 
       console.log("fileNames:", this.fileNames);
+      console.log(relativePath);
 
       // // can't upload using same directory name
       // const sameRef = await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/`)
