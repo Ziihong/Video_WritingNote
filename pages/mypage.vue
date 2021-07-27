@@ -24,7 +24,7 @@
 <!--          브라우저가 비디오 플레이를 지원하지 않습니다-->
 <!--        </video>-->
 <!--        <video id="videoOrigin" autoplay width="100%" height="500"></video>-->
-        <share></share>
+<!--        <share></share>-->
       </v-row>
       <v-row class="participant-wrap">
         <div v-if="isChannel">{{ authUser.nickname }}</div>
