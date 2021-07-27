@@ -122,15 +122,6 @@
               @mouseleave="stopPainting"
               @mouseup="stopPainting"
       ></canvas>
-<!--      <div id="logg" contenteditable="true">-->
-<!--        <canvas id="drawing-canvas"-->
-<!--                @mousemove="canvasMousemove"-->
-<!--                @mousedown="canvasMousedown"-->
-<!--                @mouseleave="stopPainting"-->
-<!--                @mouseup="stopPainting"-->
-<!--        ></canvas>-->
-<!--      </div>-->
-<!--      <v-btn color="primary" @click="drawVideo">캡쳐</v-btn>-->
     </v-row>
   </v-row>
 </template>
@@ -186,36 +177,13 @@ export default {
       if(message.messageType=='TEXT') {
         document.getElementById("log").appendChild(document.createElement('div')).append("Message received from: " + memberId + " Message: " + message.text);
 
-        if(!this.isPainting && (this.paintMode==='draw'||this.paintMode==='light') ) this.isPainting = true;
-
         const str = message.text.split(",");
 
-        const x = parseInt(str[0]);
-        const y = parseInt(str[1]);
-        const self = this;
-        self.canvas = document.querySelector("#drawing-canvas");
-        self.context = self.canvas.getContext('2d');
-        self.context.globalAlpha = 1;
-        self.context.lineWidth = this.brushSize;
+        let x = parseInt(str[0]);
+        let y = parseInt(str[1]);
 
-        if(!this.isPainting){
-          self.context.beginPath();
-          self.context.moveTo(x,y);
-        }
-        else{
-          if(this.paintMode==='light'){
-            self.context.globalAlpha = 0.03;
-            self.context.lineWidth = self.brushSize*2;
-          }
-          // else if(this.paintMode==='erase'){
-          //   this.context.globalCompositeOperation = "destination-out";
-          //   this.context.strokeStyle = "rgba(0,0,0,1)";
-          //   console.log('erase');
-          // }
-          self.context.lineTo(x,y);
-          self.context.stroke();
-        }
-        // console.log(parseInt(str[0]), parseInt(str[1]));
+        this.canvasMousedown();
+        this.canvasMouseAutoMove(x, y);
       }
       else if(message.messageType=='IMAGE'){
         console.log(message);
@@ -379,7 +347,7 @@ export default {
 
       let channelMessage = x + "," + y;
 
-      if (this.channel != null) {
+      if (this.channel != null && this.isPainting === true) {
         await this.channel.sendMessage({text: channelMessage}).then(() => {
           document.getElementById("log").appendChild(document.createElement('div')).
           append("Channel message "+this.options.uid+": " + channelMessage + " from " + this.channel.channelId);
@@ -392,6 +360,31 @@ export default {
 
       const self = this;
       self.canvas = document.querySelector("#drawing-canvas");
+      self.context = self.canvas.getContext('2d');
+      self.context.globalAlpha = 1;
+      self.context.lineWidth = this.brushSize;
+
+      if(!this.isPainting){
+        self.context.beginPath();
+        self.context.moveTo(x,y);
+      }
+      else{
+        if(this.paintMode==='light'){
+          self.context.globalAlpha = 0.03;
+          self.context.lineWidth = self.brushSize*2;
+        }
+        // else if(this.paintMode==='erase'){
+        //   this.context.globalCompositeOperation = "destination-out";
+        //   this.context.strokeStyle = "rgba(0,0,0,1)";
+        //   console.log('erase');
+        // }
+        self.context.lineTo(x,y);
+        self.context.stroke();
+      }
+    },
+    canvasMouseAutoMove(x, y){
+      const self = this;
+      self.canvas = document.querySelector("#drawed");
       self.context = self.canvas.getContext('2d');
       self.context.globalAlpha = 1;
       self.context.lineWidth = this.brushSize;
