@@ -23,7 +23,6 @@
       </v-btn>
     </v-app-bar>
 
-    <v-container>
     <v-row no-gutters>
       <v-col cols="12" md="8">
         <v-row id="videoArea" no-gutters>
@@ -90,7 +89,6 @@
         <TextEditor/>
       </v-col>
     </v-row>
-    </v-container>
 
     <v-dialog id="bookamarkNamedialog"
               v-model="dialog"
