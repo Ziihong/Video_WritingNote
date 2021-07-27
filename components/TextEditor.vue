@@ -14,10 +14,15 @@
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().unsetLink().run()" >rm</v-btn></template><span>Link Remove</span></v-tooltip>
 
       <v-dialog v-model="dialog" persistent max-width="30%">
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn text icon v-bind="attrs" v-on="on">
-            <v-icon>mdi-table</v-icon>
-          </v-btn>
+        <template #activator="{ on: dialog }">
+          <v-tooltip>
+            <template #activator="{ on: tooltip }">
+              <v-btn text icon v-on="{ ...tooltip, ...dialog }">
+                <v-icon>mdi-table</v-icon>
+              </v-btn>
+            </template>
+            <span>Table</span>
+          </v-tooltip>
         </template>
         <v-card>
           <v-card-title>
@@ -206,9 +211,6 @@ export default {
     //fetchDocument 에서 불러온 데이터 content 에 설정
     this.fetchDocument();
 
-    const test = `<p>This is <strong>some</strong> inserted text. 👋</p>`
-    const test2 = this.fileDoc
-
     this.editor = new Editor({
       extensions: [
         StarterKit, Document, Paragraph, Text, Highlight, Underline, Link, CodeBlock, Image, Dropcursor, TextAlign, Typography, VTooltip, TableRow, TableHeader, CustomTableCell,
@@ -227,7 +229,6 @@ export default {
         //
         // }),
       ],
-      content: test2, // = document
 
     })
   },
@@ -278,11 +279,8 @@ export default {
       const document = this.editor.getHTML()
       console.log(document)
 
-
       const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`)
       file.get().then( async (doc)=>{
-
-        const self = this
 
         const title = doc.data().title;
         const fileTitle = title + '.txt';
@@ -294,23 +292,22 @@ export default {
     },
 
     //fetch from firebase storage
-    fetchDocument(){
+    async fetchDocument(){
       //this.editor.setContents('<p>This is <strong>some</strong> inserted text. 👋</p>');
       const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`);
       file.get().then( async (doc)=>{
 
         const src = doc.data().documentSrc
         const self = this;
-        await Promise.resolve(self.$fire.storage.ref(src)
-        .getDownloadURL().then(result=>{
+        const request = new XMLHttpRequest()
+
+        await Promise.resolve(self.$fire.storage.ref(src).getDownloadURL().then(result=>{
           this.fileDoc = result
-          const request = new XMLHttpRequest()
           request.open('GET', result, true)
           request.send(null)
-          console.log(request)
-          request.onload = () => console.log(request.responseText)
+          //console.log(request)
+          request.onload = () => this.editor.commands.setContent(request.responseText)
         }));
-        //console.log(this.fileDoc.data());
 
     })
     }
@@ -322,9 +319,7 @@ export default {
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans&family=Noto+Sans+JP&family=Noto+Sans+KR&display=swap');
 
 .editDoc{
-  font-family: 'Noto Sans', sans-serif;
-  font-family: 'Noto Sans KR', sans-serif;
-  font-family: 'Noto Sans JP', sans-serif;
+  font-family: sans-serif;
   font-weight: normal;
   text-align: justify;
   overflow-y: scroll;
