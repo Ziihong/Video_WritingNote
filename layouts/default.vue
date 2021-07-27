@@ -154,6 +154,11 @@ export default {
         },
         {
           icon: 'mdi-forum',
+          title: 'TMP',
+          to: '/tmp'
+        },
+        {
+          icon: 'mdi-forum',
           title: 'test',
           to: '/test'
         },
