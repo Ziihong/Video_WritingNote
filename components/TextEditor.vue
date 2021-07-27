@@ -207,6 +207,7 @@ export default {
     this.fetchDocument();
 
     const test = `<p>This is <strong>some</strong> inserted text. 👋</p>`
+    const test2 = this.fileDoc
 
     this.editor = new Editor({
       extensions: [
@@ -226,7 +227,7 @@ export default {
         //
         // }),
       ],
-      content: test, // = document
+      content: test2, // = document
 
     })
   },
@@ -284,7 +285,7 @@ export default {
         const self = this
 
         const title = doc.data().title;
-        const fileTitle = title + '.html';
+        const fileTitle = title + '.txt';
         const storageRef = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${fileTitle}`)
         const uploadTask = storageRef.putString(document); // 데이터 저장
 
@@ -300,8 +301,16 @@ export default {
 
         const src = doc.data().documentSrc
         const self = this;
-        await Promise.resolve(self.$fire.storage.ref(src).getDownloadURL().then(result=>(this.fileDoc = result)));
-        console.log(this.fileDoc);
+        await Promise.resolve(self.$fire.storage.ref(src)
+        .getDownloadURL().then(result=>{
+          this.fileDoc = result
+          const request = new XMLHttpRequest()
+          request.open('GET', result, true)
+          request.send(null)
+          console.log(request)
+          request.onload = () => console.log(request.responseText)
+        }));
+        //console.log(this.fileDoc.data());
 
     })
     }
