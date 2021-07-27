@@ -226,7 +226,7 @@ export default {
         //
         // }),
       ],
-      content: test, // = document
+      content: test, //
 
     })
   },
@@ -277,27 +277,23 @@ export default {
       const document = this.editor.getHTML()
       console.log(document)
 
-
       const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`)
       file.get().then( async (doc)=>{
-
-        const self = this
-
         const title = doc.data().title;
         const fileTitle = title + '.html';
         const storageRef = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${fileTitle}`)
-        const uploadTask = storageRef.putString(document); // 데이터 저장
+        const uploadTask = storageRef.putString(document); // storage 에 데이터 저장
 
-        await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`).update({documentSrc: uploadTask.snapshot.ref.fullPath})
+        await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`)
+          .update({documentSrc: uploadTask.snapshot.ref.fullPath}) // store 에 document src 저장
+
       });
     },
 
     //fetch from firebase storage
     fetchDocument(){
-      //this.editor.setContents('<p>This is <strong>some</strong> inserted text. 👋</p>');
       const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`);
       file.get().then( async (doc)=>{
-
         const src = doc.data().documentSrc
         const self = this;
         await Promise.resolve(self.$fire.storage.ref(src).getDownloadURL().then(result=>(this.fileDoc = result)));
@@ -448,57 +444,6 @@ pre {
     font-size: 0.8rem;
   }
 
-  .hljs-comment,
-  .hljs-quote {
-    color: #616161;
-  }
-
-  .hljs-variable,
-  .hljs-template-variable,
-  .hljs-attribute,
-  .hljs-tag,
-  .hljs-name,
-  .hljs-regexp,
-  .hljs-link,
-  .hljs-name,
-  .hljs-selector-id,
-  .hljs-selector-class {
-    color: #F98181;
-  }
-
-  .hljs-number,
-  .hljs-meta,
-  .hljs-built_in,
-  .hljs-builtin-name,
-  .hljs-literal,
-  .hljs-type,
-  .hljs-params {
-    color: #FBBC88;
-  }
-
-  .hljs-string,
-  .hljs-symbol,
-  .hljs-bullet {
-    color: #B9F18D;
-  }
-
-  .hljs-title,
-  .hljs-section {
-    color: #FAF594;
-  }
-
-  .hljs-keyword,
-  .hljs-selector-tag {
-    color: #70CFF8;
-  }
-
-  .hljs-emphasis {
-    font-style: italic;
-  }
-
-  .hljs-strong {
-    font-weight: 700;
-  }
 }
 
 
