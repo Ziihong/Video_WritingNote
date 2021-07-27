@@ -46,7 +46,8 @@ export default {
           url = await api.decrypt(encrypted, password, salt, iv);
           // Go to decrypted url
           window.location.href = url;
-          this.$refs.channel.alertFunc();
+          const a = this.$refs.channel.alertFunc();
+          alert(a);
         } catch {
           // Incorrect password, try until it success.
           alert("Incorrect password!")

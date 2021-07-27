@@ -4,16 +4,17 @@
       <label>User ID</label>
       <input type="text" placeholder="User ID" id="userID">
       <input type="text" placeholder="Channel" id="channelID">
-      <!--      <v-btn v-if="!onVideo" color="primary" @click="videoCallJoin"><v-icon left>mdi-video</v-icon></v-btn>-->
-<!--      <v-btn v-else @click='leaveCall'><v-icon>mdi-video-off</v-icon></v-btn>-->
       <v-btn v-if="!onVoice" color="primary" @click="voiceCallJoin"><v-icon left>mdi-phone</v-icon></v-btn>
       <v-btn v-else @click='leaveCall'><v-icon>mdi-phone-off</v-icon></v-btn>
     </div>
+    <template v-for="(member) of userList">
+      <li>{{member}}</li>
+    </template>
     <div class="agora-view">
-      <div class="showVideo">
+      <div class="show">
         <StreamPlayer :stream="localStream" :domId="localStream.getId()" v-if="localStream"></StreamPlayer>
       </div>
-      <div class="showVideo" :key="index" v-for="(remoteStream, index) in remoteStreams">
+      <div class="show" :key="index" v-for="(remoteStream, index) in remoteStreams">
         <StreamPlayer :stream="remoteStream" :domId="remoteStream.getId()"></StreamPlayer>
       </div>
     </div>
@@ -50,7 +51,6 @@ export default {
   created() {
     this.option.appid = "e68902b5adbf4686abbf25626ba75b91";
     this.appCertificate = "8789fcbdc5514adbb59cbc42f17ee7fb";
-    // this.option.channel = "test";
     this.rtc = new RTCClient()
     let rtc = this.rtc
     rtc.on('stream-added', (event) => {
@@ -76,21 +76,6 @@ export default {
     })
   },
   methods: {
-    // videoCallJoin() {
-    //   this.option.token = this.tokenGenerate();
-    //   this.rtc.joinChannel(this.option).then(() => {
-    //     this.rtc.publishVideoCall().then((stream) => {
-    //       alert("Joined video call");
-    //       this.localStream = stream;
-    //       this.onVideo = true;
-    //     }).catch((err) => {
-    //       console.log("Publish Failure" + err);
-    //     })
-    //   }).catch((err) => {
-    //     console.log("Join Failure" + err);
-    //   })
-    //   this.disableJoin = true;
-    // },
     voiceCallJoin() {
       this.option.token = this.tokenGenerate();
       this.rtc.joinChannel(this.option).then(() => {
@@ -98,6 +83,7 @@ export default {
           alert("Joined voice call");
           this.localStream = stream;
           this.onVoice = true;
+          this.userList.push(this.option.uid);
         }).catch((err) => {
           console.log("Publish Failure" + err);
         })
@@ -119,14 +105,9 @@ export default {
       this.onVideo = false;
       this.onVoice = false;
     },
-    // async loginUser(){
-    //   this.option.token = this.tokenGenerate();
-    //   alert("Success agora logIn");
-    // },
     tokenGenerate() {
       this.option.uid = document.getElementById("userID").value.toString();
       this.option.channel = document.getElementById("channelID").value.toString();
-      // this.option.uid = Math.floor(Math.random() * 100000);
       const expirationTimeInSeconds = 7200;
       const currentTimestamp = Math.floor(Date.now() / 1000);
       const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
@@ -134,7 +115,8 @@ export default {
       return token;
     },
     alertFunc() {
-      alert(document.getElementById("channelID").value.toString());
+      console.log(this.option.channel);
+      return this.option.channel;
     }
   },
 }
