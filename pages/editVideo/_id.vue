@@ -23,22 +23,16 @@
       </v-btn>
     </v-app-bar>
 
-    <!--table과 th에 width 속성을 지정 => resize bar(.columns-resize-bar)정상 작동 x-->
-
-    <table class="pageTable" >
-<!--      <thead v-columns-resizable>-->
-      <colgroup>
-        <col width="70%">
-        <col width="30%">
-      </colgroup>
-      <thead>
-      <tr>
-        <th id="videoArea">
+    <v-container>
+    <v-row no-gutters>
+      <v-col cols="12" md="8">
+        <v-row id="videoArea" no-gutters>
           <div
             v-if="isBookmarking"
             @click="setNote($event)"
             class="clickPlane">
           </div>
+          <v-col>
           <video
               id="currentVideo"
               style="margin-left: 0px; padding-left: 0px; width: 100%"
@@ -47,15 +41,11 @@
               crossorigin="anonymous"
               :src=fileUrl>
             </video>
-        </th>
-        <th style="height: auto" rowspan="2" id="docArea">
-          <TextEditor/>
-        </th>
-      </tr>
-      <tr>
-        <th id="bookmarkArea" style="background-color: lightcyan">
-            <p class="text-center"
-               style="margin-bottom: 12px; margin-top: 12px;">
+          </v-col>
+        </v-row>
+        <v-row id="bookmarkArea" no-gutters>
+        <v-col style="background-color: lightcyan">
+            <p class="text-center" style="margin-bottom: 12px; margin-top: 12px;">
               <v-icon>mdi-star</v-icon>Bookmarks</p>
             <v-list
               style="max-height: 140px; min-height: 140px; padding-top: 0px"
@@ -93,10 +83,14 @@
                   <v-icon>mdi-minus</v-icon></v-btn>
               </v-list-item>
             </v-list>
-          </th>
-      </tr>
-      </thead>
-    </table>
+        </v-col>
+        </v-row>
+      </v-col>
+      <v-col id="docArea">
+        <TextEditor/>
+      </v-col>
+    </v-row>
+    </v-container>
 
     <v-dialog id="bookamarkNamedialog"
               v-model="dialog"
