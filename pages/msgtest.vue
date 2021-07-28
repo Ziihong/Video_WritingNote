@@ -1,66 +1,37 @@
 <template>
-  <v-row style="padding: 20px">
-    <form id="loginForm">
-      <div class="input-field" style="margin: 10px">
-        <label>User ID</label>
-        <input type="text" placeholder="User ID" id="userID">
-      </div>
-      <v-row>
-        <div style="margin: 10px">
-          <v-btn color="primary" id="login" @click="loginUser"
-          >LOGIN</v-btn>
-          <v-btn type="button" id="logout" @click="logoutUser"
-          >LOGOUT</v-btn>
-        </div>
-      </v-row>
-      <div class="input-field">
-        <label>Channel name: demoChannel</label>
-      </div>
-      <v-row>
-        <div>
-          <v-btn color="primary" id="join" @click="joinChannel"
-          >JOIN</v-btn>
-          <v-btn type="button" id="leave" @click="leaveChannel">LEAVE</v-btn>
-        </div>
-      </v-row>
-      <div class="input-field" style="margin: 10px">
-        <label>Peer Id</label>
-        <input type="text" placeholder="peer id" id="peerId">
-      </div>
-      <div class="input-field channel-padding">
-        <label>Peer Message</label>
-        <input type="text" placeholder="peer message" id="peerMessage">
-        <v-btn type="button" id="send_peer_message"
-               @click="sendPeerMsg"
-        >SEND</v-btn>
-      </div>
-    </form>
-    <v-row style="margin: 10px">
+  <v-container id="form-container">
+    <v-form id="channel-name"><h1> Channel Name: demoChannel </h1></v-form>
+
+    <v-form id="login-form">
+      <input class="text-field" type="text" placeholder="User ID" id="userID"/>
+      <v-btn color="primary" id="login" @click="loginUser">LOGIN</v-btn>
+      <v-btn type="button" id="logout" @click="logoutUser">LOGOUT</v-btn>
+    </v-form>
+
+    <v-form id="member-form">
+      <h3>MEMBER</h3>
+      <ul v-for="(member) of userList">
+        <li>{{member}}</li>
+      </ul>
+    </v-form>
+
+    <v-form>
       <div id="log"></div>
-    </v-row>
-    <v-row>
-      <v-row>
-        <div class="input-field channel-padding">
-          <label>Channel Message</label>
-          <input type="text" placeholder="channel message" id="channelMessage">
-          <v-btn type="button" id="send_channel_message"
-                 @click="sendChannelMsg"
-          >SEND</v-btn>
-        </div>
-      </v-row>
-      <v-row>
-        <v-btn>
-          <v-file-input type="file" id="file_message"/>
-        </v-btn>
-        <v-btn color="primary" id="send_channel_file"
-               @click="sendChannelFileMsg"
-        >SEND</v-btn>
-      </v-row>
-    </v-row>
-    <template v-for="(member) of userList">
-      <li>{{member}}</li>
-    </template>
-  </v-row>
+    </v-form>
+
+    <v-form id="msg-form">
+      <input class="text-field-msg" type="text" placeholder="Channel message" id="channelMessage"/>
+      <v-btn color="primary" type="button" id="send_channel_message" @click="sendChannelMsg">SEND</v-btn>
+      <v-btn><v-file-input type="file" id="file_message" placeholder="image"/></v-btn>
+      <v-btn color="primary" id="send_channel_file" @click="sendChannelFileMsg">SEND</v-btn>
+    </v-form>
+
+    <v-form id="peer-form">
+      <input class="text-field" type="text" placeholder="Peer ID" id="peerId"/>
+      <input class="text-field-msg" type="text" placeholder="Peer message" id="peerMessage"/>
+      <v-btn color="primary" type="button" id="send_peer_message" @click="sendPeerMsg">SEND</v-btn>
+    </v-form>
+  </v-container>
 </template>
 
 <script>
@@ -142,19 +113,15 @@ export default {
   },
   methods: {
     async loginUser(){
+      // login
       this.options.uid = document.getElementById("userID").value.toString();
       this.options.token = this.tokenGenerate(this.options.uid);
       console.log('RTM Tokens : '+this.options.token);
       await this.clientID.login(this.options).catch(function (err){
         console.log('AgoraRTM client login failure!!!');
       });
-    },
-    async logoutUser(){
-      await this.clientID.logout().catch(function (err){
-        console.log('AgoraRTM client logout failure!!!');
-      });
-    },
-    async joinChannel(){
+
+      // join
       await this.channel.join().then(()=>{
         document.getElementById("log").appendChild(document.createElement('div'))
           .append("You have successfully joined channel " + this.channel.channelId)
@@ -164,8 +131,23 @@ export default {
       this.channel.getMembers().then((memberList)=>{
         this.userList = memberList;
       });
-
     },
+    async logoutUser(){
+      await this.clientID.logout().catch(function (err){
+        console.log('AgoraRTM client logout failure!!!');
+      });
+    },
+    // async joinChannel(){
+    //   await this.channel.join().then(()=>{
+    //     document.getElementById("log").appendChild(document.createElement('div'))
+    //       .append("You have successfully joined channel " + this.channel.channelId)
+    //   }).catch(function (err){
+    //     console.log('AgoraRTM channel join failure!!!');
+    //   });
+    //   this.channel.getMembers().then((memberList)=>{
+    //     this.userList = memberList;
+    //   });
+    // },
     async leaveChannel(){
       if (this.channel != null) {
         await this.channel.leave().catch(function (err){
@@ -183,11 +165,12 @@ export default {
 
       if (this.channel != null) {
         await this.channel.sendMessage({text: channelMessage}).then(() => {
-            document.getElementById("log").appendChild(document.createElement('div')).
-            append("Channel message "+this.options.uid+": " + channelMessage + " from " + this.channel.channelId);
-            let messageInput = document.getElementById("channelMessage");
-            messageInput.value = "";
-            document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
+          document.getElementById("log").appendChild(document.createElement('div')).
+          append("Channel message "+this.options.uid+": " + channelMessage + " from " + this.channel.channelId);
+          let messageInput = document.getElementById("channelMessage");
+          messageInput.value = "";
+          // console.log("msg:", messageInput);
+          document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
         });
       }
       else console.log('Channel is empty');
@@ -261,20 +244,59 @@ export default {
 </script>
 
 <style scoped>
-.input-field{
-  margin: 10px;
+.text-field{
+  display:inline-block;
+  width:200px;
+  border-bottom: #95999c solid 1px;
 }
-input{
-  border: #222222 solid 1px;
-  margin-left: 5px;
+
+.text-field-msg{
+  display:inline-block;
+  width:360px;
+  border-bottom: #95999c solid 1px;
 }
+
+#login-form{
+  margin: 20px 0 20px 0;
+  padding-left:5px;
+}
+
 #log{
-  border: #222222 solid 1px;
-  overflow : auto;
+  border: #95999c solid 1px;
+  border-radius: 10px;
+  overflow: auto;
   width: 700px;
   height: 200px;
   padding: 10px;
   display: flex;
   flex-direction: column;
 }
+
+#msg-form, #peer-form, #member-form{
+  border: #95999c solid 1px;
+  border-radius: 10px;
+  width: 700px;
+  padding: 10px;
+}
+
+ul, li {
+  display:inline;
+}
+
+/*#form-container{*/
+/*  background-color: #2a629c;*/
+/*}*/
+
+/*#channel-name{*/
+/*  background-color: #86cfda;*/
+/*}*/
+
+/*#login-form{*/
+/*  background-color: #721c24;*/
+/*}*/
+
+/*#peer-form{*/
+/*  background-color: #e0a800;*/
+/*}*/
+
 </style>

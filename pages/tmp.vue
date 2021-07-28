@@ -94,25 +94,21 @@ export default {
     this.appId = "e0137c98e86c47b58b38606d42109aca";
     this.appCertificate = "0899f451a3b048dcb073db0f2f7c3f37";
 
-    // 클라이언트 인스턴스 생성
     this.clientID = AgoraRTM.createInstance(this.appId);
     console.log("1. clientId: ", this.clientId);
     const self = this;
 
-    // 귓속말 받기 (peer)
     this.clientID.on('MessageFromPeer', function (message, peerId) {
       document.getElementById("log").appendChild(document.createElement('div')).append("Message from: " + peerId + " Message: " + message.text)
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
     });
+
 // Display connection state changes
     this.clientID.on('ConnectionStateChanged', function (state, reason) {
-      // 로그인, 로그아웃 (유저의 상태 변화 이벤트)
       document.getElementById("log").appendChild(document.createElement('div')).append("State changed To: " + state + " Reason: " + reason)
     });
 
-    // 채널 생성 (자동으로 생성되는 듯?)
     this.channel = this.clientID.createChannel("demoChannel");
-
 
     // 메시지 받기 (type: text, image)
     this.channel.on('ChannelMessage', async function (message, memberId) {
@@ -149,6 +145,13 @@ export default {
       document.getElementById("log").appendChild(document.createElement('div')).append(memberId + " joined the channel")
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
       self.userList.push(memberId);
+      // create user cursor
+      const panel = document.getElementById("mouse");
+      const cursor = document.createElement("div");
+      cursor.classList.add('cursor', `cursor-${memberId}`);
+      // console.log(cursor);
+      console.log(panel);
+      panel.append(panel);
     })
 // Display channel member stats
     this.channel.on('MemberLeft', function (memberId) {
@@ -164,9 +167,8 @@ export default {
   },
   methods: {
     async mousePosition(e){
-      this.pos.x = e.clientX;
-      this.pos.y = e.clientY;
-      // console.log("pos:", this.pos.x, this.pos.y);
+      this.pos.x = e.screenX;
+      this.pos.y = e.screenY;
       const channelMessage = `${this.pos.x},${this.pos.y}`
 
 
@@ -328,8 +330,10 @@ input{
   flex-direction: column;
 }
 
-#cursor{
+.cursor{
   position:absolute;
+  top:0;
+  left:0;
   width:5px;
   height:5px;
   background-color: #2a629c;
