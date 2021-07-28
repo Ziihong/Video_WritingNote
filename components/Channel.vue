@@ -2,7 +2,7 @@
   <div>
     <div>
       <label>User ID</label>
-      <input type="text" placeholder="User ID" id="userID">
+      <input type="text" placeholder="User ID" id="userId">
       <input type="text" placeholder="Channel" id="channelID">
       <v-btn v-if="!onVoice" color="primary" @click="voiceCallJoin"><v-icon left>mdi-phone</v-icon></v-btn>
       <v-btn v-else @click='leaveCall'><v-icon>mdi-phone-off</v-icon></v-btn>
@@ -106,7 +106,7 @@ export default {
       this.onVoice = false;
     },
     tokenGenerate() {
-      this.option.uid = document.getElementById("userID").value.toString();
+      this.option.uid = document.getElementById("userId").value.toString();
       this.option.channel = document.getElementById("channelID").value.toString();
       const expirationTimeInSeconds = 7200;
       const currentTimestamp = Math.floor(Date.now() / 1000);

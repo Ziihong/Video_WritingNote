@@ -122,22 +122,22 @@
               @mouseleave="stopPainting"
               @mouseup="stopPainting"
       ></canvas>
+      <canvas id="drawed"
+              @mousemove="canvasMousemove"
+              @mousedown="canvasMousedown"
+              @mouseleave="stopPainting"
+              @mouseup="stopPainting">
+      </canvas>
     </v-row>
   </v-row>
 </template>
 
 <script>
 import AgoraRTM from 'agora-rtm-sdk';
-import Drawing from '../components/Drawing';
-import Share from '../pages/share';
 
 import {RtmTokenBuilder,RtmRole} from 'agora-access-token';
 
 export default {
-  components: {
-    Drawing,
-    Share
-  },
   data() {
     return{
       appId: "",
@@ -153,10 +153,17 @@ export default {
       curColor : '#001dff',
       brushSize : '3.5',
       isPainting : false,
+      painting: false,
       paintMode : 'draw',
       undoStack : [],
       redoStack : [],
       targetImage : '',
+      pos: {
+        x: null,
+        y: null
+      },
+      str: [],
+      isTrueSet: '',
     }
   },
   created() {
@@ -177,13 +184,42 @@ export default {
       if(message.messageType=='TEXT') {
         document.getElementById("log").appendChild(document.createElement('div')).append("Message received from: " + memberId + " Message: " + message.text);
 
-        const str = message.text.split(",");
+        if(message !== "true" || message !== "false"){
+          this.str = message.text.split(",");
+        }
+        else if (message === 'true'){
+          this.isTrueSet = (message === 'true');
+        }
+        else {
+          this.isTrueSet = (message === 'false');
+        }
+        // const str = message.text.split(",");
 
-        let x = parseInt(str[0]);
-        let y = parseInt(str[1]);
+        let x = parseInt(this.str[0]);
+        let y = parseInt(this.str[1]);
 
-        this.canvasMousedown();
-        this.canvasMouseAutoMove(x, y);
+        this.canvas = document.querySelector("#drawed");
+        // this.canvas.addEventListener('mousedown', (event) => {
+        //   this.painting = true;
+        // })
+        this.painting = true;
+        this.context = this.canvas.getContext('2d');
+        this.context.globalAlpha = 1;
+        this.context.lineWidth = this.brushSize;
+
+
+        if(!this.painting){
+          this.context.beginPath();
+          this.context.moveTo(x, y);
+        }
+        else{
+          if(this.paintMode==='light'){
+            this.context.globalAlpha = 0.03;
+            this.context.lineWidth = self.brushSize*2;
+          }
+          this.context.lineTo(x, y);
+          this.context.stroke();
+        }
       }
       else if(message.messageType=='IMAGE'){
         console.log(message);
@@ -356,7 +392,16 @@ export default {
           document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
         });
       }
-      else console.log('Channel is empty');
+
+      if (this.channel != null && this.isPainting === true) {
+        await this.channel.sendMessage({text: this.isPainting.toString()}).then(() => {
+          document.getElementById("log").appendChild(document.createElement('div')).
+          append("Channel message "+this.options.uid+": " + this.isPainting.toString() + " from " + this.channel.channelId);
+          let messageInput = document.getElementById("channelMessage");
+          messageInput.value = "";
+          document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
+        });
+      }
 
       const self = this;
       self.canvas = document.querySelector("#drawing-canvas");
@@ -373,36 +418,6 @@ export default {
           self.context.globalAlpha = 0.03;
           self.context.lineWidth = self.brushSize*2;
         }
-        // else if(this.paintMode==='erase'){
-        //   this.context.globalCompositeOperation = "destination-out";
-        //   this.context.strokeStyle = "rgba(0,0,0,1)";
-        //   console.log('erase');
-        // }
-        self.context.lineTo(x,y);
-        self.context.stroke();
-      }
-    },
-    canvasMouseAutoMove(x, y){
-      const self = this;
-      self.canvas = document.querySelector("#drawed");
-      self.context = self.canvas.getContext('2d');
-      self.context.globalAlpha = 1;
-      self.context.lineWidth = this.brushSize;
-
-      if(!this.isPainting){
-        self.context.beginPath();
-        self.context.moveTo(x,y);
-      }
-      else{
-        if(this.paintMode==='light'){
-          self.context.globalAlpha = 0.03;
-          self.context.lineWidth = self.brushSize*2;
-        }
-        // else if(this.paintMode==='erase'){
-        //   this.context.globalCompositeOperation = "destination-out";
-        //   this.context.strokeStyle = "rgba(0,0,0,1)";
-        //   console.log('erase');
-        // }
         self.context.lineTo(x,y);
         self.context.stroke();
       }
@@ -415,51 +430,6 @@ export default {
         this.redoStack.length=0;
       }
       this.isPainting = false;
-    },
-    drawVideo: function () {
-      this.video = document.querySelector("#videoOrigin");
-      this.canvas = document.querySelector("#videoCanvas");
-      this.context = this.canvas.getContext('2d');
-      this.canvas.width = this.video.clientWidth;
-      this.canvas.height = this.video.clientHeight;
-
-      this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-      const imgNode = document.createElement("img");
-      imgNode.src = this.canvas.toDataURL();
-
-      // this.canvasImgsrc = this.canvas.toDataURL();
-      imgNode.width = this.canvas.width / 4;
-      imgNode.height = this.canvas.height / 4;
-
-      imgNode.addEventListener("click", this.popupCanvas);
-
-      document.getElementById('logg').appendChild(imgNode);
-
-      // event bubbling occur
-      // this.isCanvasOn = false;
-      // document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
-    },
-    popupCanvas: function (event) {
-      this.video = document.querySelector("#videoOrigin");
-
-      // event bubbling occur, cannot use clear button
-      // this.canvasImgsrc = event.target.src;
-      // this.isCanvasOn = true;
-      this.$refs.drawingPopup.drawingImage(event.target.src, this.video.clientWidth, this.video.clientHeight);
-    },
-    drawingImage: async function(canvasSrc,vwidth, vheight) {
-      this.canvas = document.getElementById('drawing-canvas');this.canvas.width = vwidth;
-      this.canvas.height = vheight;
-
-      this.context = this.canvas.getContext('2d');
-      const printImg = document.createElement('img');
-      printImg.src = canvasSrc;
-
-      await this.context.drawImage(printImg, 0, 0, this.canvas.width, this.canvas.height);
-      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
-      this.isCanvasViewed = true;
-      this.context.strokeStyle = this.curColor;
-      this.context.lineWidth = this.brushSize;
     },
     drawMode: function (){
       this.paintMode='draw';

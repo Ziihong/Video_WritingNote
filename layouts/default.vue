@@ -159,7 +159,7 @@ export default {
         },
         {
           icon: 'mdi-forum',
-          title: 'test',
+          title: 'drawingSendTest',
           to: '/test'
         },
       ],
