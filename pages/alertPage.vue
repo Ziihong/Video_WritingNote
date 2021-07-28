@@ -1,5 +1,5 @@
 <template>
-  <channel ref="channel"></channel>
+<!--  <channel ref="channel"></channel>-->
 </template>
 
 <script>

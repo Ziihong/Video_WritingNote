@@ -23,39 +23,9 @@
           <v-btn type="button" id="leave" @click="leaveChannel">LEAVE</v-btn>
         </div>
       </v-row>
-      <div class="input-field" style="margin: 10px">
-        <label>Peer Id</label>
-        <input type="text" placeholder="peer id" id="peerId">
-      </div>
-      <div class="input-field channel-padding">
-        <label>Peer Message</label>
-        <input type="text" placeholder="peer message" id="peerMessage">
-        <v-btn type="button" id="send_peer_message"
-               @click="sendPeerMsg"
-        >SEND</v-btn>
-      </div>
     </form>
     <v-row style="margin: 10px">
       <div id="log"></div>
-    </v-row>
-    <v-row>
-      <v-row>
-        <div class="input-field channel-padding">
-          <label>Channel Message</label>
-          <input type="text" placeholder="channel message" id="channelMessage">
-          <v-btn type="button" id="send_channel_message"
-                 @click="sendChannelMsg"
-          >SEND</v-btn>
-        </div>
-      </v-row>
-      <v-row>
-        <v-btn>
-          <v-file-input type="file" id="file_message"/>
-        </v-btn>
-        <v-btn color="primary" id="send_channel_file"
-               @click="sendChannelFileMsg"
-        >SEND</v-btn>
-      </v-row>
     </v-row>
     <template v-for="(member) of userList">
       <li>{{member}}</li>
@@ -213,28 +183,6 @@ export default {
           }
           this.context.lineTo(x, y);
           this.context.stroke();
-        }
-
-        // 옆 캔버스에 그리기
-        this.newCanvas = document.querySelector("#drawed");
-
-        this.painting = isTrueSet;
-        this.newContext = this.newCanvas.getContext('2d');
-        this.newContext.globalAlpha = 1;
-        this.newContext.lineWidth = this.brushSize;
-
-
-        if(!this.painting){
-          this.newContext.beginPath();
-          this.newContext.moveTo(x, y);
-        }
-        else{
-          if(this.paintMode==='light'){
-            this.context.globalAlpha = 0.03;
-            this.context.lineWidth = self.brushSize*2;
-          }
-          this.newContext.lineTo(x, y);
-          this.newContext.stroke();
         }
       }
       else if(message.messageType=='IMAGE'){
@@ -399,6 +347,7 @@ export default {
 
       let channelMessage = x + "," + y;
 
+      // Send coordinate value
       if (this.channel != null && this.isPainting === true) {
         await this.channel.sendMessage({text: channelMessage}).then(() => {
           // document.getElementById("log").appendChild(document.createElement('div')).
@@ -440,7 +389,7 @@ export default {
 
       if(!this.isPainting){
         self.context.beginPath();
-        self.context.moveTo(x,y);
+        // self.context.moveTo(x,y);
       }
       else{
         if(this.paintMode==='light'){
