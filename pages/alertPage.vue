@@ -1,11 +1,15 @@
 <template>
+  <channel ref="channel"></channel>
 </template>
 
 <script>
 import apiVersions from '../static/api';
 import b64 from '../static/b64';
+import Channel from '../components/Channel';
+
 export default {
   name: "alertPage",
+  components: {Channel},
   mounted() {
     this.main();
   },
@@ -42,6 +46,8 @@ export default {
           url = await api.decrypt(encrypted, password, salt, iv);
           // Go to decrypted url
           window.location.href = url;
+          const a = this.$refs.channel.alertFunc();
+          alert(a);
         } catch {
           // Incorrect password, try until it success.
           alert("Incorrect password!")

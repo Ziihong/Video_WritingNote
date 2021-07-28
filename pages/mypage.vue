@@ -238,7 +238,7 @@ export default {
           }));
         document.getElementById('content-editor').innerHTML = "";
         // Div tag refresh
-        // this.$router.go();
+        this.$router.go();
       } catch (e) {
         console.log(e);
       }
@@ -262,9 +262,9 @@ export default {
 
       document.getElementById('content-editor').appendChild(imgNode);
 
-      // Video capture event bubbling bug occur if this code exist
+      // event bubbling occur
       // this.isCanvasOn = false;
-      //document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
+      // document.getElementsByClassName("ProseMirror")[0].appendChild(imgNode);
     },
     choiceFile: function () {
       document.getElementById("fileupload").click();
@@ -302,7 +302,7 @@ export default {
     popupCanvas: function (event) {
       this.video = document.querySelector("#videoOrigin");
 
-      // Video capture event bubbling bug occur if this code exist
+      // event bubbling occur, cannot use clear button
       // this.canvasImgsrc = event.target.src;
       // this.isCanvasOn = true;
       this.$refs.drawingPopup.drawingImage(event.target.src, this.video.clientWidth, this.video.clientHeight);

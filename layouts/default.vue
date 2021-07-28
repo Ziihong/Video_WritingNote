@@ -157,6 +157,11 @@ export default {
           title: 'eventTest',
           to: '/eventTest'
         },
+        {
+          icon: 'mdi-forum',
+          title: 'drawingSendTest',
+          to: '/test'
+        },
       ],
       miniVariant: false,
       right: true,
