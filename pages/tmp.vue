@@ -145,6 +145,13 @@ export default {
       document.getElementById("log").appendChild(document.createElement('div')).append(memberId + " joined the channel")
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
       self.userList.push(memberId);
+      // create user cursor
+      const panel = document.getElementById("mouse");
+      const cursor = document.createElement("div");
+      cursor.classList.add('cursor', `cursor-${memberId}`);
+      // console.log(cursor);
+      console.log(panel);
+      panel.append(panel);
     })
 // Display channel member stats
     this.channel.on('MemberLeft', function (memberId) {
@@ -160,7 +167,6 @@ export default {
   },
   methods: {
     async mousePosition(e){
-      const dom = document.getElementById("mouse");
       this.pos.x = e.screenX;
       this.pos.y = e.screenY;
       const channelMessage = `${this.pos.x},${this.pos.y}`
@@ -324,7 +330,7 @@ input{
   flex-direction: column;
 }
 
-#cursor{
+.cursor{
   position:absolute;
   top:0;
   left:0;
