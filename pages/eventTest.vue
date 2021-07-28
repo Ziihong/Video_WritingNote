@@ -125,14 +125,13 @@ export default {
   },
   methods: {
     async mousePosition(e) {
-      const posX = e.clientX;
-      const posY = e.clientY;
+      if (this.options.token == "") return;
+      const posX = e.offsetX;
+      const posY = e.offsetY;
       const channelMessage = `${posX},${posY}`
 
       if (this.channel != null) {
-        await this.channel.sendMessage({text: channelMessage}).then(() => {
-          console.log(channelMessage);
-        });
+        await this.channel.sendMessage({text: channelMessage})
       } else console.log('Channel is empty');
     },
     async loginUser() {
@@ -150,6 +149,28 @@ export default {
       });
       this.channel.getMembers().then((memberList) => {
         this.userList = memberList;
+        for(let i =0; i<this.userList.length; i++){
+          if (this.userList[i] == this.options.uid) continue;
+          console.log(this.userList[i]);
+          // create join member cursor
+          const eventForm = document.getElementById("event");
+          const memberCursor = document.createElement("div");
+          memberCursor.classList.add("cursor");
+          memberCursor.id = "cursor-"+this.userList[i];
+          eventForm.append(memberCursor);
+          // set cursor to random background color and size;
+          const r = Math.floor(Math.random() * 256);
+          const g = Math.floor(Math.random() * 256);
+          const b = Math.floor(Math.random() * 256);
+          const bgColor = "rgb(" + r + "," + g + "," + b + ")";
+          memberCursor.style.background = bgColor;
+          memberCursor.style.border = "solid 1px black";
+          memberCursor.style.width = "10px";
+          memberCursor.style.height = "10px";
+          memberCursor.style.position = "absolute";
+          memberCursor.style.left = "0px";
+          memberCursor.style.top = "0px";
+        }
       });
     },
     async logoutUser() {
