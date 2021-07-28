@@ -23,17 +23,17 @@
           <v-btn type="button" id="leave" @click="leaveChannel">LEAVE</v-btn>
         </div>
       </v-row>
-      <div class="input-field" style="margin: 10px">
-        <label>Peer Id</label>
-        <input type="text" placeholder="peer id" id="peerId">
-      </div>
-      <div class="input-field channel-padding">
-        <label>Peer Message</label>
-        <input type="text" placeholder="peer message" id="peerMessage">
-        <v-btn type="button" id="send_peer_message"
-               @click="sendPeerMsg"
-        >SEND</v-btn>
-      </div>
+<!--      <div class="input-field" style="margin: 10px">-->
+<!--        <label>Peer Id</label>-->
+<!--        <input type="text" placeholder="peer id" id="peerId">-->
+<!--      </div>-->
+<!--      <div class="input-field channel-padding">-->
+<!--        <label>Peer Message</label>-->
+<!--        <input type="text" placeholder="peer message" id="peerMessage">-->
+<!--        <v-btn type="button" id="send_peer_message"-->
+<!--               @click="sendPeerMsg"-->
+<!--        >SEND</v-btn>-->
+<!--      </div>-->
     </form>
     <v-row style="margin: 10px">
       <div id="log"></div>
@@ -42,7 +42,8 @@
       <v-row>
         <div class="input-field channel-padding">
           <label>Channel Message</label>
-          <input type="text" placeholder="channel message" id="channelMessage">
+          <input type="text" placeholder="channel message" id="channelMessage"
+                 @keydown="handleInputSend">
           <v-btn type="button" id="send_channel_message"
                  @click="sendChannelMsg"
           >SEND</v-btn>
@@ -68,7 +69,7 @@ import AgoraRTM from 'agora-rtm-sdk';
 import {RtmTokenBuilder,RtmRole} from 'agora-access-token';
 
 export default {
-  name: "msgtest",
+  name: "Messaging",
   data() {
     return{
       appId: "",
@@ -98,7 +99,33 @@ export default {
     this.channel = this.clientID.createChannel("demoChannel");
     this.channel.on('ChannelMessage', async function (message, memberId) {
       if(message.messageType=='TEXT') {
-        document.getElementById("log").appendChild(document.createElement('div')).append("Message received from: " + memberId + " Message: " + message.text);
+        const receiveMessage = document.createElement('div');
+        const receiver = document.createElement('div');
+        const receiveText = document.createElement('div');
+        const receiveTime = document.createElement('time');
+        const now = new Date();
+        let hour = now.getHours();
+        let timeString = '';
+        if(hour>=12){
+          timeString = '오후 ';
+        }
+        else{
+          timeString = '오전 ';
+        }
+        if(hour%12==0) hour=12;
+        else hour=hour%12;
+        timeString = timeString + hour +':'+String(now.getMinutes()).padStart(2,"0");
+        receiver.classList.add('sender_name');
+        receiver.append(memberId);
+        receiveText.append(message.text);
+        receiveText.classList.add('receiver_block');
+        receiveTime.append(timeString);
+        receiveTime.classList.add('receiver_time');
+        receiveMessage.append(receiver);
+        receiveMessage.append(receiveText);
+        receiveMessage.append(receiveTime);
+        document.getElementById("log").appendChild(receiveMessage);
+          // .append("Message received from: " + memberId + " Message: " + message.text);
       }
       else if(message.messageType=='IMAGE'){
         console.log(message);
@@ -178,16 +205,50 @@ export default {
         console.log("Channel is empty");
       }
     },
+    handleInputSend(e){
+      if(e.keyCode == 13 && !e.shiftKey) {
+        e.preventDefault();
+        this.sendChannelMsg();
+      }
+    },
     async sendChannelMsg(){
       let channelMessage = document.getElementById("channelMessage").value.toString();
 
       if (this.channel != null) {
+        const sendMessage = document.createElement('div');
+        const sender = document.createElement('div');
+        const sendText = document.createElement('div');
+        const sendTime = document.createElement('time');
+        const now = new Date();
+        let hour = now.getHours();
+        let timeString = '';
+        if(hour>=12){
+          timeString = '오후 ';
+        }
+        else{
+          timeString = '오전 ';
+        }
+        if(hour%12==0) hour=12;
+        else hour=hour%12;
+        timeString = timeString + hour +':'+String(now.getMinutes()).padStart(2,"0");
+        sender.append(this.options.uid);
+        sender.classList.add('sender_name');
+        sendText.append(channelMessage);
+        sendText.classList.add('sender_block');
+        sendMessage.classList.add('sender_message');
+        sendTime.append(timeString);
+        sendTime.classList.add('sender_time');
+        sendMessage.append(sender);
+        sendMessage.append(sendTime);
+        sendMessage.append(sendText);
+
         await this.channel.sendMessage({text: channelMessage}).then(() => {
-            document.getElementById("log").appendChild(document.createElement('div')).
-            append("Channel message "+this.options.uid+": " + channelMessage + " from " + this.channel.channelId);
-            let messageInput = document.getElementById("channelMessage");
-            messageInput.value = "";
-            document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
+          document.getElementById("log").appendChild(sendMessage);
+          // appendChild(document.createElement('div')).
+          // append("Channel message "+this.options.uid+": " + channelMessage + " from " + this.channel.channelId);
+          let messageInput = document.getElementById("channelMessage");
+          messageInput.value = "";
+          document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
         });
       }
       else console.log('Channel is empty');
@@ -260,7 +321,7 @@ export default {
 }
 </script>
 
-<style scoped>
+<style>
 .input-field{
   margin: 10px;
 }
@@ -268,11 +329,61 @@ input{
   border: #222222 solid 1px;
   margin-left: 5px;
 }
+.sender_name{
+  font-weight: bold;
+}
+.sender_block{
+  max-width: 75%;
+  background-color: yellow;
+  padding: 10px;
+  border-radius: 5px;
+  display: inline-block;
+  text-align: left;
+  margin-right: 10px;
+}
+.sender_block::after {
+  content: '';
+  position: relative;
+  border-right: 15px solid transparent;
+  border-top: 15px solid yellow;
+  top: 20px;
+  right: -20px;
+}
+.sender_time{
+  margin-right: 0.5em;
+}
+.sender_message{
+  text-align: right;
+  max-width: 100%;
+  margin-bottom: 10px;
+}
+.receiver_block{
+  max-width: 75%;
+  background-color: white;
+  padding: 10px;
+  border-radius: 5px;
+  display: inline-block;
+}
+.receiver_block::before{
+  content: '';
+  position: relative;
+  border-left: 15px solid transparent;
+  border-top: 15px solid white;
+  top: 20px;
+  left: -20px;
+}
+.receiver_time{
+  margin-left: 0.5em;
+}
+.receive_message{
+  text-align: left;
+  max-width: 100%;
+  margin-bottom: 10px;
+}
 #log{
   border: #222222 solid 1px;
   overflow : auto;
-  width: 700px;
-  height: 200px;
+  height: 65vh;
   padding: 10px;
   display: flex;
   flex-direction: column;
