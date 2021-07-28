@@ -13,16 +13,6 @@
           >LOGOUT</v-btn>
         </div>
       </v-row>
-      <div class="input-field">
-        <label>Channel name: demoChannel</label>
-      </div>
-      <v-row>
-        <div>
-          <v-btn color="primary" id="join" @click="joinChannel"
-          >JOIN</v-btn>
-          <v-btn type="button" id="leave" @click="leaveChannel">LEAVE</v-btn>
-        </div>
-      </v-row>
     </form>
     <v-row style="margin: 10px">
       <div id="log"></div>
@@ -31,8 +21,8 @@
       <li>{{member}}</li>
     </template>
     <v-row style="margin: 10px">
-      <canvas id="videoCanvas" class="hidden"></canvas>
-      <v-row class="canvas-drawbar">
+      <v-btn @click="drawMode">캔버스활성화</v-btn>
+      <v-form class="canvas-drawbar">
         <v-btn @click="selectMode" id="selectbtn">
           <v-icon>
             mdi-cursor-default-outline
@@ -85,13 +75,17 @@
             mdi-close
           </v-icon>
         </v-btn>
-      </v-row>
-      <canvas id="drawing-canvas"
-              @mousemove="canvasMousemove"
-              @mousedown="canvasMousedown"
-              @mouseleave="stopPainting"
-              @mouseup="stopPainting"
-      ></canvas>
+      </v-form>
+      <v-form id="event-form">
+        <div id="event">
+          <canvas id="drawing-canvas" width="700" height="300"
+                  @mousemove="canvasMousemove"
+                  @mousedown="canvasMousedown"
+                  @mouseleave="stopPainting"
+                  @mouseup="stopPainting"
+          ></canvas>
+        </div>
+      </v-form>
     </v-row>
   </v-row>
 </template>
@@ -117,7 +111,6 @@ export default {
       curColor : '#001dff',
       brushSize : '3.5',
       isPainting : false,
-      painting: false,
       paintMode : 'draw',
       undoStack : [],
       redoStack : [],
@@ -133,15 +126,13 @@ export default {
       document.getElementById("log").appendChild(document.createElement('div')).append("Message from: " + peerId + " Message: " + message.text)
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
     });
-// Display connection state changes
+    // Display connection state changes
     this.clientID.on('ConnectionStateChanged', function (state, reason) {
       document.getElementById("log").appendChild(document.createElement('div')).append("State changed To: " + state + " Reason: " + reason)
     });
     this.channel = this.clientID.createChannel("demoChannel");
     this.channel.on('ChannelMessage', async function (message, memberId) {
       if(message.messageType=='TEXT') {
-        // document.getElementById("log").appendChild(document.createElement('div')).append("Message received from: " + memberId + " Message: " + message.text);
-
         let isTrueSet = true;
         let pos = [];
 
@@ -157,13 +148,17 @@ export default {
         let x = parseInt(pos[0]);
         let y = parseInt(pos[1]);
 
+        const memberCursor = document.getElementById(`cursor-${memberId}`);
+        memberCursor.style.left = x+"px";
+        memberCursor.style.top = `${y}px`;
+
         this.canvas = document.querySelector("#drawing-canvas");
 
         this.isPainting = isTrueSet;
         this.context = this.canvas.getContext('2d');
         this.context.globalAlpha = 1;
-        this.context.lineWidth = this.brushSize;
-
+        // this.something doesn't work
+        this.context.lineWidth = 3.5;
 
         if(!this.isPainting){
           this.context.beginPath();
@@ -174,37 +169,28 @@ export default {
           this.context.stroke();
         }
       }
-      else if(message.messageType=='IMAGE'){
-        console.log(message);
-        const receivedImage = document.createElement("img");
-        const reader = new FileReader();
-        document.getElementById("log").appendChild(document.createElement('div')).append("Image received from: " + memberId + " Message: " + message.fileName);
-        const blob = await self.clientID.downloadMedia(message.mediaId).catch(function (err){
-          console.log("Media download failed!");
-        });
-        const url = window.URL.createObjectURL(blob);
-        receivedImage.src = url;
-        receivedImage.width = message.width;
-        receivedImage.height = message.height;
-        document.getElementById("log").appendChild(receivedImage);
-      }
       else{
         console.log('Other type');
       }
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
     })
-// Display channel member stats
+    // Display channel member stats
     this.channel.on('MemberJoined', function (memberId) {
       document.getElementById("log").appendChild(document.createElement('div')).append(memberId + " joined the channel")
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
       self.userList.push(memberId);
+
+      self.createCursor(memberId);
     })
-// Display channel member stats
+    // Display channel member stats
     this.channel.on('MemberLeft', function (memberId) {
       document.getElementById("log").appendChild(document.createElement('div')).append(memberId + " left the channel")
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
       self.userList = self.userList.filter((member)=>member!=memberId);
+
+      self.removeCursor(memberId);
     })
+
   },
   mounted() {
     this.channel.getMembers().then((memberList)=>{
@@ -212,6 +198,31 @@ export default {
     });
   },
   methods: {
+    createCursor(memberId){
+      // create join member cursor
+      const eventForm = document.getElementById("event");
+      const memberCursor = document.createElement("div");
+      memberCursor.classList.add("cursor");
+      memberCursor.id = "cursor-"+memberId;
+      eventForm.append(memberCursor);
+      // set cursor to random background color and size;
+      const r = Math.floor(Math.random() * 256);
+      const g = Math.floor(Math.random() * 256);
+      const b = Math.floor(Math.random() * 256);
+      const bgColor = "rgb(" + r + "," + g + "," + b + ")";
+      memberCursor.style.background = bgColor;
+      memberCursor.style.border = "solid 1px black";
+      memberCursor.style.width = "10px";
+      memberCursor.style.height = "10px";
+      memberCursor.style.position = "absolute";
+      memberCursor.style.left = "0px";
+      memberCursor.style.top = "0px";
+    },
+    removeCursor(memberId){
+      const eventForm = document.getElementById("event");
+      const memberCursor = document.getElementById(`cursor-${memberId}`);
+      eventForm.removeChild(memberCursor);
+    },
     async loginUser(){
       this.options.uid = document.getElementById("userID").value.toString();
       this.options.token = this.tokenGenerate(this.options.uid);
@@ -219,13 +230,6 @@ export default {
       await this.clientID.login(this.options).catch(function (err){
         console.log('AgoraRTM client login failure!!!');
       });
-    },
-    async logoutUser(){
-      await this.clientID.logout().catch(function (err){
-        console.log('AgoraRTM client logout failure!!!');
-      });
-    },
-    async joinChannel(){
       await this.channel.join().then(()=>{
         document.getElementById("log").appendChild(document.createElement('div'))
           .append("You have successfully joined channel " + this.channel.channelId)
@@ -234,10 +238,16 @@ export default {
       });
       this.channel.getMembers().then((memberList)=>{
         this.userList = memberList;
+        for(let i =0; i<this.userList.length; i++){
+          if (this.userList[i] == this.options.uid) continue;
+          this.createCursor(this.userList[i]);
+        }
       });
-
     },
-    async leaveChannel(){
+    async logoutUser(){
+      await this.clientID.logout().catch(function (err){
+        console.log('AgoraRTM client logout failure!!!');
+      });
       if (this.channel != null) {
         await this.channel.leave().catch(function (err){
           console.log('Channel leaving failed!');
@@ -248,77 +258,10 @@ export default {
       {
         console.log("Channel is empty");
       }
-    },
-    async sendChannelMsg(){
-      let channelMessage = document.getElementById("channelMessage").value.toString();
-
-      if (this.channel != null) {
-        await this.channel.sendMessage({text: channelMessage}).then(() => {
-          document.getElementById("log").appendChild(document.createElement('div')).
-          append("Channel message "+this.options.uid+": " + channelMessage + " from " + this.channel.channelId);
-          let messageInput = document.getElementById("channelMessage");
-          messageInput.value = "";
-          document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
-        });
+      const eventForm = document.getElementById("event");
+      while (eventForm.hasChildNodes()){
+        eventForm.removeChild(eventForm.firstChild);
       }
-      else console.log('Channel is empty');
-    },
-    async sendChannelFileMsg(){
-      let fileBlob = document.getElementById("file_message").files[0];
-      let fileName = fileBlob.name;
-      if (this.channel != null) {
-        const mediaMessage = await this.clientID.createMediaMessageByUploading(fileBlob, {
-          messageType: 'IMAGE',
-          fileName: fileName,
-          description: 'send image',
-          thumbnail: undefined,
-          width: 100,
-          height: 200,
-          thumbnailWidth: 50,
-          thumbnailHeight: 200,
-        }).catch(function (err){
-          console.log('Create by upload error! '+err);
-        });
-        console.log(mediaMessage.mediaId);
-        const imageMessage = await this.clientID.createMessage({
-          mediaId: mediaMessage.mediaId,
-          messageType: 'IMAGE',
-          fileName: fileName,
-          description: 'send image',
-          thumbnail: undefined,
-          width: 100,
-          height: 200,
-          thumbnailWidth: 50,
-          thumbnailHeight: 200,
-        });
-        this.channel.sendMessage(mediaMessage).then(()=>{
-          console.log('Image Message send success');
-          document.getElementById("log").appendChild(document.createElement('div')).
-          append("Channel message "+this.options.uid+": " + mediaMessage.fileName + " from " + this.channel.channelId);
-          document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
-        }).catch(function (err){
-          console.log('Image Message send error!');
-        });
-      }
-      else console.log('Channel is empty');
-    },
-    async sendPeerMsg(){
-      let peerId = document.getElementById("peerId").value.toString();
-      let peerMessage = document.getElementById("peerMessage").value.toString();
-
-      await this.clientID.sendMessageToPeer(
-        { text: peerMessage },
-        peerId,
-      ).then(sendResult => {
-        if (sendResult.hasPeerReceived) {
-          document.getElementById("log").appendChild(document.createElement('div')).
-          append("Message has been received by: " + peerId + " Message: " + peerMessage)
-        } else {
-          document.getElementById("log").appendChild(document.createElement('div'))
-            .append("Message sent to: " + peerId + " Message: " + peerMessage)
-        }
-        document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
-      });
     },
     tokenGenerate(account){
       const expirationTimeInSeconds = 7200;
@@ -333,41 +276,21 @@ export default {
     async canvasMousemove(event){
       const x = event.offsetX;
       const y = event.offsetY;
-
       let channelMessage = x + "," + y;
 
       // Send coordinate value
       if (this.channel != null && this.isPainting === true) {
-        await this.channel.sendMessage({text: channelMessage}).then(() => {
-          // document.getElementById("log").appendChild(document.createElement('div')).
-          // append("Channel message "+this.options.uid+": " + channelMessage + " from " + this.channel.channelId);
-          // let messageInput = document.getElementById("channelMessage");
-          // messageInput.value = "";
-          document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
-        });
+        await this.channel.sendMessage({text: channelMessage})
       }
-
       // Send True for one time cause it make error when message sent more than 180 in 3 sec
       if (this.channel != null && this.isPainting === true && this.trueFalseCheck === false) {
         this.trueFalseCheck = true;
-        await this.channel.sendMessage({text: this.isPainting.toString()}).then(() => {
-          // document.getElementById("log").appendChild(document.createElement('div')).
-          // append("Channel message "+this.options.uid+": " + this.isPainting.toString() + " from " + this.channel.channelId);
-          // let messageInput = document.getElementById("channelMessage");
-          // messageInput.value = "";
-          document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
-        });
+        await this.channel.sendMessage({text: this.isPainting.toString()})
       }
       // Send False for one time
       if (this.channel != null && this.isPainting === false && this.trueFalseCheck === true) {
         this.trueFalseCheck = false;
-        await this.channel.sendMessage({text: this.isPainting.toString()}).then(() => {
-          // document.getElementById("log").appendChild(document.createElement('div')).
-          // append("Channel message "+this.options.uid+": " + this.isPainting.toString() + " from " + this.channel.channelId);
-          // let messageInput = document.getElementById("channelMessage");
-          // messageInput.value = "";
-          document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
-        });
+        await this.channel.sendMessage({text: this.isPainting.toString()})
       }
 
       const self = this;
@@ -399,12 +322,23 @@ export default {
       this.isPainting = false;
     },
     drawMode: function (){
-      this.paintMode='draw';
-      this.btnprev = document.getElementById(`${this.activeBtn}`);
-      this.btnnow = document.getElementById('drawbtn');
-      this.btnprev.classList.remove("active");
-      this.btnnow.classList.add("active");
-      this.activeBtn = 'drawbtn';
+      this.canvas = document.getElementById('drawing-canvas');
+
+      this.context = this.canvas.getContext('2d');
+      const printImg = document.createElement('img');
+
+      this.context.drawImage(printImg, 0, 0, this.canvas.width, this.canvas.height);
+      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
+      this.isCanvasViewed = true;
+      this.context.strokeStyle = this.curColor;
+      this.context.lineWidth = this.brushSize;
+
+      // this.paintMode='draw';
+      // this.btnprev = document.getElementById(`${this.activeBtn}`);
+      // this.btnnow = document.getElementById('drawbtn');
+      // this.btnprev.classList.remove("active");
+      // this.btnnow.classList.add("active");
+      // this.activeBtn = 'drawbtn';
     },
     lightMode: function (){
       this.paintMode='light';
@@ -516,17 +450,20 @@ input{
   display: flex;
   flex-direction: column;
 }
-#logg{
-  border: #222222 solid 1px;
-  overflow : auto;
+#event-form{
+  border: #95999c solid 1px;
+  border-radius: 10px;
   width: 700px;
-  height: 200px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
+  height: 300px;
+  background-color: #95999c;
 }
-#drawing-canvas {
-  border: 1px solid black;
+#event-form div{
+  border: #95999c solid 1px;
+  border-radius: 10px;
+  width: 700px;
+  height: 300px;
+  background-color: #95999c;
+  position: absolute;
 }
 </style>
 
