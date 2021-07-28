@@ -158,12 +158,7 @@ export default {
       undoStack : [],
       redoStack : [],
       targetImage : '',
-      pos: {
-        x: null,
-        y: null
-      },
-      str: [],
-      isTrueSet: '',
+      trueFalseCheck: false,
     }
   },
   created() {
@@ -182,33 +177,32 @@ export default {
     this.channel = this.clientID.createChannel("demoChannel");
     this.channel.on('ChannelMessage', async function (message, memberId) {
       if(message.messageType=='TEXT') {
-        document.getElementById("log").appendChild(document.createElement('div')).append("Message received from: " + memberId + " Message: " + message.text);
+        // document.getElementById("log").appendChild(document.createElement('div')).append("Message received from: " + memberId + " Message: " + message.text);
 
-        if(message !== "true" || message !== "false"){
-          this.str = message.text.split(",");
-        }
-        else if (message === 'true'){
-          this.isTrueSet = (message === 'true');
-        }
-        else {
-          this.isTrueSet = (message === 'false');
-        }
-        // const str = message.text.split(",");
+        let isTrueSet = true;
+        let pos = [];
 
-        let x = parseInt(this.str[0]);
-        let y = parseInt(this.str[1]);
+        if(message.text === "true"){
+          isTrueSet = (message.text === 'true');
+        }
+        else if(message.text === "false"){
+          isTrueSet = (message.text === 'true');
+        }
+        else{
+          pos = message.text.split(",");
+        }
+        let x = parseInt(pos[0]);
+        let y = parseInt(pos[1]);
 
-        this.canvas = document.querySelector("#drawed");
-        // this.canvas.addEventListener('mousedown', (event) => {
-        //   this.painting = true;
-        // })
-        this.painting = true;
+        this.canvas = document.querySelector("#drawing-canvas");
+
+        this.isPainting = isTrueSet;
         this.context = this.canvas.getContext('2d');
         this.context.globalAlpha = 1;
         this.context.lineWidth = this.brushSize;
 
 
-        if(!this.painting){
+        if(!this.isPainting){
           this.context.beginPath();
           this.context.moveTo(x, y);
         }
@@ -219,6 +213,28 @@ export default {
           }
           this.context.lineTo(x, y);
           this.context.stroke();
+        }
+
+        // 옆 캔버스에 그리기
+        this.newCanvas = document.querySelector("#drawed");
+
+        this.painting = isTrueSet;
+        this.newContext = this.newCanvas.getContext('2d');
+        this.newContext.globalAlpha = 1;
+        this.newContext.lineWidth = this.brushSize;
+
+
+        if(!this.painting){
+          this.newContext.beginPath();
+          this.newContext.moveTo(x, y);
+        }
+        else{
+          if(this.paintMode==='light'){
+            this.context.globalAlpha = 0.03;
+            this.context.lineWidth = self.brushSize*2;
+          }
+          this.newContext.lineTo(x, y);
+          this.newContext.stroke();
         }
       }
       else if(message.messageType=='IMAGE'){
@@ -385,20 +401,33 @@ export default {
 
       if (this.channel != null && this.isPainting === true) {
         await this.channel.sendMessage({text: channelMessage}).then(() => {
-          document.getElementById("log").appendChild(document.createElement('div')).
-          append("Channel message "+this.options.uid+": " + channelMessage + " from " + this.channel.channelId);
-          let messageInput = document.getElementById("channelMessage");
-          messageInput.value = "";
+          // document.getElementById("log").appendChild(document.createElement('div')).
+          // append("Channel message "+this.options.uid+": " + channelMessage + " from " + this.channel.channelId);
+          // let messageInput = document.getElementById("channelMessage");
+          // messageInput.value = "";
           document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
         });
       }
 
-      if (this.channel != null && this.isPainting === true) {
+      // Send True for one time
+      if (this.channel != null && this.isPainting === true && this.trueFalseCheck === false) {
+        this.trueFalseCheck = true;
         await this.channel.sendMessage({text: this.isPainting.toString()}).then(() => {
-          document.getElementById("log").appendChild(document.createElement('div')).
-          append("Channel message "+this.options.uid+": " + this.isPainting.toString() + " from " + this.channel.channelId);
-          let messageInput = document.getElementById("channelMessage");
-          messageInput.value = "";
+          // document.getElementById("log").appendChild(document.createElement('div')).
+          // append("Channel message "+this.options.uid+": " + this.isPainting.toString() + " from " + this.channel.channelId);
+          // let messageInput = document.getElementById("channelMessage");
+          // messageInput.value = "";
+          document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
+        });
+      }
+      // Send False for one time
+      if (this.channel != null && this.isPainting === false && this.trueFalseCheck === true) {
+        this.trueFalseCheck = false;
+        await this.channel.sendMessage({text: this.isPainting.toString()}).then(() => {
+          // document.getElementById("log").appendChild(document.createElement('div')).
+          // append("Channel message "+this.options.uid+": " + this.isPainting.toString() + " from " + this.channel.channelId);
+          // let messageInput = document.getElementById("channelMessage");
+          // messageInput.value = "";
           document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
         });
       }
@@ -557,6 +586,12 @@ input{
   padding: 10px;
   display: flex;
   flex-direction: column;
+}
+#drawing-canvas {
+  border: 1px solid black;
+}
+#drawed {
+  border: 1px solid black;
 }
 </style>
 
