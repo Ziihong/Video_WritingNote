@@ -247,12 +247,14 @@ export default {
 .text-field{
   display:inline-block;
   width:200px;
+  border: none 0px;
   border-bottom: #95999c solid 1px;
 }
 
 .text-field-msg{
   display:inline-block;
   width:360px;
+  border: none 0px;
   border-bottom: #95999c solid 1px;
 }
 

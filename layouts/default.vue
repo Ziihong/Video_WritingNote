@@ -133,17 +133,17 @@ export default {
           to: '/myfiles'
         },
         {
-          icon: 'mdi-folder-multiple',
+          icon: 'mdi-file-video',
           title: 'Mypage',
           to: '/mypage'
         },
         {
-          icon: 'mdi-folder-multiple',
+          icon: 'mdi-monitor',
           title: 'share',
           to: '/share'
         },
         {
-          icon: 'mdi-folder-multiple',
+          icon: 'mdi-phone-in-talk',
           title: 'webcam',
           to: '/webcamPage'
         },
@@ -153,9 +153,9 @@ export default {
           to: '/msgtest'
         },
         {
-          icon: 'mdi-forum',
-          title: 'TMP',
-          to: '/tmp'
+          icon: 'mdi-mouse',
+          title: 'eventTest',
+          to: '/eventTest'
         },
         {
           icon: 'mdi-forum',
