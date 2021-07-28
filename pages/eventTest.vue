@@ -68,8 +68,8 @@ export default {
     // 메시지 받기 (type: text, image)
     this.channel.on('ChannelMessage', async function (message, memberId) {
       if (message.messageType == 'TEXT') {
-        const posX = message.text.split(',')[0];
-        const posY = message.text.split(',')[1];
+        const posX = message.text.split(',')[1];
+        const posY = message.text.split(',')[2];
         const eventForm = document.getElementById("event");
         const memberCursor = document.getElementById(`cursor-${memberId}`);
         memberCursor.style.left = posX+"px";
@@ -135,7 +135,7 @@ export default {
       if (this.options.token == "") return;
       const posX = e.offsetX;
       const posY = e.offsetY;
-      const channelMessage = `${posX},${posY}`
+      const channelMessage = `!,${posX},${posY}`
 
       if (this.channel != null) {
         await this.channel.sendMessage({text: channelMessage})

@@ -11,7 +11,7 @@
     <v-form id="member-form">
       <h3>MEMBER</h3>
       <ul v-for="(member) of userList">
-        <li>{{member}}</li>
+        <li>{{ member }}</li>
       </ul>
     </v-form>
 
@@ -22,7 +22,9 @@
     <v-form id="msg-form">
       <input class="text-field-msg" type="text" placeholder="Channel message" id="channelMessage"/>
       <v-btn color="primary" type="button" id="send_channel_message" @click="sendChannelMsg">SEND</v-btn>
-      <v-btn><v-file-input type="file" id="file_message" placeholder="image"/></v-btn>
+      <v-btn>
+        <v-file-input type="file" id="file_message" placeholder="image"/>
+      </v-btn>
       <v-btn color="primary" id="send_channel_file" @click="sendChannelFileMsg">SEND</v-btn>
     </v-form>
 
@@ -36,12 +38,12 @@
 
 <script>
 import AgoraRTM from 'agora-rtm-sdk';
-import {RtmTokenBuilder,RtmRole} from 'agora-access-token';
+import {RtmTokenBuilder, RtmRole} from 'agora-access-token';
 
 export default {
   name: "msgtest",
   data() {
-    return{
+    return {
       appId: "",
       appCertificate: "",
       clientID: "",
@@ -68,15 +70,18 @@ export default {
     });
     this.channel = this.clientID.createChannel("demoChannel");
     this.channel.on('ChannelMessage', async function (message, memberId) {
-      if(message.messageType=='TEXT') {
-        document.getElementById("log").appendChild(document.createElement('div')).append("Message received from: " + memberId + " Message: " + message.text);
-      }
-      else if(message.messageType=='IMAGE'){
+      if (message.messageType == 'TEXT') {
+        // Temporarily blocked the send of mouse events message.
+        const isEvent = message.text.split(',')[0];
+        if (isEvent !== '!') {
+          document.getElementById("log").appendChild(document.createElement('div')).append("Message received from: " + memberId + " Message: " + message.text);
+        }
+      } else if (message.messageType == 'IMAGE') {
         console.log(message);
         const receivedImage = document.createElement("img");
         const reader = new FileReader();
         document.getElementById("log").appendChild(document.createElement('div')).append("Image received from: " + memberId + " Message: " + message.fileName);
-        const blob = await self.clientID.downloadMedia(message.mediaId).catch(function (err){
+        const blob = await self.clientID.downloadMedia(message.mediaId).catch(function (err) {
           console.log("Media download failed!");
         });
         const url = window.URL.createObjectURL(blob);
@@ -87,8 +92,7 @@ export default {
         receivedImage.onload = function () {
           window.URL.revokeObjectURL(url);
         }
-      }
-      else{
+      } else {
         console.log('Other type');
       }
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
@@ -103,37 +107,37 @@ export default {
     this.channel.on('MemberLeft', function (memberId) {
       document.getElementById("log").appendChild(document.createElement('div')).append(memberId + " left the channel")
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
-      self.userList = self.userList.filter((member)=>member!=memberId);
+      self.userList = self.userList.filter((member) => member != memberId);
     })
   },
   mounted() {
-    this.channel.getMembers().then((memberList)=>{
+    this.channel.getMembers().then((memberList) => {
       this.userList = memberList;
     });
   },
   methods: {
-    async loginUser(){
+    async loginUser() {
       // login
       this.options.uid = document.getElementById("userID").value.toString();
       this.options.token = this.tokenGenerate(this.options.uid);
-      console.log('RTM Tokens : '+this.options.token);
-      await this.clientID.login(this.options).catch(function (err){
+      console.log('RTM Tokens : ' + this.options.token);
+      await this.clientID.login(this.options).catch(function (err) {
         console.log('AgoraRTM client login failure!!!');
       });
 
       // join
-      await this.channel.join().then(()=>{
+      await this.channel.join().then(() => {
         document.getElementById("log").appendChild(document.createElement('div'))
           .append("You have successfully joined channel " + this.channel.channelId)
-      }).catch(function (err){
+      }).catch(function (err) {
         console.log('AgoraRTM channel join failure!!!');
       });
-      this.channel.getMembers().then((memberList)=>{
+      this.channel.getMembers().then((memberList) => {
         this.userList = memberList;
       });
     },
-    async logoutUser(){
-      await this.clientID.logout().catch(function (err){
+    async logoutUser() {
+      await this.clientID.logout().catch(function (err) {
         console.log('AgoraRTM client logout failure!!!');
       });
     },
@@ -148,34 +152,30 @@ export default {
     //     this.userList = memberList;
     //   });
     // },
-    async leaveChannel(){
+    async leaveChannel() {
       if (this.channel != null) {
-        await this.channel.leave().catch(function (err){
+        await this.channel.leave().catch(function (err) {
           console.log('Channel leaving failed!');
         });
-        this.userList = this.userList.filter((member)=>member!=this.options.uid);
-      }
-      else
-      {
+        this.userList = this.userList.filter((member) => member != this.options.uid);
+      } else {
         console.log("Channel is empty");
       }
     },
-    async sendChannelMsg(){
+    async sendChannelMsg() {
       let channelMessage = document.getElementById("channelMessage").value.toString();
 
       if (this.channel != null) {
         await this.channel.sendMessage({text: channelMessage}).then(() => {
-          document.getElementById("log").appendChild(document.createElement('div')).
-          append("Channel message "+this.options.uid+": " + channelMessage + " from " + this.channel.channelId);
+          document.getElementById("log").appendChild(document.createElement('div')).append("Channel message " + this.options.uid + ": " + channelMessage + " from " + this.channel.channelId);
           let messageInput = document.getElementById("channelMessage");
           messageInput.value = "";
           // console.log("msg:", messageInput);
           document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
         });
-      }
-      else console.log('Channel is empty');
+      } else console.log('Channel is empty');
     },
-    async sendChannelFileMsg(){
+    async sendChannelFileMsg() {
       let fileBlob = document.getElementById("file_message").files[0];
       let fileName = fileBlob.name;
       if (this.channel != null) {
@@ -188,8 +188,8 @@ export default {
           height: 200,
           thumbnailWidth: 50,
           thumbnailHeight: 200,
-        }).catch(function (err){
-          console.log('Create by upload error! '+err);
+        }).catch(function (err) {
+          console.log('Create by upload error! ' + err);
         });
         console.log(mediaMessage.mediaId);
         // const imageMessage = await this.clientID.createMessage({
@@ -203,28 +203,25 @@ export default {
         //   thumbnailWidth: 50,
         //   thumbnailHeight: 200,
         // });
-        this.channel.sendMessage(mediaMessage).then(()=>{
+        this.channel.sendMessage(mediaMessage).then(() => {
           console.log('Image Message send success');
-          document.getElementById("log").appendChild(document.createElement('div')).
-          append("Channel message "+this.options.uid+": " + mediaMessage.fileName + " from " + this.channel.channelId);
+          document.getElementById("log").appendChild(document.createElement('div')).append("Channel message " + this.options.uid + ": " + mediaMessage.fileName + " from " + this.channel.channelId);
           document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
-        }).catch(function (err){
+        }).catch(function (err) {
           console.log('Image Message send error!');
         });
-      }
-      else console.log('Channel is empty');
+      } else console.log('Channel is empty');
     },
-    async sendPeerMsg(){
+    async sendPeerMsg() {
       let peerId = document.getElementById("peerId").value.toString();
       let peerMessage = document.getElementById("peerMessage").value.toString();
 
       await this.clientID.sendMessageToPeer(
-        { text: peerMessage },
+        {text: peerMessage},
         peerId,
       ).then(sendResult => {
         if (sendResult.hasPeerReceived) {
-          document.getElementById("log").appendChild(document.createElement('div')).
-          append("Message has been received by: " + peerId + " Message: " + peerMessage)
+          document.getElementById("log").appendChild(document.createElement('div')).append("Message has been received by: " + peerId + " Message: " + peerMessage)
         } else {
           document.getElementById("log").appendChild(document.createElement('div'))
             .append("Message sent to: " + peerId + " Message: " + peerMessage)
@@ -232,7 +229,7 @@ export default {
         document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
       });
     },
-    tokenGenerate(account){
+    tokenGenerate(account) {
       const expirationTimeInSeconds = 7200;
       const currentTimestamp = Math.floor(Date.now() / 1000);
       const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
@@ -244,26 +241,26 @@ export default {
 </script>
 
 <style scoped>
-.text-field{
-  display:inline-block;
-  width:200px;
+.text-field {
+  display: inline-block;
+  width: 200px;
   border: none 0px;
   border-bottom: #95999c solid 1px;
 }
 
-.text-field-msg{
-  display:inline-block;
-  width:360px;
+.text-field-msg {
+  display: inline-block;
+  width: 360px;
   border: none 0px;
   border-bottom: #95999c solid 1px;
 }
 
-#login-form{
+#login-form {
   margin: 20px 0 20px 0;
-  padding-left:5px;
+  padding-left: 5px;
 }
 
-#log{
+#log {
   border: #95999c solid 1px;
   border-radius: 10px;
   overflow: auto;
@@ -274,7 +271,7 @@ export default {
   flex-direction: column;
 }
 
-#msg-form, #peer-form, #member-form{
+#msg-form, #peer-form, #member-form {
   border: #95999c solid 1px;
   border-radius: 10px;
   width: 700px;
@@ -282,7 +279,7 @@ export default {
 }
 
 ul, li {
-  display:inline;
+  display: inline;
 }
 
 /*#form-container{*/
