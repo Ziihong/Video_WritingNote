@@ -92,12 +92,6 @@
               @mouseleave="stopPainting"
               @mouseup="stopPainting"
       ></canvas>
-      <canvas id="drawed"
-              @mousemove="canvasMousemove"
-              @mousedown="canvasMousedown"
-              @mouseleave="stopPainting"
-              @mouseup="stopPainting">
-      </canvas>
     </v-row>
   </v-row>
 </template>
@@ -127,7 +121,6 @@ export default {
       paintMode : 'draw',
       undoStack : [],
       redoStack : [],
-      targetImage : '',
       trueFalseCheck: false,
     }
   },
@@ -177,10 +170,6 @@ export default {
           this.context.moveTo(x, y);
         }
         else{
-          if(this.paintMode==='light'){
-            this.context.globalAlpha = 0.03;
-            this.context.lineWidth = self.brushSize*2;
-          }
           this.context.lineTo(x, y);
           this.context.stroke();
         }
@@ -358,7 +347,7 @@ export default {
         });
       }
 
-      // Send True for one time
+      // Send True for one time cause it make error when message sent more than 180 in 3 sec
       if (this.channel != null && this.isPainting === true && this.trueFalseCheck === false) {
         this.trueFalseCheck = true;
         await this.channel.sendMessage({text: this.isPainting.toString()}).then(() => {
@@ -537,9 +526,6 @@ input{
   flex-direction: column;
 }
 #drawing-canvas {
-  border: 1px solid black;
-}
-#drawed {
   border: 1px solid black;
 }
 </style>
