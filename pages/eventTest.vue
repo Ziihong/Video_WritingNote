@@ -88,23 +88,7 @@ export default {
       self.userList.push(memberId);
 
       // create join member cursor
-      const eventForm = document.getElementById("event");
-      const memberCursor = document.createElement("div");
-      memberCursor.classList.add("cursor");
-      memberCursor.id = "cursor-"+memberId;
-      eventForm.append(memberCursor);
-      // set cursor to random background color and size;
-      const r = Math.floor(Math.random() * 256);
-      const g = Math.floor(Math.random() * 256);
-      const b = Math.floor(Math.random() * 256);
-      const bgColor = "rgb(" + r + "," + g + "," + b + ")";
-      memberCursor.style.background = bgColor;
-      memberCursor.style.border = "solid 1px black";
-      memberCursor.style.width = "10px";
-      memberCursor.style.height = "10px";
-      memberCursor.style.position = "absolute";
-      memberCursor.style.left = "0px";
-      memberCursor.style.top = "0px";
+      self.createCursor(memberId);
     })
 // Display channel member stats
     this.channel.on('MemberLeft', function (memberId) {
@@ -124,6 +108,26 @@ export default {
     });
   },
   methods: {
+    createCursor(memberId){
+      // create join member cursor
+      const eventForm = document.getElementById("event");
+      const memberCursor = document.createElement("div");
+      memberCursor.classList.add("cursor");
+      memberCursor.id = "cursor-"+memberId;
+      eventForm.append(memberCursor);
+      // set cursor to random background color and size;
+      const r = Math.floor(Math.random() * 256);
+      const g = Math.floor(Math.random() * 256);
+      const b = Math.floor(Math.random() * 256);
+      const bgColor = "rgb(" + r + "," + g + "," + b + ")";
+      memberCursor.style.background = bgColor;
+      memberCursor.style.border = "solid 1px black";
+      memberCursor.style.width = "10px";
+      memberCursor.style.height = "10px";
+      memberCursor.style.position = "absolute";
+      memberCursor.style.left = "0px";
+      memberCursor.style.top = "0px";
+    },
     async mousePosition(e) {
       if (this.options.token == "") return;
       const posX = e.offsetX;
@@ -149,27 +153,10 @@ export default {
       });
       this.channel.getMembers().then((memberList) => {
         this.userList = memberList;
+        // create cursor of earlier participant
         for(let i =0; i<this.userList.length; i++){
           if (this.userList[i] == this.options.uid) continue;
-          console.log(this.userList[i]);
-          // create join member cursor
-          const eventForm = document.getElementById("event");
-          const memberCursor = document.createElement("div");
-          memberCursor.classList.add("cursor");
-          memberCursor.id = "cursor-"+this.userList[i];
-          eventForm.append(memberCursor);
-          // set cursor to random background color and size;
-          const r = Math.floor(Math.random() * 256);
-          const g = Math.floor(Math.random() * 256);
-          const b = Math.floor(Math.random() * 256);
-          const bgColor = "rgb(" + r + "," + g + "," + b + ")";
-          memberCursor.style.background = bgColor;
-          memberCursor.style.border = "solid 1px black";
-          memberCursor.style.width = "10px";
-          memberCursor.style.height = "10px";
-          memberCursor.style.position = "absolute";
-          memberCursor.style.left = "0px";
-          memberCursor.style.top = "0px";
+          this.createCursor(this.userList[i]);
         }
       });
     },
