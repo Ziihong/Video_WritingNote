@@ -96,10 +96,8 @@ export default {
       document.getElementById("log").scrollTop = document.getElementById("log").scrollHeight;
       self.userList = self.userList.filter((member) => member != memberId);
 
-      // delete cursor
-      const eventForm = document.getElementById("event");
-      const memberCursor = document.getElementById(`cursor-${memberId}`);
-      eventForm.removeChild(memberCursor);
+      // remove cursor
+      self.removeCursor(memberId);
     })
   },
   mounted() {
@@ -127,6 +125,11 @@ export default {
       memberCursor.style.position = "absolute";
       memberCursor.style.left = "0px";
       memberCursor.style.top = "0px";
+    },
+    removeCursor(memberId){
+      const eventForm = document.getElementById("event");
+      const memberCursor = document.getElementById(`cursor-${memberId}`);
+      eventForm.removeChild(memberCursor);
     },
     async mousePosition(e) {
       if (this.options.token == "") return;
@@ -172,6 +175,11 @@ export default {
       await this.clientID.logout().catch(function (err) {
         console.log('AgoraRTM client logout failure!!!');
       });
+      // remove cursors of all users
+      const eventForm = document.getElementById("event");
+      while (eventForm.hasChildNodes()){
+        eventForm.removeChild(eventForm.firstChild);
+      }
     },
     tokenGenerate(account) {
       const expirationTimeInSeconds = 7200;
