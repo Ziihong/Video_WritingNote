@@ -109,12 +109,16 @@ export default {
       },
       activeBtn : '',
       curColor : '#001dff',
-      brushSize : '3.5',
+      brushSize :  '3.5',
       isPainting : false,
       paintMode : 'draw',
       undoStack : [],
       redoStack : [],
       trueFalseCheck: false,
+      isTrueSet: false,
+      pos: [],
+      x: null,
+      y: null,
     }
   },
   created() {
@@ -133,39 +137,37 @@ export default {
     this.channel = this.clientID.createChannel("demoChannel");
     this.channel.on('ChannelMessage', async function (message, memberId) {
       if(message.messageType=='TEXT') {
-        let isTrueSet = true;
-        let pos = [];
+        const self = this;
 
         if(message.text === "true"){
-          isTrueSet = (message.text === 'true');
+          self.isTrueSet = (message.text === 'true');
         }
         else if(message.text === "false"){
-          isTrueSet = (message.text === 'true');
+          self.isTrueSet = (message.text === 'true');
         }
         else{
-          pos = message.text.split(",");
+          self.pos = message.text.split(",");
         }
-        let x = parseInt(pos[0]);
-        let y = parseInt(pos[1]);
-
+        self.x = parseInt(self.pos[0]);
+        self.y = parseInt(self.pos[1]);
         const memberCursor = document.getElementById(`cursor-${memberId}`);
-        memberCursor.style.left = x+"px";
-        memberCursor.style.top = `${y}px`;
+        memberCursor.style.left = self.x+"px";
+        memberCursor.style.top = `${self.y}px`;
 
         this.canvas = document.querySelector("#drawing-canvas");
 
-        this.isPainting = isTrueSet;
+        this.isPainting = self.isTrueSet;
         this.context = this.canvas.getContext('2d');
         this.context.globalAlpha = 1;
         // this.something doesn't work
-        this.context.lineWidth = 3.5;
+        this.context.lineWidth = '3.5';
 
         if(!this.isPainting){
           this.context.beginPath();
-          this.context.moveTo(x, y);
+          this.context.moveTo(self.x, self.y);
         }
         else{
-          this.context.lineTo(x, y);
+          this.context.lineTo(self.x, self.y);
           this.context.stroke();
         }
       }
@@ -279,7 +281,7 @@ export default {
       let channelMessage = x + "," + y;
 
       // Send coordinate value
-      if (this.channel != null && this.isPainting === true) {
+      if (this.channel != null) {
         await this.channel.sendMessage({text: channelMessage})
       }
       // Send True for one time cause it make error when message sent more than 180 in 3 sec
@@ -301,7 +303,6 @@ export default {
 
       if(!this.isPainting){
         self.context.beginPath();
-        // self.context.moveTo(x,y);
       }
       else{
         if(this.paintMode==='light'){
@@ -388,6 +389,7 @@ export default {
       this.brushSize = event.target.value;
     },
     undoExec: function (){
+      console.log(this.undoStack);
       if (this.undoStack.length <= 1){
         return;
       }
