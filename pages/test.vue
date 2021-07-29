@@ -21,7 +21,6 @@
       <li>{{member}}</li>
     </template>
     <v-row style="margin: 10px">
-      <v-btn @click="drawMode">캔버스활성화</v-btn>
       <v-form class="canvas-drawbar">
         <v-btn @click="selectMode" id="selectbtn">
           <v-icon>
@@ -139,15 +138,14 @@ export default {
       if(message.messageType=='TEXT') {
         const self = this;
 
-        if(message.text === "true"){
-          self.isTrueSet = (message.text === 'true');
-        }
-        else if(message.text === "false"){
+        // true, false가 정확한 시간에 오지 않고 좌표값보다 느리거나 빠르게 옴, 따라서 그릴때랑 안그릴때의 좌표값이 섞임.
+        if(message.text === "true" || message.text === "false"){
           self.isTrueSet = (message.text === 'true');
         }
         else{
           self.pos = message.text.split(",");
         }
+
         self.x = parseInt(self.pos[0]);
         self.y = parseInt(self.pos[1]);
         const memberCursor = document.getElementById(`cursor-${memberId}`);
@@ -159,7 +157,6 @@ export default {
         this.isPainting = self.isTrueSet;
         this.context = this.canvas.getContext('2d');
         this.context.globalAlpha = 1;
-        // this.something doesn't work
         this.context.lineWidth = '3.5';
 
         if(!this.isPainting){
@@ -198,6 +195,16 @@ export default {
     this.channel.getMembers().then((memberList)=>{
       this.userList = memberList;
     });
+    this.canvas = document.getElementById('drawing-canvas');
+
+    this.context = this.canvas.getContext('2d');
+    const printImg = document.createElement('img');
+
+    this.context.drawImage(printImg, 0, 0, this.canvas.width, this.canvas.height);
+    this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
+    this.isCanvasViewed = true;
+    this.context.strokeStyle = this.curColor;
+    this.context.lineWidth = this.brushSize;
   },
   methods: {
     createCursor(memberId){
@@ -280,21 +287,24 @@ export default {
       const y = event.offsetY;
       let channelMessage = x + "," + y;
 
-      // Send coordinate value
-      if (this.channel != null) {
-        await this.channel.sendMessage({text: channelMessage})
+      // exceed 180 message in 3sec error handling. But cause drawing error
+      try {
+        if (this.channel != null) {
+          await this.channel.sendMessage({text: channelMessage})
+        }
+        // Send True for one time cause it make error when message sent more than 180 in 3 sec
+        if (this.channel != null && this.isPainting === true && this.trueFalseCheck === false) {
+          this.trueFalseCheck = true;
+          await this.channel.sendMessage({text: this.isPainting.toString()})
+        }
+        // Send False for one time
+        if (this.channel != null && this.isPainting === false && this.trueFalseCheck === true) {
+          this.trueFalseCheck = false;
+          await this.channel.sendMessage({text: this.isPainting.toString()})
+        }
+      } catch (e) {
+        console.log(e);
       }
-      // Send True for one time cause it make error when message sent more than 180 in 3 sec
-      if (this.channel != null && this.isPainting === true && this.trueFalseCheck === false) {
-        this.trueFalseCheck = true;
-        await this.channel.sendMessage({text: this.isPainting.toString()})
-      }
-      // Send False for one time
-      if (this.channel != null && this.isPainting === false && this.trueFalseCheck === true) {
-        this.trueFalseCheck = false;
-        await this.channel.sendMessage({text: this.isPainting.toString()})
-      }
-
       const self = this;
       self.canvas = document.querySelector("#drawing-canvas");
       self.context = self.canvas.getContext('2d');
@@ -323,23 +333,12 @@ export default {
       this.isPainting = false;
     },
     drawMode: function (){
-      this.canvas = document.getElementById('drawing-canvas');
-
-      this.context = this.canvas.getContext('2d');
-      const printImg = document.createElement('img');
-
-      this.context.drawImage(printImg, 0, 0, this.canvas.width, this.canvas.height);
-      this.undoStack.push(this.context.getImageData(0,0,this.canvas.width,this.canvas.height));
-      this.isCanvasViewed = true;
-      this.context.strokeStyle = this.curColor;
-      this.context.lineWidth = this.brushSize;
-
-      // this.paintMode='draw';
-      // this.btnprev = document.getElementById(`${this.activeBtn}`);
-      // this.btnnow = document.getElementById('drawbtn');
-      // this.btnprev.classList.remove("active");
-      // this.btnnow.classList.add("active");
-      // this.activeBtn = 'drawbtn';
+      this.paintMode='draw';
+      this.btnprev = document.getElementById(`${this.activeBtn}`);
+      this.btnnow = document.getElementById('drawbtn');
+      this.btnprev.classList.remove("active");
+      this.btnnow.classList.add("active");
+      this.activeBtn = 'drawbtn';
     },
     lightMode: function (){
       this.paintMode='light';
