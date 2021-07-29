@@ -162,6 +162,11 @@ export default {
           title: 'drawingSendTest',
           to: '/test'
         },
+        {
+          icon: 'mdi-forum',
+          title: 'screenShare',
+          to: '/screenShare'
+        },
       ],
       miniVariant: false,
       right: true,

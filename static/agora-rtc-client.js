@@ -128,4 +128,28 @@ export default class RTCClient {
       })
     })
   }
+  publishScreenShare() {
+    return new Promise((resolve, reject) => {
+      // Create a local stream
+      this.localStream = AgoraRTC.createStream({
+        streamID: this.option.uid,
+        audio: false,
+        video: false,
+        screen: true,
+        screenAudio: true,
+      })
+      // Initialize the local stream
+      this.localStream.init(() => {
+        console.log("init local stream success")
+        resolve(this.localStream)
+        // Publish the local stream
+        this.client.publish(this.localStream, (err) => {
+          console.log(err)
+        })
+      }, (err) => {
+        reject(err)
+        console.error("init local stream failed ", err)
+      })
+    })
+  }
 }

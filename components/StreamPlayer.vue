@@ -11,7 +11,7 @@ export default {
   mounted () {
     this.$nextTick(function () {
       if (this.stream && !this.stream.isPlaying()) {
-        this.stream.play(`${this.domId}`, {fit: 'cover'}, (err) => {
+        this.stream.play(`${this.domId}`, (err) => {
           if (err && err.status !== 'aborted') {
             console.warn('trigger autoplay policy')
           }
@@ -19,14 +19,6 @@ export default {
       }
     })
   },
-  beforeDestroy () {
-    if (this.stream) {
-      if (this.stream.isPlaying()) {
-        this.stream.stop()
-      }
-      this.stream.close()
-    }
-  }
 }
 </script>
 

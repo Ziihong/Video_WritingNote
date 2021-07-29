@@ -3,9 +3,11 @@
     <div>
       <label>User ID</label>
       <input type="text" placeholder="User ID" id="userId">
-      <input type="text" placeholder="Channel" id="channelID">
+      <input type="text" placeholder="Channel" id="channelId">
       <v-btn v-if="!onVoice" color="primary" @click="voiceCallJoin"><v-icon left>mdi-phone</v-icon></v-btn>
       <v-btn v-else @click='leaveCall'><v-icon>mdi-phone-off</v-icon></v-btn>
+      <v-btn v-if="!onScreen" color="primary" @click="startShareScreen"><v-icon left>mdi-monitor</v-icon></v-btn>
+      <v-btn v-else @click='leaveCall'><v-icon>mdi-off</v-icon></v-btn>
     </div>
     <template v-for="(member) of userList">
       <li>{{member}}</li>
@@ -44,7 +46,7 @@ export default {
       remoteStreams: [],
       userList: [],
       appCertificate: "",
-      onVideo: false,
+      onScreen: false,
       onVoice: false,
     }
   },
@@ -92,6 +94,21 @@ export default {
       })
       this.disableJoin = true;
     },
+    startShareScreen() {
+      this.option.token = this.tokenGenerate();
+      this.rtc.joinChannel(this.option).then(() => {
+        this.rtc.publishScreenShare().then((stream) => {
+          this.localStream = stream;
+          this.onScreen = true;
+          this.userList.push(this.option.uid);
+        }).catch((err) => {
+          console.log("Publish Failure" + err);
+        })
+      }).catch((err) => {
+        console.log("Join Failure" + err);
+      })
+      this.disableJoin = true;
+    },
     leaveCall() {
       this.disableJoin = false;
       this.rtc.leaveChannel().then(() => {
@@ -102,12 +119,12 @@ export default {
       this.localStream = null;
       this.remoteStreams = [];
       this.userList = [];
-      this.onVideo = false;
+      this.onScreen = false;
       this.onVoice = false;
     },
     tokenGenerate() {
       this.option.uid = document.getElementById("userId").value.toString();
-      this.option.channel = document.getElementById("channelID").value.toString();
+      this.option.channel = document.getElementById("channelId").value.toString();
       const expirationTimeInSeconds = 7200;
       const currentTimestamp = Math.floor(Date.now() / 1000);
       const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
@@ -123,5 +140,12 @@ export default {
 </script>
 
 <style scoped>
-
+.agora-view {
+  display: flex;
+  flex-wrap: wrap;
+}
+.show {
+  width: 600px;
+  height: 400px;
+}
 </style>
