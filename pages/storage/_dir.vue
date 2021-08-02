@@ -3,7 +3,7 @@
     <v-col class="text-left">
 
       <div style="padding-top: 30px;background-color: white;color: black;">
-        name: {{ name }}<br>description: {{ description }}
+        name: {{ name }}<br>description: {{ description }}<br>id: {{ uid }}
         <span>
           <v-text-field v-model="name" light/>
           <v-btn @click="onSave" v-html="`Save Name`" light/>
@@ -55,7 +55,7 @@
             <video :src="fileUrls[index]" width="200px"/>
             {{ file.data().title }}
             <v-btn @click="$event.stopPropagation() ,removeFile(file)">Delete</v-btn>
-            <v-btn @click="$event.stopPropagation()">Edit Name</v-btn>
+            <v-btn @click="$event.stopPropagation()"> Rename</v-btn>
           </v-list-item-action>
         </v-list-item>
         <div v-if="isUploading">
@@ -130,8 +130,12 @@ export default {
   },
 
   mounted() {
-    if(!this.$fire.auth.currentUser)
+    // go to home if not logged in
+    if(!this.$fire.auth.currentUser){
+      this.$router.push('/');
+      alert('Need Login!');
       return;
+    }
 
     // set current uid & current Directory path
     this.uid = this.$fire.auth.currentUser.uid

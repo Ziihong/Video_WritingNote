@@ -140,6 +140,7 @@ export default {
     async logout() {
       try {
         await this.$fire.auth.signOut()
+        await this.$router.push('/');
       } catch (e) {
         alert(e)
       }
