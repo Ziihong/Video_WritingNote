@@ -113,6 +113,19 @@
         </v-list>
       </v-menu>
 
+
+<!--test-->
+<!--      <bubble-menu-->
+<!--        class="bubble-menu"-->
+<!--        :tippy-options="{ animation: false }"-->
+<!--        :editor="editor"-->
+<!--        v-if="editor"-->
+<!--      >-->
+<!--        <v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addColumnBefore().run()" :disabled="!editor.can().addColumnBefore()">addCol</v-btn>-->
+<!--        <v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addColumnBefore().run()" :disabled="!editor.can().addColumnBefore()">addCol</v-btn>-->
+<!--      </bubble-menu>-->
+<!--test-->
+
       <bubble-menu
         class="bubble-menu"
         :tippy-options="{ animation: false }"
@@ -125,15 +138,15 @@
         <button @click="editor.chain().focus().setImage({ size: 'large' }).run()" :class="{'is-active': editor.isActive('custom-image', {size: 'large'})}">Large</button>
         <span style="color: #aaa">|</span>
         <button @click="editor.chain().focus().setImage({ float: 'left' }).run()" :class="{'is-active': editor.isActive('custom-image', {float: 'left'})}">Left</button>
-        <button @click="editor.chain().focus().setImage({ float: 'none' }).run()" :class="{'is-active': editor.isActive('custom-image', {float: 'none'})}">No float</button>
+        <button @click="editor.chain().focus().setImage({ float: 'none' }).run()" :class="{'is-active': editor.isActive('custom-image', {float: 'none'})}">Center</button>
         <button @click="editor.chain().focus().setImage({ float: 'right' }).run()" :class="{'is-active': editor.isActive('custom-image', {float: 'right'})}">Right</button>
         <span style="color: #aaa">|</span>
       </bubble-menu>
 
-      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="addImage()"><v-icon>mdi-camera-iris</v-icon></v-btn></template><span>Screenshot</span></v-tooltip>
+      <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="addImage()" :class="{'is-active': editor.isActive('custom-image')}"><v-icon>mdi-camera-iris</v-icon></v-btn></template><span>Screenshot</span></v-tooltip>
       <v-btn style="align-self: center" @click="saveDocument">save</v-btn>
     </div>
-    <editor-content :editor="editor" class="editDoc" style="border: 2px solid lightslategrey"/>
+    <editor-content :editor="editor" class="editDoc" style="border: 2px solid lightslategrey; cursor: auto"/>
     <canvas id="screenshot" style="border: 1px solid black; width: 100%;" hidden></canvas>
   </div>
 </template>
@@ -158,7 +171,7 @@ import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import Link from '@tiptap/extension-link'
-import CustomImage from 'assets/image_test'
+import CustomImage from 'assets/customImage'
 
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 // load all highlight.js languages
@@ -166,6 +179,7 @@ import lowlight from 'lowlight'
 
 
 const CustomTableCell = TableCell.extend({
+
   addAttributes() {
     return {
       // extend the existing attributes …
@@ -202,7 +216,6 @@ export default {
       dialog: false,
       inputRow: '',
       inputCol: '',
-      fileDoc: '',
     }
   },
 
@@ -256,6 +269,7 @@ export default {
     // set link text editor
     setLink() {
       const url = window.prompt('URL')
+      if(!url) return;
       try {
         this.editor.chain().focus().extendMarkRange('link').setLink({href: url}).run()
       } catch (e) {
@@ -272,44 +286,57 @@ export default {
       this.editor.chain().focus().insertTable({rows: this.inputRow, cols: this.inputCol, withHeaderRow: true}).run()
     },
 
-    // save document in firestore
+    // save document in firebase storage
     saveDocument() {
-      //const document = this.editor.getJSON()
-      //const docToJson = JSON.stringify(document)
-      const document = this.editor.getHTML()
+      const doc = this.editor.getJSON()
+      const document = JSON.stringify(doc)
+      // const document = this.editor.getHTML()
       console.log(document)
 
       const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`)
       file.get().then( async (doc)=>{
 
         const title = doc.data().title;
-        const fileTitle = title + '.txt';
+        const fileTitle = title + '.json';
         const storageRef = this.$fire.storage.ref(`users/${this.$fire.auth.currentUser.uid}/${title}/${fileTitle}`)
-        const uploadTask = storageRef.putString(document); // 데이터 저장
+        const blob = new Blob([document], {type: "application/json"})
+        const uploadTask = storageRef.put(blob); // 데이터 저장
 
         await this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`).update({documentSrc: uploadTask.snapshot.ref.fullPath})
       });
     },
 
-    //fetch from firebase storage
-    async fetchDocument(){
-      //this.editor.setContents('<p>This is <strong>some</strong> inserted text. 👋</p>');
-      const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`);
-      file.get().then( async (doc)=>{
+    //fetch document from firebase storage
+    async fetchDocument() {
 
-        const src = doc.data().documentSrc
-        const self = this;
-        const request = new XMLHttpRequest()
+        const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`);
+        file.get().then(async (doc) => {
 
-        await Promise.resolve(self.$fire.storage.ref(src).getDownloadURL().then(result=>{
-          this.fileDoc = result
-          request.open('GET', result, true)
-          request.send(null)
-          //console.log(request)
-          request.onload = () => this.editor.commands.setContent(request.responseText)
-        }));
+          const src = doc.data().documentSrc
+          const self = this;
+          const xhr = new XMLHttpRequest()
+          const fr = new FileReader();
 
-    })
+          try {
+
+          await Promise.resolve(self.$fire.storage.ref(src).getDownloadURL().then(result => {
+            xhr.responseType = "blob";
+            xhr.onload = function (event) {
+              let blob = xhr.response;
+              fr.readAsText(blob)
+            }
+            xhr.open("GET", result, true);
+            xhr.send(null);
+          }));
+
+          fr.addEventListener("load", (e) => {
+            const fetch = JSON.parse(fr.result)
+            this.editor.commands.setContent(fetch)
+          });
+        }catch (e){
+            console.log("There is no saved document.")
+          }
+        })
     }
   }
 }
@@ -329,6 +356,7 @@ export default {
 .ProseMirror{
   min-height: 30rem; // 화면 크기에 따라 높이 다름.
   border: 1px solid lightslategrey;
+  padding: 1em;
 
   a {
     color: slateblue;
@@ -338,7 +366,7 @@ export default {
     border-collapse: collapse;
     table-layout: fixed;
     width: 100%;
-    margin: 0;
+    margin-top: 0.5em;
     overflow: auto;
 
     td,
@@ -387,15 +415,16 @@ img {
   display: block;
   margin-left: auto;
   margin-right: auto;
+
   &.ProseMirror-selectednode {
     outline: 3px solid #68cef8;
   }
 }
 .custom-image-small {
-  max-width: 33%;
+  max-width: 30%;
 }
 .custom-image-medium {
-  max-width: 50%;
+  max-width: 49%;
 }
 .custom-image-large {
   max-width: 100%;
@@ -450,58 +479,6 @@ pre {
     padding: 0;
     background: none;
     font-size: 0.8rem;
-  }
-
-  .hljs-comment,
-  .hljs-quote {
-    color: #616161;
-  }
-
-  .hljs-variable,
-  .hljs-template-variable,
-  .hljs-attribute,
-  .hljs-tag,
-  .hljs-name,
-  .hljs-regexp,
-  .hljs-link,
-  .hljs-name,
-  .hljs-selector-id,
-  .hljs-selector-class {
-    color: #F98181;
-  }
-
-  .hljs-number,
-  .hljs-meta,
-  .hljs-built_in,
-  .hljs-builtin-name,
-  .hljs-literal,
-  .hljs-type,
-  .hljs-params {
-    color: #FBBC88;
-  }
-
-  .hljs-string,
-  .hljs-symbol,
-  .hljs-bullet {
-    color: #B9F18D;
-  }
-
-  .hljs-title,
-  .hljs-section {
-    color: #FAF594;
-  }
-
-  .hljs-keyword,
-  .hljs-selector-tag {
-    color: #70CFF8;
-  }
-
-  .hljs-emphasis {
-    font-style: italic;
-  }
-
-  .hljs-strong {
-    font-weight: 700;
   }
 }
 
