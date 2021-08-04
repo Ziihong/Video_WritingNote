@@ -74,12 +74,19 @@
                                 hide-details=true
                   ></v-text-field>
                 </v-list-item-content>
+
                 <v-btn icon id="editbookmarkTitle" style="z-index: 1"
                        @click.stop= "isNamechange? null : editbookmarkTitle($event,item)">
                   <v-icon>mdi-square-edit-outline</v-icon></v-btn>
+
+                <v-btn icon id="deletebookmarkTitle" style="color: green; z-index: 1"
+                       @click.stop="addToDocument($event,item)">
+                  <v-icon>mdi-plus</v-icon></v-btn>
+                       
                 <v-btn icon id="deletebookmarkTitle" style="color: red; z-index: 1"
                        @click.stop="deleteBookmark($event,item)">
                   <v-icon>mdi-minus</v-icon></v-btn>
+
               </v-list-item>
             </v-list>
         </v-col>
@@ -144,6 +151,7 @@ import Link from '@tiptap/extension-link'
 // import lowlight from 'lowlight'
 
 import TextEditor from "@/components/TextEditor";
+import EventBus from "@/components/EventBus"
 
 import Vue from 'vue'
 import VueColumnsResizable from 'vue-columns-resizable'
@@ -240,6 +248,10 @@ export default {
       }
     }
     // End Size Setting
+
+    if(this.$route.query.bookmark) {
+      this.searchBookmark(this.$route.query.bookmark)
+    }
   },
 
   beforeDestroy() {
@@ -259,13 +271,13 @@ export default {
       });
     },
     // method for setting bookmark array
-    setBookmarkArray(){
-      this.$fire.firestore.doc(
-        `users/${this.$fire.auth.currentUser.uid}/files/${this.id}`).
-      collection('bookmarks').orderBy('bookmarkTime').onSnapshot((async querySnapshot => {
+    async setBookmarkArray(){
+      await this.$fire.firestore.doc(
+      `users/${this.$fire.auth.currentUser.uid}/files/${this.id}`).
+      collection('bookmarks').orderBy('bookmarkTime').onSnapshot(async querySnapshot => {
         //console.log(querySnapshot.docs[0].data().title);
         this.items = querySnapshot.docs;
-      }));
+      });
     },
 
     // BOOKMARKS METHODS
@@ -402,6 +414,26 @@ export default {
       // delete on firestore
       this.$fire.firestore.doc(
         `users/${this.$fire.auth.currentUser.uid}/files/${this.id}/bookmarks/${item.id}`).delete();
+    },
+
+    // add bookmark button to document
+    addToDocument(event, item) {
+      event.stopPropagation()
+      
+      EventBus.$emit('addBookmarkToDocument', item)
+    },
+
+    searchBookmark(title) {
+      this.$fire.firestore.doc(
+      `users/${this.$fire.auth.currentUser.uid}/files/${this.id}`).
+      collection('bookmarks').orderBy('bookmarkTime').onSnapshot( bookmarks => {
+
+        bookmarks.docs.map( doc => {
+          if (doc.data().title == title) {
+            return console.log(doc.data())
+          }
+        })
+      });
     },
 
     // NOTES METHODS
