@@ -164,6 +164,8 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 // load all highlight.js languages
 import lowlight from 'lowlight'
 
+import EventBus from '@/components/EventBus'
+
 
 const CustomTableCell = TableCell.extend({
   addAttributes() {
@@ -230,6 +232,19 @@ export default {
         // }),
       ],
 
+    })
+  },
+
+  created() {
+    EventBus.$on('addBookmarkToDocument', item => {
+      let editorHtml = this.editor.getHTML()
+      const temp = `<a href="?bookmark=${item.data().title}" target="_self">${item.data().title}<a>`
+      console.log(item.data().title)
+      editorHtml += temp
+
+      try {
+        this.editor.commands.setContent(editorHtml)
+      } catch(e){}
     })
   },
 
@@ -309,7 +324,7 @@ export default {
           request.onload = () => this.editor.commands.setContent(request.responseText)
         }));
 
-    })
+      })
     }
   }
 }
