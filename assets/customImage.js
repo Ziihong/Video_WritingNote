@@ -9,11 +9,11 @@ export default Image.extend({
       ...Image.config.addAttributes(),
       size: {
         default: 'large',
-        rendered: false
+        rendered: true  //-> HTML 태그를 렌더링할 때 속성으로 추가할지 결정
       },
       float: {
-        default: 'none',
-        rendered: false
+        default: 'Center',
+        rendered: true
       }
 
     }
@@ -22,7 +22,7 @@ export default Image.extend({
   addCommands() {
     return {
       setImage: (options) => ({ tr, commands }) => {
-        if(tr.selection?.node?.type?.name == 'custom-image') {
+        if(tr.selection?.node?.type?.name === 'custom-image') {
           return commands.updateAttributes('custom-image', options)
         }
         else {

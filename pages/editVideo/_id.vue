@@ -546,7 +546,7 @@ export default {
 }
 
 table{
- table-layout: auto;
+  table-layout: auto;
   width: 100%;
 }
 </style>
