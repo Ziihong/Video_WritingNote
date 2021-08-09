@@ -86,7 +86,7 @@
         </v-row>
       </v-col>
       <v-col id="docArea">
-        <TextEditor/>
+        <VideoDocument/>
       </v-col>
     </v-row>
 
@@ -143,11 +143,8 @@ import Link from '@tiptap/extension-link'
 // // load all highlight.js languages
 // import lowlight from 'lowlight'
 
-import TextEditor from "@/components/TextEditor";
+import VideoDocument from "@/components/documentTab/Document";
 
-import Vue from 'vue'
-import VueColumnsResizable from 'vue-columns-resizable'
-Vue.use(VueColumnsResizable)
 
 class Note{
   constructor(x, y, comment) {
@@ -186,7 +183,7 @@ export default {
   layout:'empty',
   components: {
     EditorContent,
-    TextEditor,
+    VideoDocument,
   },
   data () {
     return {

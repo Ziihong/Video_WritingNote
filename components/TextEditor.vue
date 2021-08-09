@@ -113,19 +113,6 @@
         </v-list>
       </v-menu>
 
-
-<!--test-->
-<!--      <bubble-menu-->
-<!--        class="bubble-menu"-->
-<!--        :tippy-options="{ animation: false }"-->
-<!--        :editor="editor"-->
-<!--        v-if="editor"-->
-<!--      >-->
-<!--        <v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addColumnBefore().run()" :disabled="!editor.can().addColumnBefore()">addCol</v-btn>-->
-<!--        <v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addColumnBefore().run()" :disabled="!editor.can().addColumnBefore()">addCol</v-btn>-->
-<!--      </bubble-menu>-->
-<!--test-->
-
       <bubble-menu
         class="bubble-menu"
         :tippy-options="{ animation: false }"
@@ -165,18 +152,12 @@ import Highlight from '@tiptap/extension-highlight'
 import Underline from '@tiptap/extension-underline'
 import VTooltip from 'v-tooltip'
 import Typography from '@tiptap/extension-typography'
-
 import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import Link from '@tiptap/extension-link'
-import CustomImage from 'assets/customImage'
-
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
-// load all highlight.js languages
-import lowlight from 'lowlight'
-
+import CustomImage from '~/middleware/customImage'
 
 const CustomTableCell = TableCell.extend({
 
@@ -221,7 +202,6 @@ export default {
 
   mounted() {
 
-    //fetchDocument 에서 불러온 데이터 content 에 설정
     this.fetchDocument();
 
     this.editor = new Editor({
@@ -238,10 +218,9 @@ export default {
             class: 'custom-image'
           }
         }),
-        // CodeBlockLowlight.configure({
-        //
-        // }),
       ],
+      editable: true,
+      autofocus: 'end',
 
     })
   },
@@ -291,7 +270,6 @@ export default {
       const doc = this.editor.getJSON()
       const document = JSON.stringify(doc)
       // const document = this.editor.getHTML()
-      console.log(document)
 
       const file = this.$fire.firestore.doc(`users/${this.$fire.auth.currentUser.uid}/files/${this.$route.params.id}`)
       file.get().then( async (doc)=>{
