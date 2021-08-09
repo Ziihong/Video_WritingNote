@@ -82,7 +82,7 @@
                 <v-btn icon id="deletebookmarkTitle" style="color: green; z-index: 1"
                        @click.stop="addToDocument($event,item)">
                   <v-icon>mdi-plus</v-icon></v-btn>
-                       
+
                 <v-btn icon id="deletebookmarkTitle" style="color: red; z-index: 1"
                        @click.stop="deleteBookmark($event,item)">
                   <v-icon>mdi-minus</v-icon></v-btn>
@@ -93,7 +93,7 @@
         </v-row>
       </v-col>
       <v-col id="docArea">
-        <TextEditor/>
+        <VideoDocument/>
       </v-col>
     </v-row>
 
@@ -150,12 +150,9 @@ import Link from '@tiptap/extension-link'
 // // load all highlight.js languages
 // import lowlight from 'lowlight'
 
-import TextEditor from "@/components/TextEditor";
 import EventBus from "@/components/EventBus"
+import VideoDocument from "@/components/documentTab/Document";
 
-import Vue from 'vue'
-import VueColumnsResizable from 'vue-columns-resizable'
-Vue.use(VueColumnsResizable)
 
 class Note{
   constructor(x, y, comment) {
@@ -194,7 +191,7 @@ export default {
   layout:'empty',
   components: {
     EditorContent,
-    TextEditor,
+    VideoDocument,
   },
   data () {
     return {
@@ -419,7 +416,7 @@ export default {
     // add bookmark button to document
     addToDocument(event, item) {
       event.stopPropagation()
-      
+
       EventBus.$emit('addBookmarkToDocument', item)
     },
 

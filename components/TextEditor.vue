@@ -113,19 +113,6 @@
         </v-list>
       </v-menu>
 
-
-<!--test-->
-<!--      <bubble-menu-->
-<!--        class="bubble-menu"-->
-<!--        :tippy-options="{ animation: false }"-->
-<!--        :editor="editor"-->
-<!--        v-if="editor"-->
-<!--      >-->
-<!--        <v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addColumnBefore().run()" :disabled="!editor.can().addColumnBefore()">addCol</v-btn>-->
-<!--        <v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().addColumnBefore().run()" :disabled="!editor.can().addColumnBefore()">addCol</v-btn>-->
-<!--      </bubble-menu>-->
-<!--test-->
-
       <bubble-menu
         class="bubble-menu"
         :tippy-options="{ animation: false }"
@@ -171,7 +158,7 @@ import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import Link from '@tiptap/extension-link'
-import CustomImage from 'assets/customImage'
+import CustomImage from '~/middleware/customImage'
 
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 // load all highlight.js languages
@@ -244,6 +231,8 @@ export default {
         //
         // }),
       ],
+      editable: true,
+      autofocus: 'end',
 
     })
   },
