@@ -151,7 +151,7 @@ import Link from '@tiptap/extension-link'
 // import lowlight from 'lowlight'
 
 import EventBus from "@/components/EventBus"
-import VideoDocument from "@/components/documentTab/Document";
+import VideoDocument from "@/components/Document";
 
 
 class Note{
@@ -209,10 +209,21 @@ export default {
       prenote: null,
       items: [],
       fileUrl: '',
+
     }
   },
 
+  created(){
+    window.addEventListener('resize', this.handleResize);
+  },
+
+  beforeMount() {
+    window.addEventListener('resize', this.handleResize);
+  },
+
   mounted() {
+    window.addEventListener('resize', this.handleResize);
+
     this.editor = new Editor({
       extensions: [
         StarterKit, Document, Paragraph, Text, Highlight, Underline, Link, CodeBlock, Image, Dropcursor, TextAlign, Typography, VTooltip, TableRow, TableHeader, CustomTableCell,
@@ -238,7 +249,6 @@ export default {
     if(canvas){
       const vid = document.getElementById('currentVideo');
       const vidStyle = vid.getBoundingClientRect();
-      console.log(canvas);
       if(canvas != null){
         canvas.style.width = vidStyle.width+"px"
         canvas.style.height = vidStyle.height+"px"
@@ -256,6 +266,17 @@ export default {
   },
 
   methods:{
+
+    handleResize(){
+      const test_video = document.getElementById('currentVideo');
+      const test_canvas = document.querySelector('.clickPlane');
+      test_canvas.width = test_video.videoWidth;
+      test_canvas.height = test_video.videoHeight;
+      console.log("video", test_video.videoWidth, test_video.videoHeight);
+      console.log("canvas", test_canvas.width, test_canvas.height);
+    },
+
+
     // FETCH DATA FROM FIRESTORE
     // method for setting Video source
     setVideoSource(){
@@ -565,8 +586,8 @@ export default {
   opacity: 20%;
   position: absolute;
   z-index: 1;
-  width: 69.7%;
-  height: 55%;
+  width: 75%;
+  height: 50%;
 }
 
 #docArea{

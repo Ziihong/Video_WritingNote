@@ -13,12 +13,10 @@
 </template>
 
 <script>
+import EventBus from '@/components/EventBus'
+
 export default {
-  props: {
-    mode: {
-      type: String,
-    }
-  },
+
   data () {
     return {
       selectedIndex: 0, // the index of the selected tab,
@@ -34,7 +32,14 @@ export default {
   methods: {
     selectTab (i) {
       this.selectedIndex = i
-      // loop over all the tabs
+      try{
+        if(this.selectedIndex === 1){   // === Viewer
+          EventBus.$emit('clickViewer');
+        }
+      }
+      catch (e){
+        console.log(e);
+      }
       this.tabs.forEach((tab, index) => {
         tab.isActive = (index === i)
       })
@@ -50,12 +55,11 @@ export default {
   margin: 0 0 0 20px;
   padding: 0;
 }
-ul> li {
-  padding: 15px 30px;
+ul.tabHeader > li {
+  padding: 10px 10px;
   border-radius: 10px;
   margin: 0;
   display: inline-block;
-  margin-right: 5px;
   cursor: pointer;
 }
 ul > li.tabSelected {

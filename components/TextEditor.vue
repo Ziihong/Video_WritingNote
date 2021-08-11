@@ -75,7 +75,7 @@
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().undo().run()"><v-icon>mdi-undo</v-icon></v-btn></template><span>Undo</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().redo().run()"><v-icon>mdi-redo</v-icon></v-btn></template><span>Redo</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHighlight().run()" :class="{ 'is-active': editor.isActive('highlight') }"><v-icon>mdi-marker</v-icon></v-btn></template><span>Highlight</span></v-tooltip>
-      <v-tooltip top><v-dialog><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHighlight().run()" :class="{ 'is-active': editor.isActive('highlight') }">table</v-btn></template></v-dialog><span>Table</span></v-tooltip>
+      <v-tooltip top><v-dialog><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleHighlight().run()" :class="{ 'is-active': editor.isActive('table') }">table</v-btn></template></v-dialog><span>Table</span></v-tooltip>
       <v-menu>
         <template #activator="{ on: onMenu }">
           <v-tooltip top>
@@ -146,13 +146,14 @@ import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 import CodeBlock from '@tiptap/extension-code-block'
 import Image from '@tiptap/extension-image'
+import BulletList from '@tiptap/extension-bullet-list'
+import ListItem from '@tiptap/extension-list-item'
 import Dropcursor from '@tiptap/extension-dropcursor'
 import TextAlign from '@tiptap/extension-text-align'
 import Highlight from '@tiptap/extension-highlight'
 import Underline from '@tiptap/extension-underline'
 import VTooltip from 'v-tooltip'
 import Typography from '@tiptap/extension-typography'
-
 import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
@@ -208,14 +209,26 @@ export default {
     }
   },
 
-  mounted() {
+  created() {
+    EventBus.$on('addBookmarkToDocument', item => {
+      let editorHtml = this.editor.getHTML()
+      const temp = `<a href="?bookmark=${item.data().title}" target="_self">${item.data().title}<a>`
+      console.log(item.data().title)
+      editorHtml += temp
 
+      try {
+        this.editor.commands.setContent(editorHtml)
+      } catch(e){}
+    })
+  },
+
+  mounted() {
     //fetchDocument 에서 불러온 데이터 content 에 설정
     this.fetchDocument();
 
     this.editor = new Editor({
       extensions: [
-        StarterKit, Document, Paragraph, Text, Highlight, Underline, Link, CodeBlock, Image, Dropcursor, TextAlign, Typography, VTooltip, TableRow, TableHeader, CustomTableCell,
+        StarterKit, Document, Paragraph, Text, Highlight, Underline, Link, CodeBlock, Image, BulletList, ListItem, Dropcursor, TextAlign, Typography, VTooltip, TableRow, TableHeader, CustomTableCell,
         TextAlign.configure({
           types: ['heading', 'paragraph'],
         }),
@@ -233,20 +246,6 @@ export default {
       ],
       editable: true,
       autofocus: 'end',
-
-    })
-  },
-
-  created() {
-    EventBus.$on('addBookmarkToDocument', item => {
-      let editorHtml = this.editor.getHTML()
-      const temp = `<a href="?bookmark=${item.data().title}" target="_self">${item.data().title}<a>`
-      console.log(item.data().title)
-      editorHtml += temp
-
-      try {
-        this.editor.commands.setContent(editorHtml)
-      } catch(e){}
     })
   },
 
@@ -255,6 +254,11 @@ export default {
   },
 
   methods: {
+    // resize screen
+    handleResize(event){
+      console.log("handleResize");
+    },
+
     // screenshot upload text editor
     async addImage() {
       const video = document.getElementById("currentVideo")
@@ -358,6 +362,15 @@ export default {
   width: 100%;
 }
 .ProseMirror{
+  > * + * {
+    margin-top: 0.75em;
+  }
+
+  ul,
+  ol {
+    padding: 0 1rem;
+  }
+
   min-height: 30rem; // 화면 크기에 따라 높이 다름.
   border: 1px solid lightslategrey;
   padding: 1em;

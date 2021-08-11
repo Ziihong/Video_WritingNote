@@ -1,13 +1,13 @@
 
 <template>
   <div>
-    <editor-content :editor="editor" class="viewDoc" style="border: 2px solid lightslategrey; cursor: auto"/>
-    <canvas id="screenshot" style="border: 1px solid black; width: 100%;" hidden></canvas>
+    <editor-content :editor="editor" class="viewDoc" style="border: 2px solid lightslategrey; border-radius: 10px;"/>
+    <v-btn @click="pdfDownload">pdf</v-btn>
   </div>
 </template>
 
 <script>
-import { Editor ,EditorContent, BubbleMenu } from '@tiptap/vue-2'
+import { Editor ,EditorContent } from '@tiptap/vue-2'
 import StarterKit from '@tiptap/starter-kit'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
@@ -24,6 +24,7 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import Link from '@tiptap/extension-link'
 import CustomImage from '~/middleware/customImage'
+import EventBus from '@/components/EventBus'
 
 const CustomTableCell = TableCell.extend({
 
@@ -54,7 +55,6 @@ const CustomTableCell = TableCell.extend({
 export default {
   components: {
     EditorContent,
-    BubbleMenu,
   },
 
   data() {
@@ -64,8 +64,13 @@ export default {
     }
   },
 
-  mounted() {
+  created(){
+    EventBus.$on('clickViewer', ()=>{
+      this.fetchDocument();
+    })
+  },
 
+  mounted() {
     this.fetchDocument();
 
     this.editor = new Editor({
@@ -84,7 +89,6 @@ export default {
         }),
       ],
       editable: false,
-
     })
   },
 
@@ -106,7 +110,6 @@ export default {
         const fr = new FileReader();
 
         try {
-
           await Promise.resolve(self.$fire.storage.ref(src).getDownloadURL().then(result => {
             xhr.responseType = "blob";
             xhr.onload = function (event) {
@@ -125,6 +128,9 @@ export default {
           console.log("There is no saved document.")
         }
       })
+    },
+
+    pdfDownload(){
     }
   }
 }

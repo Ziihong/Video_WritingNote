@@ -1,6 +1,6 @@
 <template lang="html">
   <div class='wrapper'>
-    <Tabs :mode="mode">
+    <Tabs>
       <TabItem title="Editor"><TextEditor/></TabItem>
       <TabItem title="Viewer"><TextViewer/></TabItem>
     </Tabs>
@@ -8,10 +8,11 @@
 </template>
 
 <script>
-import TabItem from './TabItem.vue'
-import Tabs from './Tabs.vue'
+import TabItem from '../layouts/Tab/TabItem.vue'
+import Tabs from '../layouts/Tab/Tabs.vue'
 import TextEditor from '@/components/TextEditor'
 import TextViewer from '@/components/TextViewer'
+
 export default {
   components: {
     TabItem,
@@ -19,14 +20,6 @@ export default {
     TextViewer,
     TextEditor,
   },
-  data () {
-    return {
-      mode: 'dark'
-    }
-  },
-  methods: {
-
-  }
 }
 </script>
 
@@ -39,6 +32,7 @@ export default {
 .wrapper {
   width: 100%;
   min-height: 300vh;
+  border-radius: 5px;
 }
 
 </style>
