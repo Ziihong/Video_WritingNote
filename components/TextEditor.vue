@@ -1,7 +1,7 @@
 
 <template>
   <div>
-    <div v-if="editor" class="editBar" style="border: 2px solid lightgray">
+    <div v-if="editor" class="editBar" style="border: 1px solid lightslategrey">
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }"><v-icon>mdi-format-bold</v-icon></v-btn></template><span>Bold</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }"><v-icon>mdi-format-italic</v-icon></v-btn></template><span>Italic</span></v-tooltip>
       <v-tooltip top><template v-slot:activator="{ on, attrs }"><v-btn text icon v-bind="attrs" v-on="on" @click="editor.chain().focus().toggleStrike().run()" :class="{ 'is-active': editor.isActive('strike') }"><v-icon>mdi-format-strikethrough</v-icon></v-btn></template><span>Strike</span></v-tooltip>
@@ -366,14 +366,14 @@ export default {
     margin-top: 0.75em;
   }
 
+  min-height: 30rem; // 화면 크기에 따라 높이 다름.
+  padding: 1em;
+  outline: none;
+
   ul,
   ol {
     padding: 0 1rem;
   }
-
-  min-height: 30rem; // 화면 크기에 따라 높이 다름.
-  border: 1px solid lightslategrey;
-  padding: 1em;
 
   a {
     color: slateblue;
@@ -406,14 +406,6 @@ export default {
       background-color: #f1f3f5;
     }
 
-    .selectedCell:after {
-      z-index: 2;
-      position: absolute;
-      content: "";
-      left: 0; right: 0; top: 0; bottom: 0;
-      background: rgba(200, 200, 255, 0.4);
-      pointer-events: none;
-    }
 
     .column-resize-handle {
       position: absolute;
@@ -434,11 +426,11 @@ img {
   margin-right: auto;
 
   &.ProseMirror-selectednode {
-    outline: 3px solid #68cef8;
+    outline: 3px solid cornflowerblue;
   }
 }
 .custom-image-small {
-  max-width: 30%;
+  max-width: 32%;
 }
 .custom-image-medium {
   max-width: 49%;
@@ -457,7 +449,7 @@ img {
 }
 .bubble-menu {
   display: flex;
-  background-color: slategray;
+  background-color: cadetblue;
   padding: 0.2rem;
   border-radius: 0.5rem;
   button {

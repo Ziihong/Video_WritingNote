@@ -1,8 +1,7 @@
 
 <template>
   <div>
-    <editor-content :editor="editor" class="viewDoc" style="border: 2px solid lightslategrey; border-radius: 10px;"/>
-    <v-btn @click="pdfDownload">pdf</v-btn>
+    <editor-content :editor="editor" class="viewDoc"/>
   </div>
 </template>
 
@@ -64,12 +63,6 @@ export default {
     }
   },
 
-  created(){
-    EventBus.$on('clickViewer', ()=>{
-      this.fetchDocument();
-    })
-  },
-
   mounted() {
     this.fetchDocument();
 
@@ -129,9 +122,6 @@ export default {
         }
       })
     },
-
-    pdfDownload(){
-    }
   }
 }
 </script>
@@ -141,16 +131,16 @@ export default {
 
 .viewDoc{
   font-family: sans-serif;
-  font-weight: normal;
-  text-align: justify;
   overflow-y: scroll;
-  height: 30rem; //화면 크기에 따라 높이 다름.
+  height: 35rem; // 화면 크기에 따라 높이 다름.
   width: 100%;
+  border: 1px solid lightslategrey;
+  border-radius: 10px;
 }
 .ProseMirror{
-  min-height: 30rem; // 화면 크기에 따라 높이 다름.
-  border: 1px solid lightslategrey;
+  min-height: 35rem; // 화면 크기에 따라 높이 다름.
   padding: 1em;
+  outline: none;
 
   a {
     color: slateblue;
@@ -209,13 +199,10 @@ img {
   display: block;
   margin-left: auto;
   margin-right: auto;
-
-  &.ProseMirror-selectednode {
-    outline: 3px solid #68cef8;
-  }
+  outline: none;
 }
 .custom-image-small {
-  max-width: 30%;
+  max-width: 32%;
 }
 .custom-image-medium {
   max-width: 49%;
