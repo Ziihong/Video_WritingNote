@@ -591,7 +591,7 @@ export default {
 }
 
 #docArea{
-  /*border-left: lightgrey;*/
+  padding-left: 1em;
 }
 
 table{

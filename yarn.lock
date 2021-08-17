@@ -1848,6 +1848,15 @@
     prosemirror-view "^1.18.11"
     tippy.js "^6.3.1"
 
+"@tiptap/extension-floating-menu@^2.0.0-beta.23":
+  version "2.0.0-beta.23"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-floating-menu/-/extension-floating-menu-2.0.0-beta.23.tgz#d2075e58449585fe4e365a1fbf1f708bf54dc2c5"
+  integrity sha512-vhJjqf0iCbn8sG/WSbGW/5QkJNoh/l25In7zGG6eRRwzxKiQy2POdkSxCZdcFKjyg8xNu8OXZURWkpSx8XJKSA==
+  dependencies:
+    prosemirror-state "^1.3.4"
+    prosemirror-view "^1.19.0"
+    tippy.js "^6.3.1"
+
 "@tiptap/extension-gapcursor@^2.0.0-beta.19":
   version "2.0.0-beta.19"
   resolved "https://registry.yarnpkg.com/@tiptap/extension-gapcursor/-/extension-gapcursor-2.0.0-beta.19.tgz#6d826c240496b1a77808999d51b8917adb372cc5"
@@ -8064,6 +8073,15 @@ prosemirror-view@^1.0.0, prosemirror-view@^1.1.0, prosemirror-view@^1.13.3, pros
   version "1.18.11"
   resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.18.11.tgz#1a839508e7cb6d500a95512af8079661f9e36034"
   integrity sha512-KXUM8UEV+IK4JYWHNyxkPGDGbxeTEUHQv3POApfyTRN5eMcPFbY4cB0mDJr0LPelVvYPghmZDOCqfCIm9mYHtQ==
+  dependencies:
+    prosemirror-model "^1.14.3"
+    prosemirror-state "^1.0.0"
+    prosemirror-transform "^1.1.0"
+
+prosemirror-view@^1.19.0:
+  version "1.19.1"
+  resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.19.1.tgz#3fe7479c28501da68348b31fb62a02f56d6d96c8"
+  integrity sha512-Hijrpw5pSkdr8LvN2KK9AxNngdJu9ftZw8gGB6jCk2bYOZ3VsQCehjKn4Chx3LvRiG3IGZMR2m1jWylRjmiwpA==
   dependencies:
     prosemirror-model "^1.14.3"
     prosemirror-state "^1.0.0"

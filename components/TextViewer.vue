@@ -137,6 +137,7 @@ export default {
   border: 1px solid lightslategrey;
   border-radius: 10px;
 }
+
 .ProseMirror{
   min-height: 35rem; // 화면 크기에 따라 높이 다름.
   padding: 1em;
@@ -193,13 +194,17 @@ export default {
     }
   }
 }
+
 img {
   width: 100%;
   height: auto;
   display: block;
   margin-left: auto;
   margin-right: auto;
-  outline: none;
+
+  &.ProseMirror-selectednode{
+    outline: none;
+  }
 }
 .custom-image-small {
   max-width: 32%;
